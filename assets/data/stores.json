@@ -1,0 +1,619 @@
+{
+    "stores": [
+      {
+        "storeId": "12345678",
+        "name": "The Maple Tavern",
+        "category": ["happy_hour", "special_events"],
+        "location": {
+          "latitude": 49.2827,
+          "longitude": -123.1207
+        },
+        "menus": [
+          {
+            "itemId": "87654321",
+            "name": "Draft Beer",
+            "price": 5.99,
+            "type": "alcohol"
+          },
+          {
+            "itemId": "87654322",
+            "name": "Wings",
+            "price": 8.99,
+            "type": "food"
+          },
+          {
+            "itemId": "87654323",
+            "name": "House Wine",
+            "price": 6.99,
+            "type": "alcohol"
+          },
+          {
+            "itemId": "87654324",
+            "name": "Nachos",
+            "price": 12.99,
+            "type": "food"
+          },
+          {
+            "itemId": "87654325",
+            "name": "Soft Drinks",
+            "price": 2.99,
+            "type": "drink"
+          }
+        ]
+      },
+      {
+        "storeId": "23456789",
+        "name": "Sushi Paradise",
+        "category": ["all_you_can_eat"],
+        "location": {
+          "latitude": 49.2760,
+          "longitude": -123.1187
+        },
+        "menus": [
+          {
+            "itemId": "98765431",
+            "name": "Salmon Nigiri",
+            "price": 3.99,
+            "type": "food"
+          },
+          {
+            "itemId": "98765432",
+            "name": "California Roll",
+            "price": 4.99,
+            "type": "food"
+          },
+          {
+            "itemId": "98765433",
+            "name": "Green Tea",
+            "price": 2.50,
+            "type": "drink"
+          },
+          {
+            "itemId": "98765434",
+            "name": "Sake",
+            "price": 7.99,
+            "type": "alcohol"
+          },
+          {
+            "itemId": "98765435",
+            "name": "Miso Soup",
+            "price": 2.99,
+            "type": "food"
+          }
+        ]
+      },
+      {
+        "storeId": "34567890",
+        "name": "Korean BBQ House",
+        "category": ["all_you_can_eat", "special_events"],
+        "location": {
+          "latitude": 49.2855,
+          "longitude": -123.1197
+        },
+        "menus": [
+          {
+            "itemId": "76543210",
+            "name": "Pork Belly",
+            "price": 15.99,
+            "type": "food"
+          },
+          {
+            "itemId": "76543211",
+            "name": "Soju",
+            "price": 13.99,
+            "type": "alcohol"
+          },
+          {
+            "itemId": "76543212",
+            "name": "Beef Short Ribs",
+            "price": 18.99,
+            "type": "food"
+          },
+          {
+            "itemId": "76543213",
+            "name": "Korean Beer",
+            "price": 5.99,
+            "type": "alcohol"
+          },
+          {
+            "itemId": "76543214",
+            "name": "Kimchi Stew",
+            "price": 12.99,
+            "type": "food"
+          }
+        ]
+      },
+      {
+        "storeId": "45678901",
+        "name": "Taco Tuesday",
+        "category": ["happy_hour", "deals_and_discounts"],
+        "location": {
+          "latitude": 49.2820,
+          "longitude": -123.1180
+        },
+        "menus": [
+          {
+            "itemId": "65432109",
+            "name": "Street Tacos",
+            "price": 2.99,
+            "type": "food"
+          },
+          {
+            "itemId": "65432108",
+            "name": "Margarita",
+            "price": 6.99,
+            "type": "alcohol"
+          },
+          {
+            "itemId": "65432107",
+            "name": "Nachos Grande",
+            "price": 13.99,
+            "type": "food"
+          },
+          {
+            "itemId": "65432106",
+            "name": "Mexican Beer",
+            "price": 4.99,
+            "type": "alcohol"
+          },
+          {
+            "itemId": "65432105",
+            "name": "Horchata",
+            "price": 3.99,
+            "type": "drink"
+          }
+        ]
+      },
+      {
+        "storeId": "56789012",
+        "name": "Pub & Grub",
+        "category": ["happy_hour", "deals_and_discounts"],
+        "location": {
+          "latitude": 49.2840,
+          "longitude": -123.1220
+        },
+        "menus": [
+          {
+            "itemId": "54321098",
+            "name": "Burger & Beer",
+            "price": 14.99,
+            "type": "food"
+          },
+          {
+            "itemId": "54321097",
+            "name": "Fish & Chips",
+            "price": 15.99,
+            "type": "food"
+          },
+          {
+            "itemId": "54321096",
+            "name": "Craft Beer",
+            "price": 6.99,
+            "type": "alcohol"
+          },
+          {
+            "itemId": "54321095",
+            "name": "Caesar",
+            "price": 7.99,
+            "type": "alcohol"
+          },
+          {
+            "itemId": "54321094",
+            "name": "Onion Rings",
+            "price": 6.99,
+            "type": "food"
+          }
+        ]
+      },
+      {
+        "storeId": "67890123",
+        "name": "Ramen House",
+        "category": ["happy_hour", "deals_and_discounts"],
+        "location": {
+          "latitude": 49.2815,
+          "longitude": -123.1190
+        },
+        "menus": [
+          {
+            "itemId": "43210987",
+            "name": "Tonkotsu Ramen",
+            "price": 13.99,
+            "type": "food"
+          },
+          {
+            "itemId": "43210986",
+            "name": "Asahi Beer",
+            "price": 5.99,
+            "type": "alcohol"
+          },
+          {
+            "itemId": "43210985",
+            "name": "Gyoza",
+            "price": 6.99,
+            "type": "food"
+          },
+          {
+            "itemId": "43210984",
+            "name": "Green Tea",
+            "price": 2.50,
+            "type": "drink"
+          },
+          {
+            "itemId": "43210983",
+            "name": "Karaage",
+            "price": 7.99,
+            "type": "food"
+          }
+        ]
+      },
+      {
+        "storeId": "78901234",
+        "name": "Pizza Paradise",
+        "category": ["deals_and_discounts", "special_events"],
+        "location": {
+          "latitude": 49.2835,
+          "longitude": -123.1160
+        },
+        "menus": [
+          {
+            "itemId": "32109876",
+            "name": "Margherita Pizza",
+            "price": 14.99,
+            "type": "food"
+          },
+          {
+            "itemId": "32109875",
+            "name": "Italian Wine",
+            "price": 8.99,
+            "type": "alcohol"
+          },
+          {
+            "itemId": "32109874",
+            "name": "Caesar Salad",
+            "price": 8.99,
+            "type": "food"
+          },
+          {
+            "itemId": "32109873",
+            "name": "Garlic Bread",
+            "price": 5.99,
+            "type": "food"
+          },
+          {
+            "itemId": "32109872",
+            "name": "Tiramisu",
+            "price": 6.99,
+            "type": "food"
+          }
+        ]
+      },
+      {
+        "storeId": "89012345",
+        "name": "Seafood Bay",
+        "category": ["all_you_can_eat", "special_events"],
+        "location": {
+          "latitude": 49.2850,
+          "longitude": -123.1240
+        },
+        "menus": [
+          {
+            "itemId": "21098765",
+            "name": "Oysters",
+            "price": 18.99,
+            "type": "food"
+          },
+          {
+            "itemId": "21098764",
+            "name": "White Wine",
+            "price": 7.99,
+            "type": "alcohol"
+          },
+          {
+            "itemId": "21098763",
+            "name": "Fish Tacos",
+            "price": 12.99,
+            "type": "food"
+          },
+          {
+            "itemId": "21098762",
+            "name": "Clam Chowder",
+            "price": 6.99,
+            "type": "food"
+          },
+          {
+            "itemId": "21098761",
+            "name": "Grilled Salmon",
+            "price": 16.99,
+            "type": "food"
+          }
+        ]
+      },
+      {
+        "storeId": "90123456",
+        "name": "Veggie Delight",
+        "category": ["deals_and_discounts", "special_events"],
+        "location": {
+          "latitude": 49.2810,
+          "longitude": -123.1170
+        },
+        "menus": [
+          {
+            "itemId": "10987654",
+            "name": "Buddha Bowl",
+            "price": 13.99,
+            "type": "food"
+          },
+          {
+            "itemId": "10987653",
+            "name": "Kombucha",
+            "price": 4.99,
+            "type": "drink"
+          },
+          {
+            "itemId": "10987652",
+            "name": "Quinoa Salad",
+            "price": 11.99,
+            "type": "food"
+          },
+          {
+            "itemId": "10987651",
+            "name": "Smoothie",
+            "price": 6.99,
+            "type": "drink"
+          },
+          {
+            "itemId": "10987650",
+            "name": "Avocado Toast",
+            "price": 9.99,
+            "type": "food"
+          }
+        ]
+      },
+      {
+        "storeId": "01234567",
+        "name": "BBQ King",
+        "category": ["happy_hour", "all_you_can_eat"],
+        "location": {
+          "latitude": 49.2845,
+          "longitude": -123.1230
+        },
+        "menus": [
+          {
+            "itemId": "09876543",
+            "name": "Beef Brisket",
+            "price": 17.99,
+            "type": "food"
+          },
+          {
+            "itemId": "09876542",
+            "name": "Craft Beer",
+            "price": 6.99,
+            "type": "alcohol"
+          },
+          {
+            "itemId": "09876541",
+            "name": "Pulled Pork",
+            "price": 14.99,
+            "type": "food"
+          },
+          {
+            "itemId": "09876540",
+            "name": "Coleslaw",
+            "price": 4.99,
+            "type": "food"
+          },
+          {
+            "itemId": "09876539",
+            "name": "Bourbon",
+            "price": 8.99,
+            "type": "alcohol"
+          }
+        ]
+      },
+      {
+        "storeId": "11223344",
+        "name": "Dim Sum Palace",
+        "category": ["all_you_can_eat", "special_events"],
+        "location": {
+          "latitude": 49.2825,
+          "longitude": -123.1210
+        },
+        "menus": [
+          {
+            "itemId": "44332211",
+            "name": "Har Gow",
+            "price": 6.99,
+            "type": "food"
+          },
+          {
+            "itemId": "44332212",
+            "name": "Siu Mai",
+            "price": 5.99,
+            "type": "food"
+          },
+          {
+            "itemId": "44332213",
+            "name": "Chinese Tea",
+            "price": 2.99,
+            "type": "drink"
+          },
+          {
+            "itemId": "44332214",
+            "name": "Rice Rolls",
+            "price": 7.99,
+            "type": "food"
+          },
+          {
+            "itemId": "44332215",
+            "name": "Egg Tarts",
+            "price": 4.99,
+            "type": "food"
+          }
+        ]
+      },
+      {
+        "storeId": "22334455",
+        "name": "Burger Joint",
+        "category": ["happy_hour", "deals_and_discounts"],
+        "location": {
+          "latitude": 49.2830,
+          "longitude": -123.1200
+        },
+        "menus": [
+          {
+            "itemId": "55443322",
+            "name": "Classic Burger",
+            "price": 12.99,
+            "type": "food"
+          },
+          {
+            "itemId": "55443323",
+            "name": "Milkshake",
+            "price": 5.99,
+            "type": "drink"
+          },
+          {
+            "itemId": "55443324",
+            "name": "Fries",
+            "price": 4.99,
+            "type": "food"
+          },
+          {
+            "itemId": "55443325",
+            "name": "Root Beer",
+            "price": 3.99,
+            "type": "drink"
+          },
+          {
+            "itemId": "55443326",
+            "name": "Onion Rings",
+            "price": 5.99,
+            "type": "food"
+          }
+        ]
+      },
+      {
+        "storeId": "33445566",
+        "name": "Mediterranean Grill",
+        "category": ["deals_and_discounts", "special_events"],
+        "location": {
+          "latitude": 49.2840,
+          "longitude": -123.1180
+        },
+        "menus": [
+          {
+            "itemId": "66554433",
+            "name": "Shawarma",
+            "price": 11.99,
+            "type": "food"
+          },
+          {
+            "itemId": "66554434",
+            "name": "Hummus",
+            "price": 6.99,
+            "type": "food"
+          },
+          {
+            "itemId": "66554435",
+            "name": "Greek Salad",
+            "price": 9.99,
+            "type": "food"
+          },
+          {
+            "itemId": "66554436",
+            "name": "Turkish Coffee",
+            "price": 3.99,
+            "type": "drink"
+          },
+          {
+            "itemId": "66554437",
+            "name": "Baklava",
+            "price": 4.99,
+            "type": "food"
+          }
+        ]
+      },
+      {
+        "storeId": "44556677",
+        "name": "Ice Cream Paradise",
+        "category": ["deals_and_discounts", "special_events"],
+        "location": {
+          "latitude": 49.2820,
+          "longitude": -123.1195
+        },
+        "menus": [
+          {
+            "itemId": "77665544",
+            "name": "Sundae",
+            "price": 7.99,
+            "type": "food"
+          },
+          {
+            "itemId": "77665545",
+            "name": "Banana Split",
+            "price": 8.99,
+            "type": "food"
+          },
+          {
+            "itemId": "77665546",
+            "name": "Milkshake",
+            "price": 5.99,
+            "type": "drink"
+          },
+          {
+            "itemId": "77665547",
+            "name": "Waffle Cone",
+            "price": 4.99,
+            "type": "food"
+          },
+          {
+            "itemId": "77665548",
+            "name": "Hot Fudge",
+            "price": 2.99,
+            "type": "food"
+          }
+        ]
+      },
+      {
+        "storeId": "55667788",
+        "name": "Pho House",
+        "category": ["happy_hour", "deals_and_discounts"],
+        "location": {
+          "latitude": 49.2835,
+          "longitude": -123.1215
+        },
+        "menus": [
+          {
+            "itemId": "88776655",
+            "name": "Beef Pho",
+            "price": 12.99,
+            "type": "food"
+          },
+          {
+            "itemId": "88776656",
+            "name": "Spring Rolls",
+            "price": 6.99,
+            "type": "food"
+          },
+          {
+            "itemId": "88776657",
+            "name": "Vietnamese Coffee",
+            "price": 4.99,
+            "type": "drink"
+          },
+          {
+            "itemId": "88776658",
+            "name": "Banh Mi",
+            "price": 8.99,
+            "type": "food"
+          },
+          {
+            "itemId": "88776659",
+            "name": "Coconut Water",
+            "price": 3.99,
+            "type": "drink"
+          }
+        ]
+      }
+    ]
+  }
