@@ -4,6 +4,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'pages/category_stores_page.dart';
 import 'models/store.dart';
 import 'services/store_service.dart';
+import 'services/location_service.dart';
+import 'package:geolocator/geolocator.dart';
 
 void main() {
   runApp(const MyApp());
@@ -37,6 +39,84 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  final LocationService _locationService = LocationService();
+  Position? _currentPosition;
+
+  Future<void> _getNearbyStores() async {
+    try {
+      final position = await _locationService.getCurrentLocation();
+      if (position != null) {
+        setState(() {
+          _currentPosition = position;
+        });
+
+        // 위치 정보를 가지고 CategoryStoresPage로 이동
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => CategoryStoresPage(
+              category: 'nearby',
+              title: 'Nearby Stores',
+              userLocation: position,
+            ),
+          ),
+        );
+      } else {
+        // 위치 정보를 받아올 수 없을 때 수동 입력 다이얼로그 표시
+        _showAddressInputDialog();
+      }
+    } catch (e) {
+      print('Error getting location: $e');
+      _showAddressInputDialog();
+    }
+  }
+
+  void _showAddressInputDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        String address = '';
+        return AlertDialog(
+          title: const Text('주소 입력'),
+          content: TextField(
+            onChanged: (value) {
+              address = value;
+            },
+            decoration: const InputDecoration(
+              hintText: '예: 1234 Robson St, Vancouver',
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Text('취소'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                // 입력된 주소로 위치 설정
+                final position = _locationService.setManualLocation(address);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => CategoryStoresPage(
+                      category: 'nearby',
+                      title: 'Nearby Stores',
+                      userLocation: position,
+                    ),
+                  ),
+                );
+              },
+              child: const Text('확인'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -158,16 +238,20 @@ class _HomePageState extends State<HomePage> {
     return Card(
       child: InkWell(
         onTap: () {
-          print('Card tapped with category: $category'); // 디버그 프린트 추가
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => CategoryStoresPage(
-                category: category,
-                title: label,
+          if (label == 'Nearby') {
+            _getNearbyStores();
+          } else {
+            // 기존의 카테고리 네비게이션 코드
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => CategoryStoresPage(
+                  category: category,
+                  title: label,
+                ),
               ),
-            ),
-          );
+            );
+          }
         },
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

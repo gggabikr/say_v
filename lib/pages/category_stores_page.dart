@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
 import '../models/store.dart';
 import '../services/store_service.dart';
+import 'package:geolocator/geolocator.dart';
 
 class CategoryStoresPage extends StatefulWidget {
   final String category;
   final String title;
+  final Position? userLocation;
 
   const CategoryStoresPage({
     super.key,
     required this.category,
     required this.title,
+    this.userLocation,
   });
 
   @override
