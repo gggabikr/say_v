@@ -12,6 +12,10 @@ class StoreService {
         .toList();
   }
 
+  Future<List<Store>> getStores() async {
+    return await loadStores();
+  }
+
   Future<List<Store>> getStoresByCategory(String category) async {
     print('Searching for stores with category: $category');
 
@@ -30,10 +34,10 @@ class StoreService {
     final stores = await loadStores();
     return stores
       ..sort((a, b) {
-        final distA = _calculateDistance(
-            userLat, userLng, a.location.latitude, a.location.longitude);
-        final distB = _calculateDistance(
-            userLat, userLng, b.location.latitude, b.location.longitude);
+        final distA =
+            _calculateDistance(userLat, userLng, a.latitude, a.longitude);
+        final distB =
+            _calculateDistance(userLat, userLng, b.latitude, b.longitude);
         return distA.compareTo(distB);
       });
   }

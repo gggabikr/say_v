@@ -1,27 +1,30 @@
 class Store {
-  final String storeId;
+  final String id;
   final String name;
-  final List<String> category;
-  final Location location;
-  final List<MenuItem> menus;
+  final String address;
+  final double latitude;
+  final double longitude;
+  final String category;
+  double? distance;
 
   Store({
-    required this.storeId,
+    required this.id,
     required this.name,
+    required this.address,
+    required this.latitude,
+    required this.longitude,
     required this.category,
-    required this.location,
-    required this.menus,
+    this.distance,
   });
 
   factory Store.fromJson(Map<String, dynamic> json) {
     return Store(
-      storeId: json['storeId'],
-      name: json['name'],
-      category: List<String>.from(json['category']),
-      location: Location.fromJson(json['location']),
-      menus: (json['menus'] as List)
-          .map((menu) => MenuItem.fromJson(menu))
-          .toList(),
+      id: json['storeId']?.toString() ?? '',
+      name: json['name']?.toString() ?? '',
+      address: json['address']?.toString() ?? '',
+      latitude: (json['location']?['latitude'] ?? 0.0).toDouble(),
+      longitude: (json['location']?['longitude'] ?? 0.0).toDouble(),
+      category: (json['category'] as List).join(','),
     );
   }
 }

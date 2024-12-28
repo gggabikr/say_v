@@ -9,11 +9,11 @@ class CategoryStoresPage extends StatefulWidget {
   final Position? userLocation;
 
   const CategoryStoresPage({
-    super.key,
+    Key? key,
     required this.category,
     required this.title,
     this.userLocation,
-  });
+  }) : super(key: key);
 
   @override
   State<CategoryStoresPage> createState() => _CategoryStoresPageState();
@@ -21,73 +21,73 @@ class CategoryStoresPage extends StatefulWidget {
 
 class _CategoryStoresPageState extends State<CategoryStoresPage> {
   final StoreService _storeService = StoreService();
-  String _sortBy = 'name'; // 기본 정렬 방식
+  List<Store> stores = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadStores();
+  }
+
+  Future<void> _loadStores() async {
+    try {
+      print('Loading stores for category: ${widget.category}');
+      print(
+          'User location: ${widget.userLocation?.latitude}, ${widget.userLocation?.longitude}');
+
+      final allStores = await _storeService.getStores();
+
+      if (widget.userLocation != null) {
+        // 각 스토어에 대해 현재 위치와의 거리 계산
+        for (var store in allStores) {
+          double distanceInMeters = Geolocator.distanceBetween(
+            widget.userLocation!.latitude,
+            widget.userLocation!.longitude,
+            store.latitude,
+            store.longitude,
+          );
+          store.distance = distanceInMeters;
+        }
+
+        // 거리순으로 정렬
+        allStores.sort((a, b) => (a.distance ?? 0).compareTo(b.distance ?? 0));
+      }
+
+      setState(() {
+        stores = allStores;
+      });
+
+      print('Loaded ${stores.length} stores');
+    } catch (e) {
+      print('Error loading stores: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    print('Selected category: ${widget.category}');
-
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
-        actions: [
-          PopupMenuButton<String>(
-            onSelected: (value) {
-              setState(() {
-                _sortBy = value;
-              });
-            },
-            itemBuilder: (context) => [
-              const PopupMenuItem(
-                value: 'name',
-                child: Text('알파벳 순'),
-              ),
-              const PopupMenuItem(
-                value: 'distance',
-                child: Text('거리 순'),
-              ),
-            ],
-          ),
-        ],
       ),
-      body: FutureBuilder<List<Store>>(
-        future: _storeService.getStoresByCategory(widget.category),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          if (snapshot.hasError) {
-            print('Error loading stores: ${snapshot.error}');
-            return Center(child: Text('Error: ${snapshot.error}'));
-          }
-
-          final stores = snapshot.data ?? [];
-          print(
-              'Found ${stores.length} stores for category ${widget.category}');
-
-          return ListView.builder(
-            itemCount: stores.length,
-            itemBuilder: (context, index) {
-              final store = stores[index];
-              return Card(
-                margin: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
-                ),
-                child: ListTile(
+      body: stores.isEmpty
+          ? const Center(child: CircularProgressIndicator())
+          : ListView.builder(
+              itemCount: stores.length,
+              itemBuilder: (context, index) {
+                final store = stores[index];
+                return ListTile(
                   title: Text(store.name),
-                  subtitle: Text('메뉴 ${store.menus.length}개'),
-                  trailing: const Icon(Icons.arrow_forward_ios),
+                  subtitle: Text(
+                    store.distance != null
+                        ? '${(store.distance! / 1000).toStringAsFixed(1)}km'
+                        : store.address,
+                  ),
                   onTap: () {
-                    // TODO: 상점 상세 페이지로 이동
+                    // 스토어 상세 페이지로 이동
                   },
-                ),
-              );
-            },
-          );
-        },
-      ),
+                );
+              },
+            ),
     );
   }
 }
