@@ -8,6 +8,7 @@ import 'models/store.dart';
 import 'services/store_service.dart';
 import 'services/location_service.dart';
 import 'pages/category_stores_page.dart';
+import 'pages/nearby_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -382,7 +383,13 @@ class _HomePageState extends State<HomePage> {
       child: InkWell(
         onTap: () {
           if (label == 'Nearby') {
-            _showAddressSearchDialog();
+            // _showAddressSearchDialog() 대신 NearbyPage로 이동
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const NearbyPage(),
+              ),
+            );
           } else {
             // 기존의 카테고리 네비게이션 코드
             Navigator.push(

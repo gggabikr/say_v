@@ -11,12 +11,14 @@ class CategoryStoresPage extends StatefulWidget {
   final String category;
   final String title;
   final Position? userLocation;
+  final String? address;
 
   const CategoryStoresPage({
     Key? key,
     required this.category,
     required this.title,
     this.userLocation,
+    this.address,
   }) : super(key: key);
 
   @override
