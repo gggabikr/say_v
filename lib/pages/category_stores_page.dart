@@ -65,17 +65,43 @@ class _CategoryStoresPageState extends State<CategoryStoresPage> {
   }
 
   void _onSearchChanged() {
+    print('\n=== Search Process Started ===');
+    print('Search text: ${_searchController.text}');
+    print('Initial loaded stores count: ${loadedStores.length}');
+
     if (_searchController.text.isEmpty && isSearching) {
+      print('Empty search text - resetting to all stores');
       setState(() {
         isSearching = false;
         displayStores = List<Store>.from(loadedStores);
       });
     } else if (_searchController.text.isNotEmpty) {
+      print('Searching for: ${_searchController.text}');
       setState(() {
         isSearching = true;
+        displayStores = loadedStores.where((store) {
+          bool matches = store.name
+                  .toLowerCase()
+                  .contains(_searchController.text.toLowerCase()) ||
+              store.category
+                  .toLowerCase()
+                  .contains(_searchController.text.toLowerCase()) ||
+              (store.cuisineTypes.any((cuisine) => cuisine
+                      .toLowerCase()
+                      .contains(_searchController.text.toLowerCase())) ??
+                  false);
+          print('Checking store: ${store.name}');
+          print('Categories: ${store.category}');
+          print('Cuisine Types: ${store.cuisineTypes}');
+          print('Matches: $matches');
+          return matches;
+        }).toList();
       });
+      print('Found ${displayStores.length} matches before filters');
       _applyFilters();
+      print('Final display stores count: ${displayStores.length}');
     }
+    print('=== Search Process Ended ===\n');
   }
 
   void _applyFilters() {
@@ -86,8 +112,25 @@ class _CategoryStoresPageState extends State<CategoryStoresPage> {
     print('Selected DateTime: $selectedDateTime');
 
     setState(() {
-      // 항상 원본 loadedStores에서 시작
-      List<Store> filteredStores = List<Store>.from(loadedStores);
+      // 검색어가 있는 경우, 먼저 검색 결과를 다시 계산
+      if (isSearching && _searchController.text.isNotEmpty) {
+        displayStores = loadedStores.where((store) {
+          return store.name
+                  .toLowerCase()
+                  .contains(_searchController.text.toLowerCase()) ||
+              store.category
+                  .toLowerCase()
+                  .contains(_searchController.text.toLowerCase()) ||
+              (store.cuisineTypes.any((cuisine) => cuisine
+                      .toLowerCase()
+                      .contains(_searchController.text.toLowerCase())) ??
+                  false);
+        }).toList();
+      } else {
+        displayStores = List<Store>.from(loadedStores);
+      }
+
+      List<Store> filteredStores = List<Store>.from(displayStores);
       print('Starting filter with ${filteredStores.length} stores');
 
       // Open Now 필터
@@ -119,32 +162,6 @@ class _CategoryStoresPageState extends State<CategoryStoresPage> {
         print('After Happy Hour filter: ${filteredStores.length} stores');
       }
 
-      // 검색어 필터 유지
-      if (_searchController.text.isNotEmpty) {
-        filteredStores = filteredStores
-            .where((store) =>
-                store.name
-                    .toLowerCase()
-                    .contains(_searchController.text.toLowerCase()) ||
-                store.category
-                    .toLowerCase()
-                    .contains(_searchController.text.toLowerCase()))
-            .toList();
-        print('After search filter: ${filteredStores.length} stores');
-      }
-
-      // 정렬 적용
-      filteredStores.sort((a, b) {
-        if (sortType == SortType.distance) {
-          return (a.distance ?? double.infinity)
-              .compareTo(b.distance ?? double.infinity);
-        } else {
-          return (b.cachedAverageRating ?? 0)
-              .compareTo(a.cachedAverageRating ?? 0);
-        }
-      });
-
-      // 필터링된 결과를 displayStores에 할당
       displayStores = filteredStores;
       print('Final stores count: ${displayStores.length}');
     });
