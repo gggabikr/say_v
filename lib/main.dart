@@ -9,10 +9,11 @@ import 'services/store_service.dart';
 import 'services/location_service.dart';
 import 'pages/category_stores_page.dart';
 import 'pages/nearby_page.dart';
+import 'dart:async';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await dotenv.load();
+  await dotenv.load(fileName: 'assets/data/.env');
   runApp(const MyApp());
 }
 
@@ -46,6 +47,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final LocationService _locationService = LocationService();
   Position? _currentPosition;
+  Timer? _debouncer;
 
   @override
   void initState() {
@@ -151,46 +153,50 @@ class _HomePageState extends State<HomePage> {
                         hintText: '주소를 입력하세요',
                         prefixIcon: Icon(Icons.search),
                       ),
-                      onChanged: (value) async {
-                        if (value.length > 2) {
-                          print('Searching for: $value');
-                          final url = Uri.parse(
-                              'https://maps.googleapis.com/maps/api/place/autocomplete/json'
-                              '?input=$value'
-                              '&components=country:ca'
-                              '&key=${dotenv.env['GOOGLE_MAPS_API_KEY']}');
+                      onChanged: (value) {
+                        if (_debouncer?.isActive ?? false) _debouncer!.cancel();
+                        _debouncer =
+                            Timer(const Duration(milliseconds: 500), () async {
+                          if (value.length > 2) {
+                            print('Searching for: $value');
+                            final url = Uri.parse(
+                                'https://maps.googleapis.com/maps/api/place/autocomplete/json'
+                                '?input=$value'
+                                '&components=country:ca'
+                                '&key=${dotenv.env['GOOGLE_MAPS_API_KEY']}');
 
-                          print('Request URL: $url');
+                            print('Request URL: $url');
 
-                          final response = await http.get(url);
-                          print('Response status: ${response.statusCode}');
-                          print('Response body: ${response.body}');
+                            final response = await http.get(url);
+                            print('Response status: ${response.statusCode}');
+                            print('Response body: ${response.body}');
 
-                          if (response.statusCode == 200) {
-                            final json = jsonDecode(response.body);
-                            setState(() {
-                              predictions =
-                                  json['predictions'].map((prediction) {
-                                String description = prediction['description'];
-                                description =
-                                    description.replaceAll(', Canada', '');
-                                description = description.replaceAll(
-                                    'British Columbia', 'BC');
-                                description =
-                                    description.replaceAll('Alberta', 'AB');
-                                description =
-                                    description.replaceAll('Ontario', 'ON');
-                                description =
-                                    description.replaceAll('Quebec', 'QC');
-                                return {
-                                  ...prediction,
-                                  'description': description,
-                                };
-                              }).toList();
-                              print('Predictions count: ${predictions.length}');
-                            });
+                            if (response.statusCode == 200) {
+                              final json = jsonDecode(response.body);
+                              setState(() {
+                                predictions =
+                                    json['predictions'].map((prediction) {
+                                  String description =
+                                      prediction['description'];
+                                  description =
+                                      description.replaceAll(', Canada', '');
+                                  description = description.replaceAll(
+                                      'British Columbia', 'BC');
+                                  description =
+                                      description.replaceAll('Alberta', 'AB');
+                                  description =
+                                      description.replaceAll('Ontario', 'ON');
+                                  description =
+                                      description.replaceAll('Quebec', 'QC');
+                                  return {
+                                    ...prediction,
+                                    'description': description,
+                                  };
+                                }).toList();
+                              });
+                            }
                           }
-                        }
+                        });
                       },
                     ),
                     const SizedBox(height: 10),
@@ -354,9 +360,6 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildCategoryCard(IconData icon, String label) {
-    // 디버그 프린트 추가
-    print('Building card for label: $label');
-
     String category = '';
     switch (label) {
       case 'Happy Hour':
@@ -367,31 +370,34 @@ class _HomePageState extends State<HomePage> {
         break;
       case 'Deals & Discounts':
         category = 'deals_and_discounts';
-        print('Selected deals_and_discounts category'); // 디버그 프린트 추가
         break;
       case 'Special Events':
         category = 'special_events';
         break;
       default:
-        print('No matching category for label: $label'); // 디버그 프린트 추가
         break;
     }
-
-    print('Mapped category: $category'); // 디버그 프린�� 추가
 
     return Card(
       child: InkWell(
         onTap: () {
           if (label == 'Nearby') {
-            // _showAddressSearchDialog() 대신 NearbyPage로 이동
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const NearbyPage(),
+            showDialog(
+              context: context,
+              builder: (context) => Dialog(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(20),
+                  child: SizedBox(
+                    height: MediaQuery.of(context).size.height * 0.6,
+                    child: const NearbyPage(),
+                  ),
+                ),
               ),
             );
           } else {
-            // 기존의 카테고리 네비게이션 코드
             Navigator.push(
               context,
               MaterialPageRoute(

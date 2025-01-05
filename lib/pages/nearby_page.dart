@@ -3,6 +3,11 @@ import 'package:geolocator/geolocator.dart';
 import '../models/store.dart';
 import '../services/store_service.dart';
 import 'category_stores_page.dart';
+import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
+import 'package:http/http.dart' as http;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class NearbyPage extends StatefulWidget {
   const NearbyPage({Key? key}) : super(key: key);
@@ -13,16 +18,18 @@ class NearbyPage extends StatefulWidget {
 
 class _NearbyPageState extends State<NearbyPage> {
   final TextEditingController _addressController = TextEditingController();
-  bool isUsingCurrentLocation = false; // 현재 위치 사용 여부
-  Position? currentPosition; // 현재 GPS 위치
-  bool isLoadingLocation = false; // 위치 로딩 상태
+  Timer? _debouncer;
+  List<dynamic> predictions = [];
+  bool isUsingCurrentLocation = false;
+  Position? currentPosition;
+  bool isLoadingLocation = false;
+  bool isSearching = false;
+  String? selectedPlaceId;
 
-  // 위치 권한 요청 및 확인을 위한 메서드 추가
   Future<bool> _handleLocationPermission() async {
     bool serviceEnabled;
     LocationPermission permission;
 
-    // 위치 서비스가 활성화되어 있는지 확인
     serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
@@ -31,10 +38,8 @@ class _NearbyPageState extends State<NearbyPage> {
       return false;
     }
 
-    // 위치 권한 상태 확인
     permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
-      // 권한이 거부된 상태라면 권한 요청
       permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
@@ -44,7 +49,6 @@ class _NearbyPageState extends State<NearbyPage> {
       }
     }
 
-    // 권한이 영구적으로 거부된 경우
     if (permission == LocationPermission.deniedForever) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content: Text('위치 권한이 영구적으로 거부되었습니다. 설정에서 권한을 허용해주세요.'),
@@ -55,7 +59,6 @@ class _NearbyPageState extends State<NearbyPage> {
     return true;
   }
 
-  // 현재 위치 가져오기 메서드 수정
   Future<void> _getCurrentLocation() async {
     print('위치 가져오기 시작');
     setState(() {
@@ -63,7 +66,6 @@ class _NearbyPageState extends State<NearbyPage> {
     });
 
     try {
-      // 위치 권한 확인 및 요청
       final hasPermission = await _handleLocationPermission();
       if (!hasPermission) {
         setState(() {
@@ -72,7 +74,6 @@ class _NearbyPageState extends State<NearbyPage> {
         return;
       }
 
-      // 현재 위치 가져오기
       print('GPS 위치 가져오기 시도');
       final Position position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high,
@@ -86,10 +87,7 @@ class _NearbyPageState extends State<NearbyPage> {
         }
       });
 
-      // 위치 기반으로 주변 가게 검색
-      if (isUsingCurrentLocation) {
-        _searchNearbyStores();
-      }
+      _searchWithPosition(position);
     } catch (e) {
       print('위치 가져오기 에러: $e');
       ScaffoldMessenger.of(context).showSnackBar(
@@ -105,36 +103,74 @@ class _NearbyPageState extends State<NearbyPage> {
     }
   }
 
-  void _searchNearbyStores() {
-    print('주변 가게 검색 시작'); // 디버그 프린트
-    if (isUsingCurrentLocation && currentPosition != null) {
-      print(
-          '현재 위치로 검색: ${currentPosition!.latitude}, ${currentPosition!.longitude}'); // 디버그 프린트
-      // 현재 위치로 검색
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => CategoryStoresPage(
-            category: 'nearby',
-            title: '내 주변 맛집',
-            userLocation: currentPosition,
-          ),
-        ),
+  Future<void> _getLocationFromAddress() async {
+    print('주소의 좌표 검색 시작: ${_addressController.text}');
+    setState(() {
+      isLoadingLocation = true;
+    });
+
+    try {
+      if (selectedPlaceId != null) {
+        print('Using placeId: $selectedPlaceId');
+        final detailsUrl =
+            Uri.parse('https://maps.googleapis.com/maps/api/place/details/json'
+                '?place_id=$selectedPlaceId'
+                '&key=${dotenv.env['GOOGLE_MAPS_API_KEY']}');
+
+        final response = await http.get(detailsUrl);
+        if (response.statusCode == 200) {
+          final json = jsonDecode(response.body);
+          if (json['result'] != null && json['result']['geometry'] != null) {
+            final location = json['result']['geometry']['location'];
+            print('주소의 좌표값: 위도 ${location['lat']}, 경도 ${location['lng']}');
+
+            final position = Position.fromMap({
+              'latitude': location['lat'],
+              'longitude': location['lng'],
+              'accuracy': 0,
+              'altitude': 0,
+              'speed': 0,
+              'speedAccuracy': 0,
+              'heading': 0,
+              'timestamp': DateTime.now().millisecondsSinceEpoch,
+            });
+
+            _searchWithPosition(position);
+          }
+        }
+      } else {
+        print('No placeId found for the address');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('주소를 다시 선택해주세요.')),
+        );
+      }
+    } catch (e) {
+      print('Error getting location from address: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('주소를 찾을 수 없습니다.')),
       );
-    } else if (_addressController.text.isNotEmpty) {
-      print('주소로 검색: ${_addressController.text}'); // 디버그 프린트
-      // 주소로 검색 (기존 기능)
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => CategoryStoresPage(
-            category: 'nearby',
-            title: '주변 맛집',
-            address: _addressController.text,
-          ),
-        ),
-      );
+    } finally {
+      setState(() {
+        isLoadingLocation = false;
+      });
     }
+  }
+
+  void _searchWithPosition(Position position) {
+    print('주변 가게 검색 시작');
+    print('위치로 검색: ${position.latitude}, ${position.longitude}');
+
+    if (!context.mounted) return;
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CategoryStoresPage(
+          category: 'nearby',
+          title: '주변 맛집',
+          userLocation: position,
+        ),
+      ),
+    );
   }
 
   @override
@@ -147,7 +183,6 @@ class _NearbyPageState extends State<NearbyPage> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            // 현재 위치 사용 토글
             SwitchListTile(
               title: const Text('현재 위치 사용'),
               subtitle: Text(isUsingCurrentLocation
@@ -161,36 +196,132 @@ class _NearbyPageState extends State<NearbyPage> {
                     _getCurrentLocation();
                   } else {
                     _addressController.clear();
+                    predictions = [];
                   }
                 });
               },
             ),
             const SizedBox(height: 16),
-            // 주소 입력 필드
-            TextField(
-              controller: _addressController,
-              decoration: InputDecoration(
-                labelText: isUsingCurrentLocation ? '현재 위치 사용 중' : '주소 입력',
-                border: const OutlineInputBorder(),
-                suffixIcon: isLoadingLocation
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                        ),
-                      )
-                    : IconButton(
-                        icon: const Icon(Icons.search),
-                        onPressed: _searchNearbyStores,
-                      ),
-              ),
-              enabled: !isUsingCurrentLocation, // 현재 위치 사용 시 비활성화
-              onSubmitted: (_) => _searchNearbyStores(),
+            Column(
+              children: [
+                TextField(
+                  controller: _addressController,
+                  enabled: !isUsingCurrentLocation,
+                  decoration: InputDecoration(
+                    labelText: isUsingCurrentLocation ? '현재 위치 사용 중' : '주소 입력',
+                    border: const OutlineInputBorder(),
+                    suffixIcon: isLoadingLocation
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                            ),
+                          )
+                        : IconButton(
+                            icon: const Icon(Icons.search),
+                            onPressed: _getLocationFromAddress,
+                          ),
+                  ),
+                  onChanged: (value) {
+                    if (!isUsingCurrentLocation) {
+                      if (_debouncer?.isActive ?? false) _debouncer!.cancel();
+                      _debouncer =
+                          Timer(const Duration(milliseconds: 500), () async {
+                        if (value.length > 2) {
+                          setState(() => isSearching = true);
+                          try {
+                            final url = Uri.parse(
+                                'https://maps.googleapis.com/maps/api/place/autocomplete/json'
+                                '?input=$value'
+                                '&components=country:ca'
+                                '&key=${dotenv.env['GOOGLE_MAPS_API_KEY']}');
+
+                            final response = await http.get(url);
+                            if (response.statusCode == 200) {
+                              final json = jsonDecode(response.body);
+                              if (!mounted) return;
+                              setState(() {
+                                predictions =
+                                    json['predictions'].map((prediction) {
+                                  String description =
+                                      prediction['description'];
+                                  description =
+                                      description.replaceAll(', Canada', '');
+                                  description = description.replaceAll(
+                                      'British Columbia', 'BC');
+                                  description =
+                                      description.replaceAll('Alberta', 'AB');
+                                  description =
+                                      description.replaceAll('Ontario', 'ON');
+                                  description =
+                                      description.replaceAll('Quebec', 'QC');
+                                  return {
+                                    'description': description,
+                                    'place_id': prediction['place_id'],
+                                  };
+                                }).toList();
+                                print(
+                                    'Updated predictions: ${predictions.length} items');
+                              });
+                            }
+                          } catch (e) {
+                            print('Error fetching address predictions: $e');
+                          } finally {
+                            if (!mounted) return;
+                            setState(() => isSearching = false);
+                          }
+                        } else {
+                          setState(() => predictions = []);
+                        }
+                      });
+                    }
+                  },
+                ),
+                if (!isUsingCurrentLocation && predictions.isNotEmpty)
+                  Container(
+                    constraints: const BoxConstraints(maxHeight: 200),
+                    margin: const EdgeInsets.only(top: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      border: Border.all(color: Colors.grey.shade300),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: predictions.length,
+                      itemBuilder: (context, index) {
+                        return ListTile(
+                          title: Text(predictions[index]['description']),
+                          onTap: () {
+                            final selectedAddress =
+                                predictions[index]['description'];
+                            final placeId = predictions[index]['place_id'];
+                            print(
+                                'Selected address: $selectedAddress with placeId: $placeId');
+
+                            setState(() {
+                              _addressController.text = selectedAddress;
+                              selectedPlaceId = placeId;
+                              predictions = [];
+                            });
+                          },
+                        );
+                      },
+                    ),
+                  ),
+              ],
             ),
             const SizedBox(height: 16),
             ElevatedButton(
-              onPressed: _searchNearbyStores,
+              onPressed: () {
+                print("검색 버튼 클릭");
+                if (isUsingCurrentLocation) {
+                  _getCurrentLocation();
+                } else {
+                  _getLocationFromAddress();
+                }
+              },
               style: ElevatedButton.styleFrom(
                 minimumSize: const Size(double.infinity, 50),
               ),
@@ -207,6 +338,7 @@ class _NearbyPageState extends State<NearbyPage> {
   @override
   void dispose() {
     _addressController.dispose();
+    _debouncer?.cancel();
     super.dispose();
   }
 }

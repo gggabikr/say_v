@@ -53,19 +53,20 @@
         },
         "happyHours": [
           {
-            "startHour": 17,
+            "startHour": 14,
             "startMinute": 0,
-            "endHour": 19,
+            "endHour": 17,
             "endMinute": 0,
+            "isNextDay": false,
             "daysOfWeek": ["MON", "TUE", "WED", "THU", "FRI"]
           },
           {
-            "startHour": 22,
+            "startHour": 20,
             "startMinute": 0,
-            "endHour": 0,
+            "endHour": 2,
             "endMinute": 0,
             "isNextDay": true,
-            "daysOfWeek": ["MON", "TUE", "WED", "THU", "FRI"]
+            "daysOfWeek": ["MON", "TUE", "WED", "THU", "SUN"]
           }
         ],
         "is24Hours": false
@@ -235,13 +236,15 @@
             "startMinute": 0,
             "endHour": 17,
             "endMinute": 0,
+            "isNextDay": false,
             "daysOfWeek": ["MON", "TUE", "WED", "THU", "FRI"]
           },
           {
-            "startHour": 21,
+            "startHour": 20,
             "startMinute": 0,
-            "endHour": 23,
+            "endHour": 2,
             "endMinute": 0,
+            "isNextDay": true,
             "daysOfWeek": ["MON", "TUE", "WED", "THU", "SUN"]
           }
         ]
@@ -309,7 +312,7 @@
       },
       {
         "storeId": "67890123",
-        "name": "Ramen House",
+        "name": "Sushi Express",
         "category": ["happy_hour", "deals_and_discounts"],
         "cuisineTypes": ["Japanese", "Asian", "Noodles"],
         "location": {
@@ -364,6 +367,7 @@
             "startMinute": 0,
             "endHour": 17,
             "endMinute": 30,
+            "isNextDay": false,
             "daysOfWeek": ["MON", "TUE", "WED", "THU", "FRI"]
           }
         ]
@@ -425,6 +429,7 @@
             "startMinute": 30,
             "endHour": 17,
             "endMinute": 0,
+            "isNextDay": false,
             "daysOfWeek": ["MON", "TUE", "WED", "THU", "FRI"]
           },
           {
@@ -432,6 +437,7 @@
             "startMinute": 30,
             "endHour": 23,
             "endMinute": 30,
+            "isNextDay": false,
             "daysOfWeek": ["SUN", "MON", "TUE", "WED", "THU"]
           }
         ]
@@ -486,7 +492,8 @@
           "closeHour": 21,
           "closeMinute": 0,
           "isNextDay": false
-        }
+        },
+        "happyHours": []
       },
       {
         "storeId": "90123456",
@@ -538,7 +545,8 @@
           "closeHour": 20,
           "closeMinute": 0,
           "isNextDay": false
-        }
+        },
+        "happyHours": []
       },
       {
         "storeId": "01234567",
@@ -597,6 +605,7 @@
             "startMinute": 0,
             "endHour": 18,
             "endMinute": 30,
+            "isNextDay": false,
             "daysOfWeek": ["MON", "TUE", "WED", "THU", "FRI"]
           }
         ]
@@ -658,6 +667,7 @@
             "startMinute": 30,
             "endHour": 16,
             "endMinute": 30,
+            "isNextDay": false,
             "daysOfWeek": ["MON", "TUE", "WED", "THU", "FRI"]
           }
         ]
@@ -706,7 +716,25 @@
             "type": "food"
           }
         ],
-        "is24Hours": true
+        "is24Hours": true,
+        "happyHours": [
+          {
+            "startHour": 15,
+            "startMinute": 0,
+            "endHour": 17,
+            "endMinute": 0,
+            "isNextDay": false,
+            "daysOfWeek": ["MON", "TUE", "WED", "THU", "FRI"]
+          },
+          {
+            "startHour": 21,
+            "startMinute": 0,
+            "endHour": 23,
+            "endMinute": 0,
+            "isNextDay": false,
+            "daysOfWeek": ["MON", "TUE", "WED", "THU", "SUN"]
+          }
+        ]
       },
       {
         "storeId": "33445566",
@@ -765,6 +793,7 @@
             "startMinute": 0,
             "endHour": 18,
             "endMinute": 0,
+            "isNextDay": false,
             "daysOfWeek": ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"]
           }
         ]
@@ -819,7 +848,8 @@
           "closeHour": 23,
           "closeMinute": 0,
           "isNextDay": false
-        }
+        },
+        "happyHours": []
       },
       {
         "storeId": "55667788",
@@ -878,6 +908,7 @@
             "startMinute": 0,
             "endHour": 16,
             "endMinute": 0,
+            "isNextDay": false,
             "daysOfWeek": ["MON", "TUE", "WED", "THU", "FRI"]
           },
           {
@@ -885,6 +916,7 @@
             "startMinute": 0,
             "endHour": 21,
             "endMinute": 30,
+            "isNextDay": false,
             "daysOfWeek": ["MON", "TUE", "WED", "THU", "SUN"]
           }
         ]
@@ -930,6 +962,30 @@
             "name": "Coconut Water",
             "price": 3.99,
             "type": "drink"
+          }
+        ],        "businessHours": {
+          "openHour": 16,
+          "openMinute": 0,
+          "closeHour": 2,
+          "closeMinute": 0,
+          "isNextDay": true
+        },
+        "happyHours": [
+          {
+            "startHour": 14,
+            "startMinute": 0,
+            "endHour": 17,
+            "endMinute": 0,
+            "isNextDay": false,
+            "daysOfWeek": ["MON", "TUE", "WED", "THU", "FRI"]
+          },
+          {
+            "startHour": 20,
+            "startMinute": 0,
+            "endHour": 2,
+            "endMinute": 0,
+            "isNextDay": true,
+            "daysOfWeek": ["MON", "TUE", "WED", "THU", "SUN"]
           }
         ]
       }
