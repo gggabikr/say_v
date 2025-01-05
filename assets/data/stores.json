@@ -43,13 +43,16 @@
             "type": "drink"
           }
         ],
-        "businessHours": {
-          "openHour": 11,
-          "openMinute": 0,
-          "closeHour": 2,
-          "closeMinute": 0,
-          "isNextDay": true
-        },
+        "businessHours": [
+          {
+            "openHour": 11,
+            "openMinute": 0,
+            "closeHour": 2,
+            "closeMinute": 0,
+            "isNextDay": true,
+            "daysOfWeek": ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"]
+          }
+        ],
         "happyHours": [
           {
             "startHour": 15,
@@ -113,13 +116,16 @@
             "type": "food"
           }
         ],
-        "businessHours": {
-          "openHour": 11,
-          "openMinute": 30,
-          "closeHour": 22,
-          "closeMinute": 0,
-          "isNextDay": false
-        },
+        "businessHours": [
+          {
+            "openHour": 11,
+            "openMinute": 30,
+            "closeHour": 22,
+            "closeMinute": 0,
+            "isNextDay": false,
+            "daysOfWeek": ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"]
+          }
+        ],
         "happyHours": [],
         "is24Hours": false
       },
@@ -181,13 +187,16 @@
         },
         "ratings": [4.0, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5, 5.0],
         "totalRatings": 234,
-        "businessHours": {
-          "openHour": 11,
-          "openMinute": 0,
-          "closeHour": 23,
-          "closeMinute": 0,
-          "isNextDay": false
-        },
+        "businessHours": [
+          {
+            "openHour": 11,
+            "openMinute": 0,
+            "closeHour": 23,
+            "closeMinute": 0,
+            "isNextDay": false,
+            "daysOfWeek": ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"]
+          }
+        ],
         "happyHours": [
           {
             "startHour": 15,
@@ -211,13 +220,24 @@
         },
         "ratings": [4.5, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0],
         "totalRatings": 756,
-        "businessHours": {
-          "openHour": 12,
-          "openMinute": 0,
-          "closeHour": 1,
-          "closeMinute": 0,
-          "isNextDay": true
-        },
+        "businessHours": [
+          {
+            "openHour": 12,
+            "openMinute": 0,
+            "closeHour": 23,
+            "closeMinute": 0,
+            "isNextDay": false,
+            "daysOfWeek": ["MON", "TUE", "WED", "THU", "FRI"]
+          },
+          {
+            "openHour": 11,
+            "openMinute": 0,
+            "closeHour": 2,
+            "closeMinute": 0,
+            "isNextDay": true,
+            "daysOfWeek": ["SAT", "SUN"]
+          }
+        ],
         "happyHours": [
           {
             "startHour": 16,
@@ -241,13 +261,24 @@
         },
         "ratings": [4.0, 4.5, 4.0, 3.5, 4.0, 4.5, 3.5, 4.0],
         "totalRatings": 8,
-        "businessHours": {
-          "openHour": 11,
-          "openMinute": 30,
-          "closeHour": 22,
-          "closeMinute": 0,
-          "isNextDay": false
-        },
+        "businessHours": [
+          {
+            "openHour": 11,
+            "openMinute": 30,
+            "closeHour": 22,
+            "closeMinute": 0,
+            "isNextDay": false,
+            "daysOfWeek": ["MON", "TUE", "WED", "THU", "FRI"]
+          },
+          {
+            "openHour": 12,
+            "openMinute": 0,
+            "closeHour": 23,
+            "closeMinute": 0,
+            "isNextDay": false,
+            "daysOfWeek": ["SAT", "SUN"]
+          }
+        ],
         "happyHours": [
           {
             "startHour": 14,
@@ -303,13 +334,32 @@
             "type": "food"
           }
         ],
-        "businessHours": {
-          "openHour": 11,
-          "openMinute": 0,
-          "closeHour": 0,
-          "closeMinute": 0,
-          "isNextDay": true
-        },
+        "businessHours": [
+          {
+            "openHour": 11,
+            "openMinute": 0,
+            "closeHour": 23,
+            "closeMinute": 0,
+            "isNextDay": false,
+            "daysOfWeek": ["MON", "TUE", "WED", "THU", "FRI"]
+          },
+          {
+            "openHour": 12,
+            "openMinute": 0,
+            "closeHour": 1,
+            "closeMinute": 0,
+            "isNextDay": true,
+            "daysOfWeek": ["FRI", "SAT"]
+          },
+          {
+            "openHour": 12,
+            "openMinute": 0,
+            "closeHour": 22,
+            "closeMinute": 0,
+            "isNextDay": false,
+            "daysOfWeek": ["SUN"]
+          }
+        ],
         "happyHours": [],
         "is24Hours": false
       },
@@ -324,13 +374,24 @@
         },
         "ratings": [],
         "totalRatings": 0,
-        "businessHours": {
-          "openHour": 8,
-          "openMinute": 0,
-          "closeHour": 21,
-          "closeMinute": 0,
-          "isNextDay": false
-        },
+        "businessHours": [
+          {
+            "openHour": 8,
+            "openMinute": 0,
+            "closeHour": 21,
+            "closeMinute": 0,
+            "isNextDay": false,
+            "daysOfWeek": ["MON", "TUE", "WED", "THU", "FRI"]
+          },
+          {
+            "openHour": 9,
+            "openMinute": 0,
+            "closeHour": 22,
+            "closeMinute": 0,
+            "isNextDay": false,
+            "daysOfWeek": ["SAT", "SUN"]
+          }
+        ],
         "happyHours": [],
         "is24Hours": false
       },
@@ -345,13 +406,16 @@
         },
         "ratings": [4.5, 4.0, 3.5],
         "totalRatings": 3,
-        "businessHours": {
-          "openHour": 7,
-          "openMinute": 0,
-          "closeHour": 20,
-          "closeMinute": 0,
-          "isNextDay": false
-        },
+        "businessHours": [
+          {
+            "openHour": 7,
+            "openMinute": 0,
+            "closeHour": 20,
+            "closeMinute": 0,
+            "isNextDay": false,
+            "daysOfWeek": ["MON", "TUE", "WED", "FRI", "SAT", "SUN"]
+          }
+        ],
         "happyHours": [],
         "is24Hours": false
       },
@@ -366,13 +430,16 @@
         },
         "ratings": [4.0, 4.5, 5.0, 4.5, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0, 4.5, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5, 5.0],
         "totalRatings": 678,
-        "businessHours": {
-          "openHour": 11,
-          "openMinute": 30,
-          "closeHour": 23,
-          "closeMinute": 0,
-          "isNextDay": false
-        },
+        "businessHours": [
+          {
+            "openHour": 11,
+            "openMinute": 30,
+            "closeHour": 23,
+            "closeMinute": 0,
+            "isNextDay": false,
+            "daysOfWeek": ["TUE", "WED", "THU", "FRI", "SAT", "SUN"]
+          }
+        ],
         "happyHours": [
           {
             "startHour": 15,
@@ -380,7 +447,7 @@
             "endHour": 18,
             "endMinute": 0,
             "isNextDay": false,
-            "daysOfWeek": ["MON", "TUE", "WED", "THU", "FRI"]
+            "daysOfWeek": ["TUE", "WED", "THU", "FRI"]
           }
         ],
         "is24Hours": false
@@ -396,13 +463,16 @@
         },
         "ratings": [4.5, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0],
         "totalRatings": 345,
-        "businessHours": {
-          "openHour": 9,
-          "openMinute": 0,
-          "closeHour": 21,
-          "closeMinute": 0,
-          "isNextDay": false
-        },
+        "businessHours": [
+          {
+            "openHour": 9,
+            "openMinute": 0,
+            "closeHour": 21,
+            "closeMinute": 0,
+            "isNextDay": false,
+            "daysOfWeek": ["MON", "TUE", "THU", "FRI", "SAT", "SUN"]
+          }
+        ],
         "happyHours": [],
         "is24Hours": false
       },
@@ -417,13 +487,16 @@
         },
         "ratings": [2.0, 2.5, 3.0, 2.5, 2.0, 3.0, 2.5, 3.0, 2.5, 2.0, 3.5, 2.0, 2.5, 3.0, 2.5, 2.0, 2.5, 3.0, 2.5, 3.0],
         "totalRatings": 267,
-        "businessHours": {
-          "openHour": 11,
-          "openMinute": 0,
-          "closeHour": 23,
-          "closeMinute": 0,
-          "isNextDay": false
-        },
+        "businessHours": [
+          {
+            "openHour": 11,
+            "openMinute": 0,
+            "closeHour": 23,
+            "closeMinute": 0,
+            "isNextDay": false,
+            "daysOfWeek": ["MON", "TUE", "WED", "THU", "FRI", "SAT"]
+          }
+        ],
         "happyHours": [
           {
             "startHour": 15,
@@ -447,13 +520,16 @@
         },
         "ratings": [4.5, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0],
         "totalRatings": 189,
-        "businessHours": {
-          "openHour": 11,
-          "openMinute": 30,
-          "closeHour": 22,
-          "closeMinute": 0,
-          "isNextDay": false
-        },
+        "businessHours": [
+          {
+            "openHour": 11,
+            "openMinute": 30,
+            "closeHour": 22,
+            "closeMinute": 0,
+            "isNextDay": false,
+            "daysOfWeek": ["MON", "TUE", "WED", "THU", "FRI", "SAT"]
+          }
+        ],
         "happyHours": [],
         "is24Hours": false
       },
@@ -468,13 +544,16 @@
         },
         "ratings": [3.0, 2.5, 3.0, 2.5, 3.5, 3.0, 2.5, 3.0, 3.5, 2.5, 3.0, 2.5, 3.0, 2.5, 3.5, 3.0, 2.5, 3.0, 3.5, 2.5],
         "totalRatings": 156,
-        "businessHours": {
-          "openHour": 12,
-          "openMinute": 0,
-          "closeHour": 22,
-          "closeMinute": 0,
-          "isNextDay": false
-        },
+        "businessHours": [
+          {
+            "openHour": 12,
+            "openMinute": 0,
+            "closeHour": 22,
+            "closeMinute": 0,
+            "isNextDay": false,
+            "daysOfWeek": ["MON", "TUE", "WED", "THU", "FRI", "SAT"]
+          }
+        ],
         "happyHours": [],
         "is24Hours": false
       },
@@ -489,13 +568,16 @@
         },
         "ratings": [4.0, 4.5, 5.0, 4.5, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0, 4.5, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5, 5.0],
         "totalRatings": 432,
-        "businessHours": {
-          "openHour": 10,
-          "openMinute": 0,
-          "closeHour": 22,
-          "closeMinute": 0,
-          "isNextDay": false
-        },
+        "businessHours": [
+          {
+            "openHour": 10,
+            "openMinute": 0,
+            "closeHour": 22,
+            "closeMinute": 0,
+            "isNextDay": false,
+            "daysOfWeek": ["MON", "TUE", "WED", "THU", "FRI", "SAT"]
+          }
+        ],
         "happyHours": [
           {
             "startHour": 14,
@@ -519,13 +601,16 @@
         },
         "ratings": [4.5, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0],
         "totalRatings": 245,
-        "businessHours": {
-          "openHour": 11,
-          "openMinute": 30,
-          "closeHour": 23,
-          "closeMinute": 0,
-          "isNextDay": false
-        },
+        "businessHours": [
+          {
+            "openHour": 11,
+            "openMinute": 30,
+            "closeHour": 23,
+            "closeMinute": 0,
+            "isNextDay": false,
+            "daysOfWeek": ["MON", "TUE", "WED", "THU", "FRI", "SAT"]
+          }
+        ],
         "happyHours": [
           {
             "startHour": 15,
@@ -549,13 +634,16 @@
         },
         "ratings": [],
         "totalRatings": 0,
-        "businessHours": {
-          "openHour": 17,
-          "openMinute": 0,
-          "closeHour": 23,
-          "closeMinute": 0,
-          "isNextDay": false
-        },
+        "businessHours": [
+          {
+            "openHour": 17,
+            "openMinute": 0,
+            "closeHour": 23,
+            "closeMinute": 0,
+            "isNextDay": false,
+            "daysOfWeek": ["MON", "TUE", "WED", "THU", "FRI", "SAT"]
+          }
+        ],
         "happyHours": [],
         "is24Hours": false
       },
@@ -570,28 +658,39 @@
         },
         "ratings": [4.0, 4.5, 5.0, 4.5, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0, 4.5, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5, 5.0],
         "totalRatings": 678,
-        "businessHours": {
-          "openHour": 12,
-          "openMinute": 0,
-          "closeHour": 2,
-          "closeMinute": 0,
-          "isNextDay": true
-        },
-        "happyHours": [
+        "businessHours": [
           {
-            "startHour": 15,
-            "startMinute": 0,
-            "endHour": 18,
-            "endMinute": 0,
-            "isNextDay": false,
-            "daysOfWeek": ["MON", "TUE", "WED", "THU", "FRI"]
+            "openHour": 16,
+            "openMinute": 0,
+            "closeHour": 2,
+            "closeMinute": 0,
+            "isNextDay": true,
+            "daysOfWeek": ["WED", "THU", "FRI", "SAT"]
           },
           {
-            "startHour": 21,
+            "openHour": 12,
+            "openMinute": 0,
+            "closeHour": 23,
+            "closeMinute": 0,
+            "isNextDay": false,
+            "daysOfWeek": ["SUN"]
+          }
+        ],
+        "happyHours": [
+          {
+            "startHour": 16,
             "startMinute": 0,
-            "endHour": 23,
+            "endHour": 19,
             "endMinute": 0,
             "isNextDay": false,
+            "daysOfWeek": ["WED", "THU", "FRI"]
+          },
+          {
+            "startHour": 22,
+            "startMinute": 0,
+            "endHour": 1,
+            "endMinute": 0,
+            "isNextDay": true,
             "daysOfWeek": ["FRI", "SAT"]
           }
         ],
@@ -608,21 +707,32 @@
         },
         "ratings": [4.5, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0],
         "totalRatings": 345,
-        "businessHours": {
-          "openHour": 11,
-          "openMinute": 30,
-          "closeHour": 23,
-          "closeMinute": 0,
-          "isNextDay": false
-        },
+        "businessHours": [
+          {
+            "openHour": 16,
+            "openMinute": 0,
+            "closeHour": 23,
+            "closeMinute": 0,
+            "isNextDay": false,
+            "daysOfWeek": ["MON", "TUE", "WED", "THU"]
+          },
+          {
+            "openHour": 12,
+            "openMinute": 0,
+            "closeHour": 2,
+            "closeMinute": 0,
+            "isNextDay": true,
+            "daysOfWeek": ["FRI", "SAT", "SUN"]
+          }
+        ],
         "happyHours": [
           {
-            "startHour": 15,
+            "startHour": 16,
             "startMinute": 0,
             "endHour": 18,
             "endMinute": 0,
             "isNextDay": false,
-            "daysOfWeek": ["MON", "TUE", "WED", "THU", "FRI"]
+            "daysOfWeek": ["MON", "TUE", "WED", "THU"]
           }
         ],
         "is24Hours": false
@@ -638,13 +748,24 @@
         },
         "ratings": [2.0, 2.5, 3.0, 2.0, 2.5, 3.0, 2.5, 2.0],
         "totalRatings": 8,
-        "businessHours": {
-          "openHour": 6,
-          "openMinute": 0,
-          "closeHour": 15,
-          "closeMinute": 0,
-          "isNextDay": false
-        },
+        "businessHours": [
+          {
+            "openHour": 6,
+            "openMinute": 0,
+            "closeHour": 15,
+            "closeMinute": 0,
+            "isNextDay": false,
+            "daysOfWeek": ["MON", "TUE", "WED", "THU", "FRI"]
+          },
+          {
+            "openHour": 7,
+            "openMinute": 0,
+            "closeHour": 16,
+            "closeMinute": 0,
+            "isNextDay": false,
+            "daysOfWeek": ["SAT"]
+          }
+        ],
         "happyHours": [],
         "is24Hours": false
       },
@@ -659,13 +780,24 @@
         },
         "ratings": [4.0, 4.5, 5.0, 4.5, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0, 4.5, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5, 5.0],
         "totalRatings": 234,
-        "businessHours": {
-          "openHour": 16,
-          "openMinute": 0,
-          "closeHour": 3,
-          "closeMinute": 0,
-          "isNextDay": true
-        },
+        "businessHours": [
+          {
+            "openHour": 16,
+            "openMinute": 0,
+            "closeHour": 1,
+            "closeMinute": 0,
+            "isNextDay": true,
+            "daysOfWeek": ["TUE", "WED", "THU"]
+          },
+          {
+            "openHour": 16,
+            "openMinute": 0,
+            "closeHour": 3,
+            "closeMinute": 0,
+            "isNextDay": true,
+            "daysOfWeek": ["FRI", "SAT"]
+          }
+        ],
         "happyHours": [
           {
             "startHour": 16,
@@ -673,7 +805,7 @@
             "endHour": 19,
             "endMinute": 0,
             "isNextDay": false,
-            "daysOfWeek": ["MON", "TUE", "WED", "THU", "FRI"]
+            "daysOfWeek": ["TUE", "WED", "THU", "FRI"]
           },
           {
             "startHour": 23,
@@ -697,13 +829,24 @@
         },
         "ratings": [4.5, 5.0, 4.5, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0, 4.5, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0],
         "totalRatings": 567,
-        "businessHours": {
-          "openHour": 17,
-          "openMinute": 0,
-          "closeHour": 23,
-          "closeMinute": 0,
-          "isNextDay": false
-        },
+        "businessHours": [
+          {
+            "openHour": 7,
+            "openMinute": 0,
+            "closeHour": 11,
+            "closeMinute": 0,
+            "isNextDay": false,
+            "daysOfWeek": ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"]
+          },
+          {
+            "openHour": 17,
+            "openMinute": 0,
+            "closeHour": 23,
+            "closeMinute": 0,
+            "isNextDay": false,
+            "daysOfWeek": ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"]
+          }
+        ],
         "happyHours": [
           {
             "startHour": 17,
