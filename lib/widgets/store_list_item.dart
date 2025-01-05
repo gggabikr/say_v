@@ -31,7 +31,7 @@ class StoreListItem extends StatelessWidget {
               if (store.totalRatings > 0) ...[
                 const Icon(Icons.star, color: Colors.amber, size: 16),
                 Text(
-                  ' ${store.averageRating.toStringAsFixed(1)} ',
+                  ' ${store.cachedAverageRating.toStringAsFixed(1)} ',
                   style: const TextStyle(color: Colors.black87),
                 ),
                 Text(

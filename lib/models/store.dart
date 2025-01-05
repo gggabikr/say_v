@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 class Store {
   final String id;
   final String name;
@@ -5,8 +7,7 @@ class Store {
   final double latitude;
   final double longitude;
   final String category;
-  final double averageRating;
-  final int totalRatings;
+  final List<double> ratings;
   final List<String> cuisineTypes;
   final List<MenuItem> menus;
   double? distance;
@@ -15,6 +16,50 @@ class Store {
   final List<HappyHour>? happyHours;
   final bool is24Hours;
 
+  // 최근 200개 평점만 사용하여 평균 계산
+  Future<double> calculateAverageAsync() async {
+    return compute(_calculateAverage, ratings);
+  }
+
+  static double _calculateAverage(List<double> ratings) {
+    if (ratings.isEmpty) return 0.0;
+    final recentRatings = ratings.length > RATING_LIMIT
+        ? ratings.sublist(ratings.length - RATING_LIMIT)
+        : ratings;
+    return recentRatings.reduce((a, b) => a + b) / recentRatings.length;
+  }
+
+  // 캐싱을 위한 변수
+  double? _cachedAverageRating;
+  int? _lastRatingsLength;
+
+  // 캐싱을 적용한 평균 계산
+  double get cachedAverageRating {
+    // ratings 길이가 변경되었을 때만 재계산
+    if (_lastRatingsLength != ratings.length || _cachedAverageRating == null) {
+      _cachedAverageRating = _calculateAverage(ratings);
+      _lastRatingsLength = ratings.length;
+    }
+    return _cachedAverageRating!;
+  }
+
+  // 총 평점 수
+  int get totalRatings => ratings.length;
+
+  // 최근 평점 수 (20개 제한 적용)
+  static const RATING_LIMIT = 20; // 나중에 200으로 변경 가능
+
+  int get recentRatingsCount =>
+      ratings.length > RATING_LIMIT ? RATING_LIMIT : ratings.length;
+
+  // 평균 평점 계산 (최근 20개만 사용)
+  double calculateAverageRating() {
+    if (ratings.isEmpty) return 0;
+
+    final recentRatings = ratings.take(RATING_LIMIT).toList();
+    return recentRatings.reduce((a, b) => a + b) / recentRatings.length;
+  }
+
   Store({
     required this.id,
     required this.name,
@@ -22,8 +67,7 @@ class Store {
     required this.latitude,
     required this.longitude,
     required this.category,
-    required this.averageRating,
-    required this.totalRatings,
+    required this.ratings,
     required this.cuisineTypes,
     required this.menus,
     this.distance,
@@ -39,15 +83,33 @@ class Store {
   }
 
   factory Store.fromJson(Map<String, dynamic> json) {
+    List<double> parseRatings() {
+      try {
+        final ratingsList = json['ratings'];
+        if (ratingsList == null) return [];
+        if (ratingsList is! List) return [];
+        return ratingsList
+            .whereType<num>()
+            .map((rating) => rating.toDouble())
+            .toList();
+      } catch (e) {
+        print('Error parsing ratings: $e');
+        return [];
+      }
+    }
+
     return Store(
       id: json['storeId']?.toString() ?? '',
       name: json['name']?.toString() ?? '',
       address: json['address']?.toString() ?? '',
       latitude: (json['location']?['latitude'] ?? 0.0).toDouble(),
       longitude: (json['location']?['longitude'] ?? 0.0).toDouble(),
-      category: (json['category'] as List).join(','),
-      averageRating: (json['averageRating'] ?? 0.0).toDouble(),
-      totalRatings: (json['totalRatings'] ?? 0).toInt(),
+      category: (json['category'] as List?)
+              ?.map((e) => e.toString())
+              .toList()
+              .join(',') ??
+          '',
+      ratings: parseRatings(),
       cuisineTypes: (json['cuisineTypes'] as List?)
               ?.map((type) => type.toString())
               .toList() ??

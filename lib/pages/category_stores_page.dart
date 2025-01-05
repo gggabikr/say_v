@@ -158,7 +158,8 @@ class _CategoryStoresPageState extends State<CategoryStoresPage> {
             if (a.distance != null && b.distance != null) {
               return a.distance!.compareTo(b.distance!);
             }
-            return (b.averageRating ?? 0).compareTo(a.averageRating ?? 0);
+            return (b.cachedAverageRating ?? 0)
+                .compareTo(a.cachedAverageRating ?? 0);
           });
         }
       });
@@ -236,7 +237,8 @@ class _CategoryStoresPageState extends State<CategoryStoresPage> {
           return (a.distance ?? double.infinity)
               .compareTo(b.distance ?? double.infinity);
         } else {
-          return (b.averageRating ?? 0).compareTo(a.averageRating ?? 0);
+          return (b.cachedAverageRating ?? 0)
+              .compareTo(a.cachedAverageRating ?? 0);
         }
       });
     });
