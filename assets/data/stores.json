@@ -44,7 +44,7 @@
           }
         ],
         "businessHours": {
-          "openHour": 17,
+          "openHour": 11,
           "openMinute": 0,
           "closeHour": 2,
           "closeMinute": 0,
@@ -52,9 +52,9 @@
         },
         "happyHours": [
           {
-            "startHour": 17,
+            "startHour": 15,
             "startMinute": 0,
-            "endHour": 19,
+            "endHour": 18,
             "endMinute": 0,
             "isNextDay": false,
             "daysOfWeek": ["MON", "TUE", "WED", "THU", "FRI"]
@@ -63,7 +63,7 @@
             "startHour": 22,
             "startMinute": 0,
             "endHour": 1,
-            "endMinute": 30,
+            "endMinute": 0,
             "isNextDay": true,
             "daysOfWeek": ["FRI", "SAT"]
           }
@@ -79,7 +79,7 @@
           "latitude": 49.2760,
           "longitude": -123.1187
         },
-        "ratings": [4.0, 4.5, 4.0, 3.5, 4.0, 4.5, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5, 5.0],
+        "ratings": [4.0, 4.5, 4.0, 3.5, 4.0, 4.5, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5, 5.0],
         "totalRatings": 156,
         "menus": [
           {
@@ -179,8 +179,26 @@
           "latitude": 49.2820,
           "longitude": -123.1180
         },
-        "ratings": [4.0, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5],
-        "totalRatings": 234
+        "ratings": [4.0, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5, 5.0],
+        "totalRatings": 234,
+        "businessHours": {
+          "openHour": 11,
+          "openMinute": 0,
+          "closeHour": 23,
+          "closeMinute": 0,
+          "isNextDay": false
+        },
+        "happyHours": [
+          {
+            "startHour": 15,
+            "startMinute": 0,
+            "endHour": 18,
+            "endMinute": 0,
+            "isNextDay": false,
+            "daysOfWeek": ["TUE"]
+          }
+        ],
+        "is24Hours": false
       },
       {
         "storeId": "56789012",
@@ -192,7 +210,25 @@
           "longitude": -123.1220
         },
         "ratings": [4.5, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0],
-        "totalRatings": 756
+        "totalRatings": 756,
+        "businessHours": {
+          "openHour": 12,
+          "openMinute": 0,
+          "closeHour": 1,
+          "closeMinute": 0,
+          "isNextDay": true
+        },
+        "happyHours": [
+          {
+            "startHour": 16,
+            "startMinute": 0,
+            "endHour": 19,
+            "endMinute": 0,
+            "isNextDay": false,
+            "daysOfWeek": ["MON", "TUE", "WED", "THU", "FRI"]
+          }
+        ],
+        "is24Hours": false
       },
       {
         "storeId": "67890123",
@@ -203,8 +239,26 @@
           "latitude": 49.2815,
           "longitude": -123.1190
         },
-        "ratings": [4.0, 4.5, 4.0, 3.5, 4.0, 4.5, 3.5],
-        "totalRatings": 89
+        "ratings": [4.0, 4.5, 4.0, 3.5, 4.0, 4.5, 3.5, 4.0],
+        "totalRatings": 8,
+        "businessHours": {
+          "openHour": 11,
+          "openMinute": 30,
+          "closeHour": 22,
+          "closeMinute": 0,
+          "isNextDay": false
+        },
+        "happyHours": [
+          {
+            "startHour": 14,
+            "startMinute": 30,
+            "endHour": 17,
+            "endMinute": 30,
+            "isNextDay": false,
+            "daysOfWeek": ["MON", "TUE", "WED", "THU", "FRI"]
+          }
+        ],
+        "is24Hours": false
       },
       {
         "storeId": "78901234",
@@ -215,7 +269,7 @@
           "latitude": 49.2835,
           "longitude": -123.1160
         },
-        "ratings": [4.5, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5],
+        "ratings": [4.5, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0],
         "totalRatings": 167,
         "menus": [
           {
@@ -268,8 +322,17 @@
           "latitude": 49.2850,
           "longitude": -123.1170
         },
-        "ratings": [4.0, 4.5, 5.0, 4.5, 4.0],
-        "totalRatings": 45
+        "ratings": [],
+        "totalRatings": 0,
+        "businessHours": {
+          "openHour": 8,
+          "openMinute": 0,
+          "closeHour": 21,
+          "closeMinute": 0,
+          "isNextDay": false
+        },
+        "happyHours": [],
+        "is24Hours": false
       },
       {
         "storeId": "90123456",
@@ -280,8 +343,17 @@
           "latitude": 49.2845,
           "longitude": -123.1175
         },
-        "ratings": [4.5, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5],
-        "totalRatings": 78
+        "ratings": [4.5, 4.0, 3.5],
+        "totalRatings": 3,
+        "businessHours": {
+          "openHour": 7,
+          "openMinute": 0,
+          "closeHour": 20,
+          "closeMinute": 0,
+          "isNextDay": false
+        },
+        "happyHours": [],
+        "is24Hours": false
       },
       {
         "storeId": "01234567",
@@ -293,7 +365,25 @@
           "longitude": -123.1230
         },
         "ratings": [4.0, 4.5, 5.0, 4.5, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0, 4.5, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5, 5.0],
-        "totalRatings": 678
+        "totalRatings": 678,
+        "businessHours": {
+          "openHour": 11,
+          "openMinute": 30,
+          "closeHour": 23,
+          "closeMinute": 0,
+          "isNextDay": false
+        },
+        "happyHours": [
+          {
+            "startHour": 15,
+            "startMinute": 0,
+            "endHour": 18,
+            "endMinute": 0,
+            "isNextDay": false,
+            "daysOfWeek": ["MON", "TUE", "WED", "THU", "FRI"]
+          }
+        ],
+        "is24Hours": false
       },
       {
         "storeId": "11223344",
@@ -304,226 +394,31 @@
           "latitude": 49.2825,
           "longitude": -123.1210
         },
-        "ratings": [4.5, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5, 3.5, 4.0, 4.5, 5.0, 4.0],
-        "totalRatings": 345
+        "ratings": [4.5, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0],
+        "totalRatings": 345,
+        "businessHours": {
+          "openHour": 9,
+          "openMinute": 0,
+          "closeHour": 21,
+          "closeMinute": 0,
+          "isNextDay": false
+        },
+        "happyHours": [],
+        "is24Hours": false
       },
       {
         "storeId": "22334455",
         "name": "Burger Joint",
         "category": ["happy_hour", "deals_and_discounts"],
-        "cuisineTypes": ["American", "Burgers", "Fast Food"],
+        "cuisineTypes": ["American", "Burgers", "Fast Food", "Bar"],
         "location": {
           "latitude": 49.2830,
-          "longitude": -123.1200
-        },
-        "ratings": [2.0, 2.5, 3.0, 2.5, 2.0, 3.0, 2.5, 3.0, 2.5, 2.0, 3.5, 2.0, 2.5, 3.0, 2.5],
-        "totalRatings": 267
-      },
-      {
-        "storeId": "33445566",
-        "name": "Mediterranean Grill",
-        "category": ["deals_and_discounts", "special_events"],
-        "cuisineTypes": ["Mediterranean", "Greek", "Middle Eastern"],
-        "location": {
-          "latitude": 49.2840,
-          "longitude": -123.1180
-        },
-        "ratings": [4.5, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5],
-        "totalRatings": 189,
-        "menus": [
-          {
-            "itemId": "66554433",
-            "name": "Shawarma",
-            "price": 11.99,
-            "type": "food"
-          },
-          {
-            "itemId": "66554434",
-            "name": "Hummus",
-            "price": 6.99,
-            "type": "food"
-          },
-          {
-            "itemId": "66554435",
-            "name": "Greek Salad",
-            "price": 9.99,
-            "type": "food"
-          },
-          {
-            "itemId": "66554436",
-            "name": "Turkish Coffee",
-            "price": 3.99,
-            "type": "drink"
-          },
-          {
-            "itemId": "66554437",
-            "name": "Baklava",
-            "price": 4.99,
-            "type": "food"
-          }
-        ],
-        "businessHours": {
-          "openHour": 11,
-          "openMinute": 30,
-          "closeHour": 22,
-          "closeMinute": 30,
-          "isNextDay": false
-        },
-        "happyHours": []
-      },
-      {
-        "storeId": "44556677",
-        "name": "Ice Cream Paradise",
-        "category": ["deals_and_discounts", "special_events"],
-        "cuisineTypes": ["Dessert", "Ice Cream", "Cafe"],
-        "location": {
-          "latitude": 49.2820,
           "longitude": -123.1195
         },
-        "ratings": [3.0, 2.5, 3.0, 2.5, 3.5, 3.0, 2.5, 3.0, 3.5, 2.5, 3.0, 2.5, 3.0],
-        "totalRatings": 156,
-        "menus": [
-          {
-            "itemId": "77665544",
-            "name": "Sundae",
-            "price": 7.99,
-            "type": "food"
-          },
-          {
-            "itemId": "77665545",
-            "name": "Banana Split",
-            "price": 8.99,
-            "type": "food"
-          },
-          {
-            "itemId": "77665546",
-            "name": "Milkshake",
-            "price": 5.99,
-            "type": "drink"
-          },
-          {
-            "itemId": "77665547",
-            "name": "Waffle Cone",
-            "price": 4.99,
-            "type": "food"
-          },
-          {
-            "itemId": "77665548",
-            "name": "Hot Fudge",
-            "price": 2.99,
-            "type": "food"
-          }
-        ],
+        "ratings": [2.0, 2.5, 3.0, 2.5, 2.0, 3.0, 2.5, 3.0, 2.5, 2.0, 3.5, 2.0, 2.5, 3.0, 2.5, 2.0, 2.5, 3.0, 2.5, 3.0],
+        "totalRatings": 267,
         "businessHours": {
           "openHour": 11,
-          "openMinute": 0,
-          "closeHour": 23,
-          "closeMinute": 0,
-          "isNextDay": false
-        },
-        "happyHours": []
-      },
-      {
-        "storeId": "55667788",
-        "name": "Pho House",
-        "category": ["happy_hour", "deals_and_discounts"],
-        "cuisineTypes": ["Vietnamese", "Asian", "Noodles"],
-        "location": {
-          "latitude": 49.2835,
-          "longitude": -123.1215
-        },
-        "ratings": [4.0, 4.5, 5.0, 4.5, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0, 4.5, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5, 5.0],
-        "totalRatings": 432
-      },
-      {
-        "storeId": "55667715",
-        "name": "BB.Q Chicken",
-        "category": ["happy_hour", "deals_and_discounts"],
-        "location": {
-          "latitude": 49.2835,
-          "longitude": -123.1033
-        },
-        "ratings": [4.5, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5, 3.5, 4.0],
-        "totalRatings": 245
-      },
-      {
-        "storeId": "66778899",
-        "name": "Langley Night Market",
-        "category": ["night_market", "special_events"],
-        "cuisineTypes": ["Asian", "Street Food", "International"],
-        "location": {
-          "latitude": 49.1041,
-          "longitude": -122.6594
-        },
-        "ratings": [2.5, 2.0, 3.0, 2.5, 2.0, 3.0, 2.5, 3.0, 2.5, 2.0],
-        "totalRatings": 167,
-        "menus": [
-          {
-            "itemId": "99887766",
-            "name": "Street Takoyaki",
-            "price": 8.99,
-            "type": "food"
-          },
-          {
-            "itemId": "99887765",
-            "name": "Bubble Tea",
-            "price": 6.99,
-            "type": "drink"
-          },
-          {
-            "itemId": "99887764",
-            "name": "Korean Corn Dog",
-            "price": 7.99,
-            "type": "food"
-          }
-        ],
-        "businessHours": {
-          "openHour": 18,
-          "openMinute": 0,
-          "closeHour": 2,
-          "closeMinute": 0,
-          "isNextDay": true
-        },
-        "happyHours": []
-      },
-      {
-        "storeId": "77889900",
-        "name": "Coquitlam Brew House",
-        "category": ["happy_hour", "craft_beer", "live_music"],
-        "cuisineTypes": ["Pub Food", "Craft Beer", "Western"],
-        "location": {
-          "latitude": 49.2838,
-          "longitude": -122.7932
-        },
-        "ratings": [4.0, 4.5, 5.0, 4.5, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0, 4.5, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5, 5.0],
-        "totalRatings": 678
-      },
-      {
-        "storeId": "88990011",
-        "name": "White Rock Beach Bar",
-        "category": ["happy_hour", "seafood", "beach_view"],
-        "cuisineTypes": ["Seafood", "Bar", "West Coast"],
-        "location": {
-          "latitude": 49.0147,
-          "longitude": -122.8029
-        },
-        "ratings": [4.5, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0, 4.5, 3.5],
-        "menus": [
-          {
-            "itemId": "11009988",
-            "name": "Fresh Oysters",
-            "price": 18.99,
-            "type": "food"
-          },
-          {
-            "itemId": "11009987",
-            "name": "Beach Cocktail",
-            "price": 12.99,
-            "type": "alcohol"
-          }
-        ],
-        "businessHours": {
-          "openHour": 12,
           "openMinute": 0,
           "closeHour": 23,
           "closeMinute": 0,
@@ -533,7 +428,160 @@
           {
             "startHour": 15,
             "startMinute": 0,
+            "endHour": 18,
+            "endMinute": 0,
+            "isNextDay": false,
+            "daysOfWeek": ["MON", "TUE", "WED", "THU", "FRI"]
+          }
+        ],
+        "is24Hours": false
+      },
+      {
+        "storeId": "33445566",
+        "name": "Mediterranean Grill",
+        "category": ["deals_and_discounts", "special_events"],
+        "cuisineTypes": ["Mediterranean", "Greek", "Middle Eastern", "Healthy"],
+        "location": {
+          "latitude": 49.2840,
+          "longitude": -123.1185
+        },
+        "ratings": [4.5, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0],
+        "totalRatings": 189,
+        "businessHours": {
+          "openHour": 11,
+          "openMinute": 30,
+          "closeHour": 22,
+          "closeMinute": 0,
+          "isNextDay": false
+        },
+        "happyHours": [],
+        "is24Hours": false
+      },
+      {
+        "storeId": "44556677",
+        "name": "Ice Cream Paradise",
+        "category": ["deals_and_discounts", "special_events"],
+        "cuisineTypes": ["Dessert", "Ice Cream", "Family Friendly"],
+        "location": {
+          "latitude": 49.2835,
+          "longitude": -123.1165
+        },
+        "ratings": [3.0, 2.5, 3.0, 2.5, 3.5, 3.0, 2.5, 3.0, 3.5, 2.5, 3.0, 2.5, 3.0, 2.5, 3.5, 3.0, 2.5, 3.0, 3.5, 2.5],
+        "totalRatings": 156,
+        "businessHours": {
+          "openHour": 12,
+          "openMinute": 0,
+          "closeHour": 22,
+          "closeMinute": 0,
+          "isNextDay": false
+        },
+        "happyHours": [],
+        "is24Hours": false
+      },
+      {
+        "storeId": "55667788",
+        "name": "Pho House",
+        "category": ["happy_hour", "deals_and_discounts"],
+        "cuisineTypes": ["Vietnamese", "Asian", "Soup", "Noodles"],
+        "location": {
+          "latitude": 49.2845,
+          "longitude": -123.1175
+        },
+        "ratings": [4.0, 4.5, 5.0, 4.5, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0, 4.5, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5, 5.0],
+        "totalRatings": 432,
+        "businessHours": {
+          "openHour": 10,
+          "openMinute": 0,
+          "closeHour": 22,
+          "closeMinute": 0,
+          "isNextDay": false
+        },
+        "happyHours": [
+          {
+            "startHour": 14,
+            "startMinute": 30,
             "endHour": 17,
+            "endMinute": 30,
+            "isNextDay": false,
+            "daysOfWeek": ["MON", "TUE", "WED", "THU", "FRI"]
+          }
+        ],
+        "is24Hours": false
+      },
+      {
+        "storeId": "55667715",
+        "name": "BB.Q Chicken",
+        "category": ["happy_hour", "deals_and_discounts"],
+        "cuisineTypes": ["Korean", "Chicken", "Asian", "Bar"],
+        "location": {
+          "latitude": 49.2825,
+          "longitude": -123.1195
+        },
+        "ratings": [4.5, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0],
+        "totalRatings": 245,
+        "businessHours": {
+          "openHour": 11,
+          "openMinute": 30,
+          "closeHour": 23,
+          "closeMinute": 0,
+          "isNextDay": false
+        },
+        "happyHours": [
+          {
+            "startHour": 15,
+            "startMinute": 0,
+            "endHour": 18,
+            "endMinute": 0,
+            "isNextDay": false,
+            "daysOfWeek": ["MON", "TUE", "WED", "THU", "FRI"]
+          }
+        ],
+        "is24Hours": false
+      },
+      {
+        "storeId": "66778899",
+        "name": "Langley Night Market",
+        "category": ["night_market", "special_events"],
+        "cuisineTypes": ["Asian", "Street Food", "International", "Night Market"],
+        "location": {
+          "latitude": 49.2815,
+          "longitude": -123.1205
+        },
+        "ratings": [],
+        "totalRatings": 0,
+        "businessHours": {
+          "openHour": 17,
+          "openMinute": 0,
+          "closeHour": 23,
+          "closeMinute": 0,
+          "isNextDay": false
+        },
+        "happyHours": [],
+        "is24Hours": false
+      },
+      {
+        "storeId": "77889900",
+        "name": "Coquitlam Brew House",
+        "category": ["happy_hour", "craft_beer", "live_music"],
+        "cuisineTypes": ["Pub Food", "Craft Beer", "American", "Bar"],
+        "location": {
+          "latitude": 49.2850,
+          "longitude": -123.1180
+        },
+        "ratings": [4.0, 4.5, 5.0, 4.5, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0, 4.5, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5, 5.0],
+        "totalRatings": 678,
+        "businessHours": {
+          "openHour": 12,
+          "openMinute": 0,
+          "closeHour": 2,
+          "closeMinute": 0,
+          "isNextDay": true
+        },
+        "happyHours": [
+          {
+            "startHour": 15,
+            "startMinute": 0,
+            "endHour": 18,
             "endMinute": 0,
             "isNextDay": false,
             "daysOfWeek": ["MON", "TUE", "WED", "THU", "FRI"]
@@ -541,70 +589,132 @@
           {
             "startHour": 21,
             "startMinute": 0,
-            "endHour": 22,
-            "endMinute": 30,
+            "endHour": 23,
+            "endMinute": 0,
             "isNextDay": false,
-            "daysOfWeek": ["SUN", "MON", "TUE"]
+            "daysOfWeek": ["FRI", "SAT"]
           }
-        ]
+        ],
+        "is24Hours": false
+      },
+      {
+        "storeId": "88990011",
+        "name": "White Rock Beach Bar",
+        "category": ["happy_hour", "seafood", "beach_view"],
+        "cuisineTypes": ["Seafood", "Bar", "American", "Grill"],
+        "location": {
+          "latitude": 49.2855,
+          "longitude": -123.1190
+        },
+        "ratings": [4.5, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0],
+        "totalRatings": 345,
+        "businessHours": {
+          "openHour": 11,
+          "openMinute": 30,
+          "closeHour": 23,
+          "closeMinute": 0,
+          "isNextDay": false
+        },
+        "happyHours": [
+          {
+            "startHour": 15,
+            "startMinute": 0,
+            "endHour": 18,
+            "endMinute": 0,
+            "isNextDay": false,
+            "daysOfWeek": ["MON", "TUE", "WED", "THU", "FRI"]
+          }
+        ],
+        "is24Hours": false
       },
       {
         "storeId": "99001122",
         "name": "Maple Ridge Dawn Cafe",
         "category": ["breakfast", "brunch"],
-        "cuisineTypes": ["Breakfast", "Brunch", "Coffee"],
+        "cuisineTypes": ["Breakfast", "Brunch", "Cafe", "Coffee"],
         "location": {
-          "latitude": 49.2195,
-          "longitude": -122.5984
+          "latitude": 49.2820,
+          "longitude": -123.1200
         },
         "ratings": [2.0, 2.5, 3.0, 2.0, 2.5, 3.0, 2.5, 2.0],
-        "totalRatings": 89,
-        "menus": [
-          {
-            "itemId": "22110099",
-            "name": "Early Bird Special",
-            "price": 11.99,
-            "type": "food"
-          },
-          {
-            "itemId": "22110098",
-            "name": "Fresh Coffee",
-            "price": 3.99,
-            "type": "drink"
-          }
-        ],
+        "totalRatings": 8,
         "businessHours": {
-          "openHour": 5,
+          "openHour": 6,
           "openMinute": 0,
-          "closeHour": 14,
+          "closeHour": 15,
           "closeMinute": 0,
           "isNextDay": false
         },
-        "happyHours": []
+        "happyHours": [],
+        "is24Hours": false
       },
       {
         "storeId": "00112233",
         "name": "North Van Late Bar",
         "category": ["happy_hour", "late_night"],
-        "cuisineTypes": ["Bar", "Fusion", "Late Night"],
+        "cuisineTypes": ["Bar", "Pub Food", "Late Night"],
         "location": {
-          "latitude": 49.3114,
-          "longitude": -123.0726
+          "latitude": 49.2860,
+          "longitude": -123.1210
         },
-        "ratings": [4.0, 4.5, 5.0, 4.5, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0],
-        "totalRatings": 234
+        "ratings": [4.0, 4.5, 5.0, 4.5, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0, 4.5, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5, 5.0],
+        "totalRatings": 234,
+        "businessHours": {
+          "openHour": 16,
+          "openMinute": 0,
+          "closeHour": 3,
+          "closeMinute": 0,
+          "isNextDay": true
+        },
+        "happyHours": [
+          {
+            "startHour": 16,
+            "startMinute": 0,
+            "endHour": 19,
+            "endMinute": 0,
+            "isNextDay": false,
+            "daysOfWeek": ["MON", "TUE", "WED", "THU", "FRI"]
+          },
+          {
+            "startHour": 23,
+            "startMinute": 0,
+            "endHour": 2,
+            "endMinute": 0,
+            "isNextDay": true,
+            "daysOfWeek": ["FRI", "SAT"]
+          }
+        ],
+        "is24Hours": false
       },
       {
         "storeId": "11223344",
         "name": "Whistler Mountain Lodge",
         "category": ["happy_hour", "fine_dining", "ski_resort"],
-        "cuisineTypes": ["Canadian", "Fine Dining", "Alpine"],
+        "cuisineTypes": ["Fine Dining", "Canadian", "Steak", "Wine Bar"],
         "location": {
-          "latitude": 50.1163,
-          "longitude": -122.9574
+          "latitude": 49.2865,
+          "longitude": -123.1220
         },
         "ratings": [4.5, 5.0, 4.5, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0, 4.5, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0],
-        "totalRatings": 567
+        "totalRatings": 567,
+        "businessHours": {
+          "openHour": 17,
+          "openMinute": 0,
+          "closeHour": 23,
+          "closeMinute": 0,
+          "isNextDay": false
+        },
+        "happyHours": [
+          {
+            "startHour": 17,
+            "startMinute": 0,
+            "endHour": 19,
+            "endMinute": 0,
+            "isNextDay": false,
+            "daysOfWeek": ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"]
+          }
+        ],
+        "is24Hours": false
       }
     ]
 }
