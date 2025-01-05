@@ -4,14 +4,13 @@
         "storeId": "12345678",
         "name": "The Maple Tavern",
         "category": ["happy_hour", "special_events"],
-        "cuisineTypes": ["American", "Canadian", "Bar"],
+        "cuisineTypes": ["American", "Canadian", "Bar", "Late Night"],
         "location": {
           "latitude": 49.2827,
           "longitude": -123.1207
         },
-        "ratings": [4.5, 3.0, 4.0, 5.0, 3.5, 4.0, 2.5, 4.5, 3.5, 4.0, 4.5, 5.0, 3.0, 4.0, 3.5, 4.5, 4.0, 3.5, 4.0, 4.5, 3.0, 4.5, 5.0, 4.0],
-        "averageRating": 4.0,
-        "totalRatings": 24,
+        "ratings": [4.5, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0],
+        "totalRatings": 487,
         "menus": [
           {
             "itemId": "87654321",
@@ -53,20 +52,20 @@
         },
         "happyHours": [
           {
-            "startHour": 14,
+            "startHour": 17,
             "startMinute": 0,
-            "endHour": 17,
+            "endHour": 19,
             "endMinute": 0,
             "isNextDay": false,
             "daysOfWeek": ["MON", "TUE", "WED", "THU", "FRI"]
           },
           {
-            "startHour": 20,
+            "startHour": 22,
             "startMinute": 0,
-            "endHour": 2,
-            "endMinute": 0,
+            "endHour": 1,
+            "endMinute": 30,
             "isNextDay": true,
-            "daysOfWeek": ["MON", "TUE", "WED", "THU", "SUN"]
+            "daysOfWeek": ["FRI", "SAT"]
           }
         ],
         "is24Hours": false
@@ -75,14 +74,13 @@
         "storeId": "23456789",
         "name": "Sushi Paradise",
         "category": ["all_you_can_eat"],
-        "cuisineTypes": ["Japanese", "Asian", "Seafood"],
+        "cuisineTypes": ["Japanese", "Asian", "Seafood", "Group Dining"],
         "location": {
           "latitude": 49.2760,
           "longitude": -123.1187
         },
-        "ratings": [4.0, 4.5, 5.0, 4.5, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0, 4.5, 3.5, 4.0, 4.5, 3.0, 4.5, 5.0, 4.0],
-        "averageRating": 4.2,
-        "totalRatings": 18,
+        "ratings": [4.0, 4.5, 4.0, 3.5, 4.0, 4.5, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5, 5.0],
+        "totalRatings": 156,
         "menus": [
           {
             "itemId": "98765431",
@@ -122,29 +120,20 @@
           "closeMinute": 0,
           "isNextDay": false
         },
-        "happyHours": [
-          {
-            "startHour": 14,
-            "startMinute": 30,
-            "endHour": 17,
-            "endMinute": 30,
-            "daysOfWeek": ["MON", "TUE", "WED", "THU", "FRI"]
-          }
-        ],
+        "happyHours": [],
         "is24Hours": false
       },
       {
         "storeId": "34567890",
         "name": "Korean BBQ House",
         "category": ["all_you_can_eat", "special_events"],
-        "cuisineTypes": ["Korean", "Asian", "BBQ"],
+        "cuisineTypes": ["Korean", "Asian", "BBQ", "Group Dining", "Late Night"],
         "location": {
           "latitude": 49.2855,
           "longitude": -123.1197
         },
-        "ratings": [4.5, 5.0, 4.5, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0, 4.5, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0, 4.5],
-        "averageRating": 4.3,
-        "totalRatings": 21,
+        "ratings": [4.5, 5.0, 4.5, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0, 4.5, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0],
+        "totalRatings": 892,
         "menus": [
           {
             "itemId": "76543210",
@@ -177,7 +166,9 @@
             "type": "food"
           }
         ],
-        "is24Hours": true
+        "is24Hours": true,
+        "happyHours": [],
+        "businessHours": null
       },
       {
         "storeId": "45678901",
@@ -188,202 +179,44 @@
           "latitude": 49.2820,
           "longitude": -123.1180
         },
-        "ratings": [3.5, 4.0, 4.5, 3.0, 4.0, 3.5, 4.0, 4.5, 3.5, 4.0, 3.5, 4.0, 4.5, 3.5, 4.0, 3.5, 4.0],
-        "averageRating": 3.9,
-        "totalRatings": 17,
-        "menus": [
-          {
-            "itemId": "65432109",
-            "name": "Street Tacos",
-            "price": 2.99,
-            "type": "food"
-          },
-          {
-            "itemId": "65432108",
-            "name": "Margarita",
-            "price": 6.99,
-            "type": "alcohol"
-          },
-          {
-            "itemId": "65432107",
-            "name": "Nachos Grande",
-            "price": 13.99,
-            "type": "food"
-          },
-          {
-            "itemId": "65432106",
-            "name": "Mexican Beer",
-            "price": 4.99,
-            "type": "alcohol"
-          },
-          {
-            "itemId": "65432105",
-            "name": "Horchata",
-            "price": 3.99,
-            "type": "drink"
-          }
-        ],
-        "businessHours": {
-          "openHour": 11,
-          "openMinute": 0,
-          "closeHour": 23,
-          "closeMinute": 0,
-          "isNextDay": false
-        },
-        "happyHours": [
-          {
-            "startHour": 14,
-            "startMinute": 0,
-            "endHour": 17,
-            "endMinute": 0,
-            "isNextDay": false,
-            "daysOfWeek": ["MON", "TUE", "WED", "THU", "FRI"]
-          },
-          {
-            "startHour": 20,
-            "startMinute": 0,
-            "endHour": 2,
-            "endMinute": 0,
-            "isNextDay": true,
-            "daysOfWeek": ["MON", "TUE", "WED", "THU", "SUN"]
-          }
-        ]
+        "ratings": [4.0, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5],
+        "totalRatings": 234
       },
       {
         "storeId": "56789012",
         "name": "Pub & Grub",
         "category": ["happy_hour", "deals_and_discounts"],
-        "cuisineTypes": ["British", "American", "Bar"],
+        "cuisineTypes": ["British", "American", "Bar", "Pub Food"],
         "location": {
           "latitude": 49.2840,
           "longitude": -123.1220
         },
-        "ratings": [4.0, 3.5, 4.0, 4.5, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5, 3.5, 4.0],
-        "averageRating": 4.1,
-        "totalRatings": 22,
-        "menus": [
-          {
-            "itemId": "54321098",
-            "name": "Burger & Beer",
-            "price": 14.99,
-            "type": "food"
-          },
-          {
-            "itemId": "54321097",
-            "name": "Fish & Chips",
-            "price": 15.99,
-            "type": "food"
-          },
-          {
-            "itemId": "54321096",
-            "name": "Craft Beer",
-            "price": 6.99,
-            "type": "alcohol"
-          },
-          {
-            "itemId": "54321095",
-            "name": "Caesar",
-            "price": 7.99,
-            "type": "alcohol"
-          },
-          {
-            "itemId": "54321094",
-            "name": "Onion Rings",
-            "price": 6.99,
-            "type": "food"
-          }
-        ],
-        "businessHours": {
-          "openHour": 16,
-          "openMinute": 0,
-          "closeHour": 1,
-          "closeMinute": 0,
-          "isNextDay": true
-        },
-        "happyHours": [
-          {
-            "startHour": 16,
-            "startMinute": 0,
-            "endHour": 18,
-            "endMinute": 30,
-            "daysOfWeek": ["MON", "TUE", "WED", "THU", "FRI"]
-          }
-        ]
+        "ratings": [4.5, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0],
+        "totalRatings": 756
       },
       {
         "storeId": "67890123",
         "name": "Sushi Express",
         "category": ["happy_hour", "deals_and_discounts"],
-        "cuisineTypes": ["Japanese", "Asian", "Noodles"],
+        "cuisineTypes": ["Japanese", "Sushi", "Asian", "Late Night"],
         "location": {
           "latitude": 49.2815,
           "longitude": -123.1190
         },
-        "ratings": [4.5, 5.0, 4.5, 4.0, 4.5, 5.0, 4.0, 4.5, 5.0, 4.0, 4.5, 5.0, 4.5, 4.0, 4.5, 5.0, 4.0, 4.5, 5.0],
-        "averageRating": 4.5,
-        "totalRatings": 19,
-        "menus": [
-          {
-            "itemId": "43210987",
-            "name": "Tonkotsu Ramen",
-            "price": 13.99,
-            "type": "food"
-          },
-          {
-            "itemId": "43210986",
-            "name": "Asahi Beer",
-            "price": 5.99,
-            "type": "alcohol"
-          },
-          {
-            "itemId": "43210985",
-            "name": "Gyoza",
-            "price": 6.99,
-            "type": "food"
-          },
-          {
-            "itemId": "43210984",
-            "name": "Green Tea",
-            "price": 2.50,
-            "type": "drink"
-          },
-          {
-            "itemId": "43210983",
-            "name": "Karaage",
-            "price": 7.99,
-            "type": "food"
-          }
-        ],
-        "businessHours": {
-          "openHour": 11,
-          "openMinute": 0,
-          "closeHour": 23,
-          "closeMinute": 0,
-          "isNextDay": false
-        },
-        "happyHours": [
-          {
-            "startHour": 15,
-            "startMinute": 0,
-            "endHour": 17,
-            "endMinute": 30,
-            "isNextDay": false,
-            "daysOfWeek": ["MON", "TUE", "WED", "THU", "FRI"]
-          }
-        ]
+        "ratings": [4.0, 4.5, 4.0, 3.5, 4.0, 4.5, 3.5],
+        "totalRatings": 89
       },
       {
         "storeId": "78901234",
         "name": "Pizza Paradise",
         "category": ["deals_and_discounts", "special_events"],
-        "cuisineTypes": ["Italian", "Pizza", "Mediterranean"],
+        "cuisineTypes": ["Italian", "Pizza", "Family Style"],
         "location": {
           "latitude": 49.2835,
           "longitude": -123.1160
         },
-        "ratings": [3.5, 4.0, 4.5, 3.5, 4.0, 3.5, 4.0, 4.5, 3.5, 4.0, 3.5, 4.0, 4.5, 3.5, 4.0, 3.5],
-        "averageRating": 3.9,
-        "totalRatings": 16,
+        "ratings": [4.5, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5],
+        "totalRatings": 167,
         "menus": [
           {
             "itemId": "32109876",
@@ -423,192 +256,44 @@
           "closeMinute": 0,
           "isNextDay": true
         },
-        "happyHours": [
-          {
-            "startHour": 14,
-            "startMinute": 30,
-            "endHour": 17,
-            "endMinute": 0,
-            "isNextDay": false,
-            "daysOfWeek": ["MON", "TUE", "WED", "THU", "FRI"]
-          },
-          {
-            "startHour": 21,
-            "startMinute": 30,
-            "endHour": 23,
-            "endMinute": 30,
-            "isNextDay": false,
-            "daysOfWeek": ["SUN", "MON", "TUE", "WED", "THU"]
-          }
-        ]
+        "happyHours": [],
+        "is24Hours": false
       },
       {
         "storeId": "89012345",
         "name": "Vegan Delight",
         "category": ["deals_and_discounts", "special_events"],
-        "cuisineTypes": ["Vegan", "Healthy", "International"],
+        "cuisineTypes": ["Vegan", "Healthy", "International", "Gluten-Free", "Organic"],
         "location": {
           "latitude": 49.2850,
           "longitude": -123.1170
         },
-        "ratings": [4.0, 4.5, 5.0, 4.5, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0, 4.5, 3.5, 4.0],
-        "averageRating": 4.2,
-        "totalRatings": 13,
-        "menus": [
-          {
-            "itemId": "21098765",
-            "name": "Buddha Bowl",
-            "price": 13.99,
-            "type": "food"
-          },
-          {
-            "itemId": "21098764",
-            "name": "Kombucha",
-            "price": 4.99,
-            "type": "drink"
-          },
-          {
-            "itemId": "21098763",
-            "name": "Veggie Burger",
-            "price": 12.99,
-            "type": "food"
-          },
-          {
-            "itemId": "21098762",
-            "name": "Green Smoothie",
-            "price": 6.99,
-            "type": "drink"
-          },
-          {
-            "itemId": "21098761",
-            "name": "Quinoa Salad",
-            "price": 11.99,
-            "type": "food"
-          }
-        ],
-        "businessHours": {
-          "openHour": 8,
-          "openMinute": 0,
-          "closeHour": 21,
-          "closeMinute": 0,
-          "isNextDay": false
-        },
-        "happyHours": []
+        "ratings": [4.0, 4.5, 5.0, 4.5, 4.0],
+        "totalRatings": 45
       },
       {
         "storeId": "90123456",
         "name": "Healthy Bites",
         "category": ["deals_and_discounts"],
-        "cuisineTypes": ["Healthy", "American", "Cafe"],
+        "cuisineTypes": ["Healthy", "American", "Cafe", "Breakfast", "Brunch"],
         "location": {
           "latitude": 49.2845,
           "longitude": -123.1175
         },
-        "ratings": [4.5, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5, 3.5, 4.0, 4.5, 5.0],
-        "averageRating": 4.2,
-        "totalRatings": 14,
-        "menus": [
-          {
-            "itemId": "10987654",
-            "name": "Acai Bowl",
-            "price": 10.99,
-            "type": "food"
-          },
-          {
-            "itemId": "10987653",
-            "name": "Protein Smoothie",
-            "price": 7.99,
-            "type": "drink"
-          },
-          {
-            "itemId": "10987652",
-            "name": "Quinoa Salad",
-            "price": 11.99,
-            "type": "food"
-          },
-          {
-            "itemId": "10987651",
-            "name": "Smoothie",
-            "price": 6.99,
-            "type": "drink"
-          },
-          {
-            "itemId": "10987650",
-            "name": "Avocado Toast",
-            "price": 9.99,
-            "type": "food"
-          }
-        ],
-        "businessHours": {
-          "openHour": 7,
-          "openMinute": 0,
-          "closeHour": 20,
-          "closeMinute": 0,
-          "isNextDay": false
-        },
-        "happyHours": []
+        "ratings": [4.5, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5],
+        "totalRatings": 78
       },
       {
         "storeId": "01234567",
         "name": "BBQ King",
         "category": ["happy_hour", "all_you_can_eat"],
-        "cuisineTypes": ["BBQ", "American", "Southern"],
+        "cuisineTypes": ["BBQ", "American", "Southern", "Grill", "Smokehouse"],
         "location": {
           "latitude": 49.2845,
           "longitude": -123.1230
         },
-        "ratings": [4.0, 4.5, 5.0, 4.5, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0, 4.5, 3.5, 4.0, 4.5, 3.0],
-        "averageRating": 4.2,
-        "totalRatings": 15,
-        "menus": [
-          {
-            "itemId": "09876543",
-            "name": "Beef Brisket",
-            "price": 17.99,
-            "type": "food"
-          },
-          {
-            "itemId": "09876542",
-            "name": "Craft Beer",
-            "price": 6.99,
-            "type": "alcohol"
-          },
-          {
-            "itemId": "09876541",
-            "name": "Pulled Pork",
-            "price": 14.99,
-            "type": "food"
-          },
-          {
-            "itemId": "09876540",
-            "name": "Coleslaw",
-            "price": 4.99,
-            "type": "food"
-          },
-          {
-            "itemId": "09876539",
-            "name": "Bourbon",
-            "price": 8.99,
-            "type": "alcohol"
-          }
-        ],
-        "businessHours": {
-          "openHour": 16,
-          "openMinute": 0,
-          "closeHour": 1,
-          "closeMinute": 0,
-          "isNextDay": true
-        },
-        "happyHours": [
-          {
-            "startHour": 16,
-            "startMinute": 0,
-            "endHour": 18,
-            "endMinute": 30,
-            "isNextDay": false,
-            "daysOfWeek": ["MON", "TUE", "WED", "THU", "FRI"]
-          }
-        ]
+        "ratings": [4.0, 4.5, 5.0, 4.5, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0, 4.5, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5, 5.0],
+        "totalRatings": 678
       },
       {
         "storeId": "11223344",
@@ -619,58 +304,8 @@
           "latitude": 49.2825,
           "longitude": -123.1210
         },
-        "ratings": [4.5, 5.0, 4.5, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0, 4.5, 3.5, 4.0],
-        "averageRating": 4.3,
-        "totalRatings": 12,
-        "menus": [
-          {
-            "itemId": "44332211",
-            "name": "Har Gow",
-            "price": 6.99,
-            "type": "food"
-          },
-          {
-            "itemId": "44332212",
-            "name": "Siu Mai",
-            "price": 5.99,
-            "type": "food"
-          },
-          {
-            "itemId": "44332213",
-            "name": "Chinese Tea",
-            "price": 2.99,
-            "type": "drink"
-          },
-          {
-            "itemId": "44332214",
-            "name": "Rice Rolls",
-            "price": 7.99,
-            "type": "food"
-          },
-          {
-            "itemId": "44332215",
-            "name": "Egg Tarts",
-            "price": 4.99,
-            "type": "food"
-          }
-        ],
-        "businessHours": {
-          "openHour": 9,
-          "openMinute": 0,
-          "closeHour": 22,
-          "closeMinute": 0,
-          "isNextDay": false
-        },
-        "happyHours": [
-          {
-            "startHour": 14,
-            "startMinute": 30,
-            "endHour": 16,
-            "endMinute": 30,
-            "isNextDay": false,
-            "daysOfWeek": ["MON", "TUE", "WED", "THU", "FRI"]
-          }
-        ]
+        "ratings": [4.5, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5, 3.5, 4.0, 4.5, 5.0, 4.0],
+        "totalRatings": 345
       },
       {
         "storeId": "22334455",
@@ -681,60 +316,8 @@
           "latitude": 49.2830,
           "longitude": -123.1200
         },
-        "ratings": [3.5, 4.0, 4.5, 3.5, 4.0, 3.5, 4.0, 4.5, 3.5, 4.0, 3.5, 4.0, 4.5, 3.5, 4.0, 3.5, 4.0, 4.5],
-        "averageRating": 3.9,
-        "totalRatings": 18,
-        "menus": [
-          {
-            "itemId": "55443322",
-            "name": "Classic Burger",
-            "price": 12.99,
-            "type": "food"
-          },
-          {
-            "itemId": "55443323",
-            "name": "Milkshake",
-            "price": 5.99,
-            "type": "drink"
-          },
-          {
-            "itemId": "55443324",
-            "name": "Fries",
-            "price": 4.99,
-            "type": "food"
-          },
-          {
-            "itemId": "55443325",
-            "name": "Root Beer",
-            "price": 3.99,
-            "type": "drink"
-          },
-          {
-            "itemId": "55443326",
-            "name": "Onion Rings",
-            "price": 5.99,
-            "type": "food"
-          }
-        ],
-        "is24Hours": true,
-        "happyHours": [
-          {
-            "startHour": 15,
-            "startMinute": 0,
-            "endHour": 17,
-            "endMinute": 0,
-            "isNextDay": false,
-            "daysOfWeek": ["MON", "TUE", "WED", "THU", "FRI"]
-          },
-          {
-            "startHour": 21,
-            "startMinute": 0,
-            "endHour": 23,
-            "endMinute": 0,
-            "isNextDay": false,
-            "daysOfWeek": ["MON", "TUE", "WED", "THU", "SUN"]
-          }
-        ]
+        "ratings": [2.0, 2.5, 3.0, 2.5, 2.0, 3.0, 2.5, 3.0, 2.5, 2.0, 3.5, 2.0, 2.5, 3.0, 2.5],
+        "totalRatings": 267
       },
       {
         "storeId": "33445566",
@@ -745,9 +328,8 @@
           "latitude": 49.2840,
           "longitude": -123.1180
         },
-        "ratings": [4.0, 4.5, 5.0, 4.5, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0, 4.5, 3.5, 4.0, 4.5],
-        "averageRating": 4.3,
-        "totalRatings": 14,
+        "ratings": [4.5, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5],
+        "totalRatings": 189,
         "menus": [
           {
             "itemId": "66554433",
@@ -787,16 +369,7 @@
           "closeMinute": 30,
           "isNextDay": false
         },
-        "happyHours": [
-          {
-            "startHour": 15,
-            "startMinute": 0,
-            "endHour": 18,
-            "endMinute": 0,
-            "isNextDay": false,
-            "daysOfWeek": ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"]
-          }
-        ]
+        "happyHours": []
       },
       {
         "storeId": "44556677",
@@ -807,9 +380,8 @@
           "latitude": 49.2820,
           "longitude": -123.1195
         },
-        "ratings": [4.5, 5.0, 4.5, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0, 4.5, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5],
-        "averageRating": 4.3,
-        "totalRatings": 16,
+        "ratings": [3.0, 2.5, 3.0, 2.5, 3.5, 3.0, 2.5, 3.0, 3.5, 2.5, 3.0, 2.5, 3.0],
+        "totalRatings": 156,
         "menus": [
           {
             "itemId": "77665544",
@@ -860,66 +432,8 @@
           "latitude": 49.2835,
           "longitude": -123.1215
         },
-        "ratings": [4.0, 4.5, 5.0, 4.5, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0, 4.5, 3.5, 4.0, 4.5, 3.0, 4.5, 5.0],
-        "averageRating": 4.2,
-        "totalRatings": 17,
-        "menus": [
-          {
-            "itemId": "88776655",
-            "name": "Beef Pho",
-            "price": 12.99,
-            "type": "food"
-          },
-          {
-            "itemId": "88776656",
-            "name": "Spring Rolls",
-            "price": 6.99,
-            "type": "food"
-          },
-          {
-            "itemId": "88776657",
-            "name": "Vietnamese Coffee",
-            "price": 4.99,
-            "type": "drink"
-          },
-          {
-            "itemId": "88776658",
-            "name": "Banh Mi",
-            "price": 8.99,
-            "type": "food"
-          },
-          {
-            "itemId": "88776659",
-            "name": "Coconut Water",
-            "price": 3.99,
-            "type": "drink"
-          }
-        ],
-        "businessHours": {
-          "openHour": 10,
-          "openMinute": 30,
-          "closeHour": 22,
-          "closeMinute": 0,
-          "isNextDay": false
-        },
-        "happyHours": [
-          {
-            "startHour": 14,
-            "startMinute": 0,
-            "endHour": 16,
-            "endMinute": 0,
-            "isNextDay": false,
-            "daysOfWeek": ["MON", "TUE", "WED", "THU", "FRI"]
-          },
-          {
-            "startHour": 20,
-            "startMinute": 0,
-            "endHour": 21,
-            "endMinute": 30,
-            "isNextDay": false,
-            "daysOfWeek": ["MON", "TUE", "WED", "THU", "SUN"]
-          }
-        ]
+        "ratings": [4.0, 4.5, 5.0, 4.5, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0, 4.5, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5, 5.0],
+        "totalRatings": 432
       },
       {
         "storeId": "55667715",
@@ -929,50 +443,95 @@
           "latitude": 49.2835,
           "longitude": -123.1033
         },
-        "ratings": [],
-        "averageRating": 0,
-        "totalRatings": 0,
+        "ratings": [4.5, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5, 3.5, 4.0],
+        "totalRatings": 245
+      },
+      {
+        "storeId": "66778899",
+        "name": "Langley Night Market",
+        "category": ["night_market", "special_events"],
+        "cuisineTypes": ["Asian", "Street Food", "International"],
+        "location": {
+          "latitude": 49.1041,
+          "longitude": -122.6594
+        },
+        "ratings": [2.5, 2.0, 3.0, 2.5, 2.0, 3.0, 2.5, 3.0, 2.5, 2.0],
+        "totalRatings": 167,
         "menus": [
           {
-            "itemId": "88779355",
-            "name": "Secret Chicken",
-            "price": 12.99,
+            "itemId": "99887766",
+            "name": "Street Takoyaki",
+            "price": 8.99,
             "type": "food"
           },
           {
-            "itemId": "88126656",
-            "name": "Rolls",
+            "itemId": "99887765",
+            "name": "Bubble Tea",
             "price": 6.99,
-            "type": "food"
-          },
-          {
-            "itemId": "88777657",
-            "name": "Fried chicken",
-            "price": 4.99,
-            "type": "food"
-          },
-          {
-            "itemId": "88745658",
-            "name": "Soju",
-            "price": 13.99,
-            "type": "alcohol"
-          },
-          {
-            "itemId": "88776623",
-            "name": "Coconut Water",
-            "price": 3.99,
             "type": "drink"
+          },
+          {
+            "itemId": "99887764",
+            "name": "Korean Corn Dog",
+            "price": 7.99,
+            "type": "food"
           }
-        ],        "businessHours": {
-          "openHour": 16,
+        ],
+        "businessHours": {
+          "openHour": 18,
           "openMinute": 0,
           "closeHour": 2,
           "closeMinute": 0,
           "isNextDay": true
         },
+        "happyHours": []
+      },
+      {
+        "storeId": "77889900",
+        "name": "Coquitlam Brew House",
+        "category": ["happy_hour", "craft_beer", "live_music"],
+        "cuisineTypes": ["Pub Food", "Craft Beer", "Western"],
+        "location": {
+          "latitude": 49.2838,
+          "longitude": -122.7932
+        },
+        "ratings": [4.0, 4.5, 5.0, 4.5, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0, 4.5, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5, 5.0],
+        "totalRatings": 678
+      },
+      {
+        "storeId": "88990011",
+        "name": "White Rock Beach Bar",
+        "category": ["happy_hour", "seafood", "beach_view"],
+        "cuisineTypes": ["Seafood", "Bar", "West Coast"],
+        "location": {
+          "latitude": 49.0147,
+          "longitude": -122.8029
+        },
+        "ratings": [4.5, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0, 4.5, 3.5],
+        "menus": [
+          {
+            "itemId": "11009988",
+            "name": "Fresh Oysters",
+            "price": 18.99,
+            "type": "food"
+          },
+          {
+            "itemId": "11009987",
+            "name": "Beach Cocktail",
+            "price": 12.99,
+            "type": "alcohol"
+          }
+        ],
+        "businessHours": {
+          "openHour": 12,
+          "openMinute": 0,
+          "closeHour": 23,
+          "closeMinute": 0,
+          "isNextDay": false
+        },
         "happyHours": [
           {
-            "startHour": 14,
+            "startHour": 15,
             "startMinute": 0,
             "endHour": 17,
             "endMinute": 0,
@@ -980,14 +539,72 @@
             "daysOfWeek": ["MON", "TUE", "WED", "THU", "FRI"]
           },
           {
-            "startHour": 20,
+            "startHour": 21,
             "startMinute": 0,
-            "endHour": 2,
-            "endMinute": 0,
-            "isNextDay": true,
-            "daysOfWeek": ["MON", "TUE", "WED", "THU", "SUN"]
+            "endHour": 22,
+            "endMinute": 30,
+            "isNextDay": false,
+            "daysOfWeek": ["SUN", "MON", "TUE"]
           }
         ]
+      },
+      {
+        "storeId": "99001122",
+        "name": "Maple Ridge Dawn Cafe",
+        "category": ["breakfast", "brunch"],
+        "cuisineTypes": ["Breakfast", "Brunch", "Coffee"],
+        "location": {
+          "latitude": 49.2195,
+          "longitude": -122.5984
+        },
+        "ratings": [2.0, 2.5, 3.0, 2.0, 2.5, 3.0, 2.5, 2.0],
+        "totalRatings": 89,
+        "menus": [
+          {
+            "itemId": "22110099",
+            "name": "Early Bird Special",
+            "price": 11.99,
+            "type": "food"
+          },
+          {
+            "itemId": "22110098",
+            "name": "Fresh Coffee",
+            "price": 3.99,
+            "type": "drink"
+          }
+        ],
+        "businessHours": {
+          "openHour": 5,
+          "openMinute": 0,
+          "closeHour": 14,
+          "closeMinute": 0,
+          "isNextDay": false
+        },
+        "happyHours": []
+      },
+      {
+        "storeId": "00112233",
+        "name": "North Van Late Bar",
+        "category": ["happy_hour", "late_night"],
+        "cuisineTypes": ["Bar", "Fusion", "Late Night"],
+        "location": {
+          "latitude": 49.3114,
+          "longitude": -123.0726
+        },
+        "ratings": [4.0, 4.5, 5.0, 4.5, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0],
+        "totalRatings": 234
+      },
+      {
+        "storeId": "11223344",
+        "name": "Whistler Mountain Lodge",
+        "category": ["happy_hour", "fine_dining", "ski_resort"],
+        "cuisineTypes": ["Canadian", "Fine Dining", "Alpine"],
+        "location": {
+          "latitude": 50.1163,
+          "longitude": -122.9574
+        },
+        "ratings": [4.5, 5.0, 4.5, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0, 4.5, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0],
+        "totalRatings": 567
       }
     ]
-  }
+}
