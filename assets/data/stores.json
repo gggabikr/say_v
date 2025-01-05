@@ -1020,6 +1020,87 @@
           }
         ],
         "is24Hours": false
+      },
+      {
+        "storeId": "44455566",
+        "name": "Burnaby Late Night Pub",
+        "category": ["happy_hour", "pub", "late_night"],
+        "cuisineTypes": ["Pub Food", "Western", "Bar", "Late Night"],
+        "location": {
+          "latitude": 49.2337,
+          "longitude": -122.9977
+        },
+        "ratings": [4.0, 4.5, 4.0, 4.5, 5.0, 4.0, 4.5, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0, 4.5, 3.5, 4.0, 4.5, 5.0, 4.0, 4.5],
+        "totalRatings": 289,
+        "menus": [
+          {
+            "itemId": "lp001",
+            "name": "Late Night Wings",
+            "price": 12.99,
+            "type": "food"
+          },
+          {
+            "itemId": "lp002",
+            "name": "Craft Beer Flight",
+            "price": 14.99,
+            "type": "alcohol"
+          },
+          {
+            "itemId": "lp003",
+            "name": "Loaded Potato Skins",
+            "price": 10.99,
+            "type": "food"
+          },
+          {
+            "itemId": "lp004",
+            "name": "House Signature Cocktails",
+            "price": 9.99,
+            "type": "alcohol"
+          },
+          {
+            "itemId": "lp005",
+            "name": "Midnight Burger",
+            "price": 16.99,
+            "type": "food"
+          }
+        ],
+        "businessHours": [
+          {
+            "openHour": 16,
+            "openMinute": 0,
+            "closeHour": 1,
+            "closeMinute": 30,
+            "isNextDay": true,
+            "daysOfWeek": ["TUE", "WED", "THU"]
+          },
+          {
+            "openHour": 16,
+            "openMinute": 0,
+            "closeHour": 2,
+            "closeMinute": 30,
+            "isNextDay": true,
+            "daysOfWeek": ["FRI", "SAT", "SUN"]
+          }
+        ],
+        "happyHours": [
+          {
+            "startHour": 16,
+            "startMinute": 30,
+            "endHour": 18,
+            "endMinute": 30,
+            "isNextDay": false,
+            "daysOfWeek": ["TUE", "WED", "THU", "FRI"]
+          },
+          {
+            "startHour": 20,
+            "startMinute": 0,
+            "endHour": 1,
+            "closeMinute": 30,
+            "isNextDay": true,
+            "daysOfWeek": ["FRI", "SAT"]
+          }
+        ],
+        "is24Hours": false
       }
     ]
 }
