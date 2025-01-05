@@ -858,6 +858,168 @@
           }
         ],
         "is24Hours": false
+      },
+      {
+        "storeId": "22233344",
+        "name": "Burnaby Sports Bar",
+        "category": ["happy_hour", "sports_bar"],
+        "cuisineTypes": ["Bar", "American", "Pub Food", "Sports Bar"],
+        "location": {
+          "latitude": 49.2488,
+          "longitude": -122.9805
+        },
+        "ratings": [4.5, 4.0, 4.5, 5.0, 4.0, 4.5, 4.0, 4.5, 5.0, 4.0, 4.5, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0, 4.5, 4.0, 4.5],
+        "totalRatings": 342,
+        "menus": [
+          {
+            "itemId": "bs001",
+            "name": "Wings Platter",
+            "price": 15.99,
+            "type": "food"
+          },
+          {
+            "itemId": "bs002",
+            "name": "Draft Beer",
+            "price": 6.99,
+            "type": "alcohol"
+          },
+          {
+            "itemId": "bs003",
+            "name": "Loaded Nachos",
+            "price": 18.99,
+            "type": "food"
+          },
+          {
+            "itemId": "bs004",
+            "name": "Sports Burger",
+            "price": 16.99,
+            "type": "food"
+          },
+          {
+            "itemId": "bs005",
+            "name": "House Cocktails",
+            "price": 8.99,
+            "type": "alcohol"
+          }
+        ],
+        "businessHours": [
+          {
+            "openHour": 11,
+            "openMinute": 30,
+            "closeHour": 1,
+            "closeMinute": 0,
+            "isNextDay": true,
+            "daysOfWeek": ["MON", "TUE", "WED", "THU"]
+          },
+          {
+            "openHour": 11,
+            "openMinute": 30,
+            "closeHour": 2,
+            "closeMinute": 0,
+            "isNextDay": true,
+            "daysOfWeek": ["FRI", "SAT", "SUN"]
+          }
+        ],
+        "happyHours": [
+          {
+            "startHour": 15,
+            "startMinute": 0,
+            "endHour": 18,
+            "endMinute": 0,
+            "isNextDay": false,
+            "daysOfWeek": ["MON", "TUE", "WED", "THU", "FRI"]
+          },
+          {
+            "startHour": 14,
+            "startMinute": 0,
+            "endHour": 17,
+            "endMinute": 0,
+            "isNextDay": false,
+            "daysOfWeek": ["SAT", "SUN"]
+          }
+        ],
+        "is24Hours": false
+      },
+      {
+        "storeId": "33344455",
+        "name": "Richmond Izakaya",
+        "category": ["happy_hour", "japanese", "asian_fusion"],
+        "cuisineTypes": ["Japanese", "Asian Fusion", "Izakaya", "Sushi"],
+        "location": {
+          "latitude": 49.1666,
+          "longitude": -123.1336
+        },
+        "ratings": [4.0, 4.5, 5.0, 4.5, 4.0, 4.5, 5.0, 4.5, 4.0, 4.5, 5.0, 4.0],
+        "totalRatings": 12,
+        "menus": [
+          {
+            "itemId": "ri001",
+            "name": "Sake Flight",
+            "price": 16.99,
+            "type": "alcohol"
+          },
+          {
+            "itemId": "ri002",
+            "name": "Karaage",
+            "price": 9.99,
+            "type": "food"
+          },
+          {
+            "itemId": "ri003",
+            "name": "Sashimi Platter",
+            "price": 24.99,
+            "type": "food"
+          },
+          {
+            "itemId": "ri004",
+            "name": "Shochu Cocktails",
+            "price": 7.99,
+            "type": "alcohol"
+          },
+          {
+            "itemId": "ri005",
+            "name": "Takoyaki",
+            "price": 8.99,
+            "type": "food"
+          }
+        ],
+        "businessHours": [
+          {
+            "openHour": 16,
+            "openMinute": 0,
+            "closeHour": 23,
+            "closeMinute": 30,
+            "isNextDay": false,
+            "daysOfWeek": ["TUE", "WED", "THU"]
+          },
+          {
+            "openHour": 16,
+            "openMinute": 0,
+            "closeHour": 1,
+            "closeMinute": 0,
+            "isNextDay": true,
+            "daysOfWeek": ["FRI", "SAT", "SUN"]
+          }
+        ],
+        "happyHours": [
+          {
+            "startHour": 16,
+            "startMinute": 30,
+            "endHour": 18,
+            "endMinute": 30,
+            "isNextDay": false,
+            "daysOfWeek": ["TUE", "WED", "THU", "FRI"]
+          },
+          {
+            "startHour": 15,
+            "startMinute": 0,
+            "endHour": 17,
+            "endMinute": 30,
+            "isNextDay": false,
+            "daysOfWeek": ["SAT", "SUN"]
+          }
+        ],
+        "is24Hours": false
       }
     ]
 }
