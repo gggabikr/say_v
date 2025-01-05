@@ -276,7 +276,15 @@ class _HomePageState extends State<HomePage> {
           IconButton(
             icon: const Icon(Icons.search),
             onPressed: () {
-              // 검색 기능 구현
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const CategoryStoresPage(
+                    category: 'all',
+                    title: '전체 매장',
+                  ),
+                ),
+              );
             },
           ),
         ],

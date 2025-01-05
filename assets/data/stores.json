@@ -1011,12 +1011,12 @@
             "daysOfWeek": ["TUE", "WED", "THU", "FRI"]
           },
           {
-            "startHour": 15,
+            "startHour": 20,
             "startMinute": 0,
-            "endHour": 17,
+            "endHour": 1,
             "endMinute": 30,
-            "isNextDay": false,
-            "daysOfWeek": ["SAT", "SUN"]
+            "isNextDay": true,
+            "daysOfWeek": ["FRI", "SAT"]
           }
         ],
         "is24Hours": false
@@ -1095,7 +1095,7 @@
             "startHour": 20,
             "startMinute": 0,
             "endHour": 1,
-            "closeMinute": 30,
+            "endMinute": 30,
             "isNextDay": true,
             "daysOfWeek": ["FRI", "SAT"]
           }

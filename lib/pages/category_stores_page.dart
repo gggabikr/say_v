@@ -26,111 +26,142 @@ class CategoryStoresPage extends StatefulWidget {
 }
 
 class _CategoryStoresPageState extends State<CategoryStoresPage> {
-  final StoreService _storeService = StoreService();
   final TextEditingController _searchController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   Timer? _debouncer;
+
   List<Store> stores = [];
-  List<Store> filteredStores = [];
+  List<Store> displayStores = [];
   bool isSearching = false;
-  SortType sortType = SortType.distance;
+  bool isFilterExpanded = false;
   bool showOpenOnly = false;
+  bool showHappyHourOnly = false;
+  SortType sortType = SortType.distance;
   DateTime? selectedDateTime;
 
+  // 검색 키워드 리스트 추가
   final List<String> cuisineTypes = [
-    // Asian Cuisines
-    'Asian',
     'Korean',
     'Japanese',
     'Chinese',
+    'Italian',
+    'Mexican',
+    'American',
     'Thai',
     'Vietnamese',
     'Indian',
-    'Dim Sum',
-    'Sushi',
-    'Ramen',
-    'Pho',
-
-    // Western Cuisines
-    'American',
-    'Italian',
-    'French',
-    'Greek',
-    'Spanish',
-    'Mexican',
-    'British',
-    'German',
     'Mediterranean',
-
-    // Specific Types
-    'BBQ',
-    'Pizza',
-    'Burgers',
-    'Seafood',
-    'Steak',
-    'Noodles',
-    'Fast Food',
-
-    // Regional
-    'Middle Eastern',
-    'Latin',
-    'Southern',
-    'Canadian',
-
-    // Dietary
-    'Vegetarian',
-    'Vegan',
-    'Healthy',
-    'Gluten Free',
-
-    // Specific Categories
-    'Dessert',
-    'Ice Cream',
-    'Cafe',
-    'Bar',
-    'Pub',
-    'Brunch',
-    'Street Food',
   ];
 
   @override
   void initState() {
     super.initState();
     _loadStores();
+    _searchController.addListener(_onSearchChanged);
   }
 
-  Future<void> _loadStores() async {
-    try {
-      print('Loading stores for category: ${widget.category}');
-      print(
-          'User location: ${widget.userLocation?.latitude}, ${widget.userLocation?.longitude}');
+  void _onSearchChanged() {
+    if (_debouncer?.isActive ?? false) _debouncer!.cancel();
+    _debouncer = Timer(const Duration(milliseconds: 500), () {
+      _filterStores(_searchController.text);
+    });
+  }
 
-      final allStores = await _storeService.getStores();
+  void _filterStores(String query) {
+    if (mounted) {
+      setState(() {
+        if (query.isEmpty && selectedDateTime == null) {
+          // 검색어와 날짜/시간 모두 없는 경우
+          displayStores = stores;
+        } else {
+          displayStores = stores.where((store) {
+            bool matchesQuery = query.isEmpty || // 검색어가 비어있으면 true
+                store.name.toLowerCase().contains(query.toLowerCase()) ||
+                store.category.toLowerCase().contains(query.toLowerCase());
 
-      if (widget.userLocation != null) {
-        // 각 스토어에 대해 현재 위치와의 거리 계산
-        for (var store in allStores) {
-          double distanceInMeters = Geolocator.distanceBetween(
-            widget.userLocation!.latitude,
-            widget.userLocation!.longitude,
-            store.latitude,
-            store.longitude,
-          );
-          store.distance = distanceInMeters;
+            bool matchesDateTime =
+                selectedDateTime == null || // 날짜/시간이 선택되지 않았으면 true
+                    (store.isOpenAt(selectedDateTime!) &&
+                        (widget.category == 'happy_hour'
+                            ? store.isHappyHourAt(selectedDateTime!)
+                            : true));
+
+            return matchesQuery && matchesDateTime;
+          }).toList();
         }
+      });
+    }
+  }
 
-        // 거리순으로 정렬
-        allStores.sort((a, b) => (a.distance ?? 0).compareTo(b.distance ?? 0));
+  void _applyFilters() {
+    print('\n=== Applying Filters ===');
+    print('Initial stores count: ${stores.length}');
+    print('Show Open Only: $showOpenOnly');
+    print('Show Happy Hour Only: $showHappyHourOnly');
+    print('Selected DateTime: $selectedDateTime');
+
+    setState(() {
+      // 항상 원본 stores에서 시작
+      List<Store> tempStores = List<Store>.from(stores);
+      print('Starting filter with ${tempStores.length} stores');
+
+      // Open Now 필터
+      if (showOpenOnly) {
+        tempStores = tempStores.where((store) {
+          if (selectedDateTime != null) {
+            return store.isOpenAt(selectedDateTime!);
+          } else {
+            bool isCurrentlyOpen = store.isCurrentlyOpen();
+            print('Store: ${store.name} - Is Currently Open: $isCurrentlyOpen');
+            return isCurrentlyOpen;
+          }
+        }).toList();
+        print('After Open Now filter: ${tempStores.length} stores');
       }
 
-      setState(() {
-        stores = allStores;
+      // Happy Hour 필터
+      if (showHappyHourOnly) {
+        tempStores = tempStores.where((store) {
+          if (selectedDateTime != null) {
+            return store.isHappyHourAt(selectedDateTime!);
+          } else {
+            bool isCurrentlyHappyHour = store.isCurrentlyHappyHour();
+            print(
+                'Store: ${store.name} - Is Currently Happy Hour: $isCurrentlyHappyHour');
+            return isCurrentlyHappyHour;
+          }
+        }).toList();
+        print('After Happy Hour filter: ${tempStores.length} stores');
+      }
+
+      // 검색어 필터 유지
+      if (_searchController.text.isNotEmpty) {
+        tempStores = tempStores
+            .where((store) =>
+                store.name
+                    .toLowerCase()
+                    .contains(_searchController.text.toLowerCase()) ||
+                store.category
+                    .toLowerCase()
+                    .contains(_searchController.text.toLowerCase()))
+            .toList();
+        print('After search filter: ${tempStores.length} stores');
+      }
+
+      // 정렬 적용
+      tempStores.sort((a, b) {
+        if (sortType == SortType.distance) {
+          return (a.distance ?? double.infinity)
+              .compareTo(b.distance ?? double.infinity);
+        } else {
+          return (b.cachedAverageRating ?? 0)
+              .compareTo(a.cachedAverageRating ?? 0);
+        }
       });
 
-      print('Loaded ${stores.length} stores');
-    } catch (e) {
-      print('Error loading stores: $e');
-    }
+      displayStores = tempStores;
+      print('Final stores count: ${displayStores.length}');
+    });
   }
 
   @override
@@ -141,107 +172,221 @@ class _CategoryStoresPageState extends State<CategoryStoresPage> {
     super.dispose();
   }
 
-  void _filterStores(String query) {
-    if (_debouncer?.isActive ?? false) _debouncer!.cancel();
-    _debouncer = Timer(const Duration(milliseconds: 500), () {
-      setState(() {
-        if (query.isEmpty) {
-          filteredStores = stores;
+  Future<void> _loadStores() async {
+    try {
+      List<Store> loadedStores;
+      if (widget.category == 'all') {
+        loadedStores = await StoreService().getAllStores();
+      } else if (widget.category == 'nearby') {
+        if (widget.userLocation != null) {
+          loadedStores = await StoreService().getNearbyStores(
+            widget.userLocation!.latitude,
+            widget.userLocation!.longitude,
+          );
         } else {
-          final queryLower = query.toLowerCase();
-          filteredStores = stores.where((store) {
-            return store.searchableText.contains(queryLower);
-          }).toList();
-
-          // 정렬
-          filteredStores.sort((a, b) {
-            if (a.distance != null && b.distance != null) {
-              return a.distance!.compareTo(b.distance!);
-            }
-            return (b.cachedAverageRating ?? 0)
-                .compareTo(a.cachedAverageRating ?? 0);
-          });
+          loadedStores = [];
         }
-      });
-    });
+      } else {
+        loadedStores =
+            await StoreService().getStoresByCategory(widget.category);
+      }
+
+      if (mounted) {
+        setState(() {
+          stores = loadedStores;
+          displayStores = loadedStores;
+        });
+      }
+    } catch (e) {
+      print('Error loading stores: $e');
+      if (mounted) {
+        setState(() {
+          stores = [];
+          displayStores = [];
+        });
+      }
+    }
   }
 
   Widget _buildFilterBar() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8.0),
-      child: Row(
-        children: [
-          // 거리순/평점순 토글
-          ToggleButtons(
-            isSelected: [
-              sortType == SortType.distance,
-              sortType == SortType.rating,
-            ],
-            onPressed: (index) {
-              setState(() {
-                sortType = index == 0 ? SortType.distance : SortType.rating;
-                _applyFilters();
-              });
-            },
-            children: const [
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 12),
-                child: Row(
-                  children: [
-                    Icon(Icons.location_on, size: 16),
-                    SizedBox(width: 4),
-                    Text('Distance'),
-                  ],
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // 검색창과 필터 버튼
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+          child: Row(
+            children: [
+              // 검색창
+              Expanded(
+                child: SizedBox(
+                  height: 40,
+                  child: TextField(
+                    controller: _searchController,
+                    decoration: InputDecoration(
+                      hintText: 'Search restaurants or cuisines...',
+                      prefixIcon: const Icon(Icons.search, size: 20),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                          vertical: 0, horizontal: 12),
+                    ),
+                  ),
                 ),
               ),
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 12),
-                child: Row(
-                  children: [
-                    Icon(Icons.star, size: 16),
-                    SizedBox(width: 4),
-                    Text('Rating'),
-                  ],
+              const SizedBox(width: 8),
+              // 필터 버튼
+              IconButton(
+                icon: Icon(
+                  isFilterExpanded ? Icons.filter_list_off : Icons.filter_list,
+                  color: (showOpenOnly ||
+                          showHappyHourOnly ||
+                          sortType == SortType.rating)
+                      ? Theme.of(context).primaryColor
+                      : null,
                 ),
+                onPressed: () {
+                  setState(() {
+                    isFilterExpanded = !isFilterExpanded;
+                  });
+                },
               ),
             ],
           ),
-          const SizedBox(width: 8),
-          // 영업중인 가게만 보기
-          FilterChip(
-            label: const Text('Open Now'),
-            selected: showOpenOnly,
-            onSelected: (selected) {
-              setState(() {
-                showOpenOnly = selected;
-                _applyFilters();
-              });
-            },
+        ),
+        // 키워드 버튼들
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
+            child: Row(
+              children: cuisineTypes
+                  .map(
+                    (cuisine) => Padding(
+                      padding: const EdgeInsets.only(right: 8.0),
+                      child: InkWell(
+                        onTap: () {
+                          setState(() {
+                            _searchController.text = cuisine;
+                            _applyFilters();
+                          });
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: Colors.grey[200],
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Text(
+                            cuisine,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey[800],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  )
+                  .toList(),
+            ),
           ),
-        ],
-      ),
+        ),
+        // 필터 옵션들 (확장 시에만 표시)
+        if (isFilterExpanded)
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            child: Card(
+              margin:
+                  const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+              child: Padding(
+                padding: const EdgeInsets.all(12.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // 정렬 옵션
+                    Wrap(
+                      spacing: 8,
+                      children: [
+                        ChoiceChip(
+                          label: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.location_on, size: 16),
+                              SizedBox(width: 4),
+                              Text('Distance'),
+                            ],
+                          ),
+                          selected: sortType == SortType.distance,
+                          onSelected: (selected) {
+                            if (selected) {
+                              setState(() {
+                                sortType = SortType.distance;
+                                _applyFilters();
+                              });
+                            }
+                          },
+                        ),
+                        ChoiceChip(
+                          label: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.star, size: 16),
+                              SizedBox(width: 4),
+                              Text('Rating'),
+                            ],
+                          ),
+                          selected: sortType == SortType.rating,
+                          onSelected: (selected) {
+                            if (selected) {
+                              setState(() {
+                                sortType = SortType.rating;
+                                _applyFilters();
+                              });
+                            }
+                          },
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    const Divider(height: 1),
+                    const SizedBox(height: 8),
+                    // 필터 옵션들
+                    Wrap(
+                      spacing: 8,
+                      children: [
+                        FilterChip(
+                          label: const Text('Open Now'),
+                          selected: showOpenOnly,
+                          onSelected: (selected) {
+                            setState(() {
+                              showOpenOnly = selected;
+                              _applyFilters();
+                            });
+                          },
+                        ),
+                        if (widget.category == 'happy_hour')
+                          FilterChip(
+                            label: const Text('Happy Hour'),
+                            selected: showHappyHourOnly,
+                            onSelected: (selected) {
+                              setState(() {
+                                showHappyHourOnly = selected;
+                                _applyFilters();
+                              });
+                            },
+                          ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+      ],
     );
-  }
-
-  void _applyFilters() {
-    if (filteredStores.isEmpty) return;
-
-    setState(() {
-      if (showOpenOnly) {
-        filteredStores =
-            filteredStores.where((store) => store.isCurrentlyOpen()).toList();
-      }
-
-      filteredStores.sort((a, b) {
-        if (sortType == SortType.distance) {
-          return (a.distance ?? double.infinity)
-              .compareTo(b.distance ?? double.infinity);
-        } else {
-          return (b.cachedAverageRating ?? 0)
-              .compareTo(a.cachedAverageRating ?? 0);
-        }
-      });
-    });
   }
 
   Widget _buildTimeSelector() {
@@ -307,57 +452,36 @@ class _CategoryStoresPageState extends State<CategoryStoresPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
-        actions: [
-          IconButton(
-            icon: Icon(isSearching ? Icons.close : Icons.search),
-            onPressed: () {
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            if (isSearching) {
               setState(() {
-                isSearching = !isSearching;
-                if (!isSearching) {
-                  _searchController.clear();
-                  filteredStores = stores;
-                }
+                isSearching = false;
+                _searchController.clear();
+                displayStores = stores;
               });
-            },
-          ),
-        ],
+            } else {
+              Navigator.pop(context);
+            }
+          },
+        ),
+        actions: isSearching
+            ? null
+            : [
+                IconButton(
+                  icon: const Icon(Icons.search),
+                  onPressed: () {
+                    setState(() {
+                      isSearching = true;
+                    });
+                  },
+                ),
+              ],
       ),
       body: Column(
         children: [
           if (isSearching) ...[
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: TextField(
-                controller: _searchController,
-                decoration: InputDecoration(
-                  hintText: 'Search restaurants or cuisines...',
-                  prefixIcon: const Icon(Icons.search),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-                onChanged: _filterStores,
-              ),
-            ),
-            SizedBox(
-              height: 50,
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                itemCount: cuisineTypes.length,
-                itemBuilder: (context, index) {
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4),
-                    child: FilterChip(
-                      label: Text(cuisineTypes[index]),
-                      onSelected: (selected) {
-                        _searchController.text = cuisineTypes[index];
-                        _filterStores(cuisineTypes[index]);
-                      },
-                    ),
-                  );
-                },
-              ),
-            ),
             _buildFilterBar(),
             _buildTimeSelector(),
             if (selectedDateTime != null)
@@ -386,7 +510,7 @@ class _CategoryStoresPageState extends State<CategoryStoresPage> {
             child: stores.isEmpty
                 ? const Center(child: CircularProgressIndicator())
                 : PaginatedStoreList(
-                    stores: isSearching ? filteredStores : stores,
+                    stores: displayStores,
                     scrollController: _scrollController,
                     selectedDateTime: selectedDateTime,
                   ),

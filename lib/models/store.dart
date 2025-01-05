@@ -12,9 +12,10 @@ class Store {
   final List<MenuItem> menus;
   double? distance;
   late final String searchableText;
-  final BusinessHours? businessHours;
+  final List<BusinessHours>? businessHours;
   final List<HappyHour>? happyHours;
   final bool is24Hours;
+  final int totalRatings;
 
   // 최근 200개 평점만 사용하여 평균 계산
   Future<double> calculateAverageAsync() async {
@@ -42,9 +43,6 @@ class Store {
     }
     return _cachedAverageRating!;
   }
-
-  // 총 평점 수
-  int get totalRatings => ratings.length;
 
   // 최근 평점 수 (20개 제한 적용)
   static const RATING_LIMIT = 20; // 나중에 200으로 변경 가능
@@ -74,6 +72,7 @@ class Store {
     this.businessHours,
     this.happyHours,
     this.is24Hours = false,
+    required this.totalRatings,
   }) {
     searchableText = [
       name.toLowerCase(),
@@ -118,20 +117,66 @@ class Store {
               ?.map((menu) => MenuItem.fromJson(menu))
               .toList() ??
           [],
-      businessHours: json['businessHours'] != null
-          ? BusinessHours.fromJson(json['businessHours'])
-          : null,
+      businessHours: (json['businessHours'] as List?)
+          ?.map((hour) => BusinessHours.fromJson(hour))
+          .toList(),
       happyHours: (json['happyHours'] as List?)
           ?.map((hour) => HappyHour.fromJson(hour))
           .toList(),
       is24Hours: json['is24Hours'] ?? false,
+      totalRatings: (json['totalRatings'] as num?)?.toInt() ?? 0,
     );
   }
 
   bool isCurrentlyOpen() {
     if (is24Hours) return true;
-    if (businessHours == null) return false;
-    return businessHours!.isCurrentlyOpen();
+    if (businessHours == null || businessHours!.isEmpty) return false;
+
+    final now = DateTime.now();
+    final currentDayOfWeek = _getDayOfWeek(now);
+
+    return businessHours!.any((hours) {
+      if (!hours.daysOfWeek.contains(currentDayOfWeek)) return false;
+
+      final currentHour = now.hour;
+      final currentMinute = now.minute;
+      final currentTime = currentHour * 60 + currentMinute;
+      final openTime = hours.openHour * 60 + hours.openMinute;
+      final closeTime = hours.closeHour * 60 + hours.closeMinute;
+
+      if (hours.isNextDay) {
+        if (currentTime >= openTime) return true;
+        if (currentTime <= closeTime) return true;
+        return false;
+      } else {
+        return currentTime >= openTime && currentTime <= closeTime;
+      }
+    });
+  }
+
+  bool isOpenAt(DateTime dateTime) {
+    if (is24Hours) return true;
+    if (businessHours == null || businessHours!.isEmpty) return false;
+
+    final dayOfWeek = _getDayOfWeek(dateTime);
+
+    return businessHours!.any((hours) {
+      if (!hours.daysOfWeek.contains(dayOfWeek)) return false;
+
+      final hour = dateTime.hour;
+      final minute = dateTime.minute;
+      final currentTime = hour * 60 + minute;
+      final openTime = hours.openHour * 60 + hours.openMinute;
+      final closeTime = hours.closeHour * 60 + hours.closeMinute;
+
+      if (hours.isNextDay) {
+        if (currentTime >= openTime) return true;
+        if (currentTime <= closeTime) return true;
+        return false;
+      } else {
+        return currentTime >= openTime && currentTime <= closeTime;
+      }
+    });
   }
 
   bool isHappyHourNow() {
@@ -139,15 +184,82 @@ class Store {
     return happyHours!.any((hour) => hour.isHappyHourNow());
   }
 
-  bool isOpenAt(DateTime dateTime) {
-    if (is24Hours) return true;
-    if (businessHours == null) return false;
-    return businessHours!.isOpenAt(dateTime);
-  }
-
   bool isHappyHourAt(DateTime dateTime) {
     if (happyHours == null || happyHours!.isEmpty) return false;
-    return happyHours!.any((hour) => hour.isHappyHourAt(dateTime));
+
+    final dayOfWeek = _getDayOfWeek(dateTime);
+
+    return happyHours!.any((hours) {
+      if (!hours.daysOfWeek.contains(dayOfWeek)) return false;
+
+      final hour = dateTime.hour;
+      final minute = dateTime.minute;
+      final currentTime = hour * 60 + minute;
+      final startTime = hours.startHour * 60 + hours.startMinute;
+      final endTime = hours.endHour * 60 + hours.endMinute;
+
+      if (hours.isNextDay) {
+        if (currentTime >= startTime) return true;
+        if (currentTime <= endTime) return true;
+        return false;
+      } else {
+        return currentTime >= startTime && currentTime <= endTime;
+      }
+    });
+  }
+
+  bool isCurrentlyHappyHour() {
+    return isHappyHourAt(DateTime.now());
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'storeId': id,
+      'name': name,
+      'address': address,
+      'category': category,
+      'cuisineTypes': cuisineTypes,
+      'location': {
+        'latitude': latitude,
+        'longitude': longitude,
+      },
+      'ratings': ratings,
+      'totalRatings': totalRatings,
+      'menus': menus.map((x) => x.toJson()).toList(),
+      'businessHours': businessHours?.map((x) => x.toJson()).toList(),
+      'happyHours': happyHours
+          ?.map((x) => {
+                'startHour': x.startHour,
+                'startMinute': x.startMinute,
+                'endHour': x.endHour,
+                'endMinute': x.endMinute,
+                'isNextDay': x.isNextDay,
+                'daysOfWeek': x.daysOfWeek,
+              })
+          .toList(),
+      'is24Hours': is24Hours,
+    };
+  }
+
+  String _getDayOfWeek(DateTime date) {
+    switch (date.weekday) {
+      case 1:
+        return "MON";
+      case 2:
+        return "TUE";
+      case 3:
+        return "WED";
+      case 4:
+        return "THU";
+      case 5:
+        return "FRI";
+      case 6:
+        return "SAT";
+      case 7:
+        return "SUN";
+      default:
+        return "";
+    }
   }
 }
 
@@ -162,6 +274,13 @@ class Location {
       latitude: json['latitude'],
       longitude: json['longitude'],
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'latitude': latitude,
+      'longitude': longitude,
+    };
   }
 }
 
@@ -186,6 +305,15 @@ class MenuItem {
       type: json['type'],
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'itemId': itemId,
+      'name': name,
+      'price': price,
+      'type': type,
+    };
+  }
 }
 
 class BusinessHours {
@@ -193,7 +321,8 @@ class BusinessHours {
   final int openMinute;
   final int closeHour;
   final int closeMinute;
-  final bool isNextDay; // 마감시간이 다음날인 경우
+  final bool isNextDay;
+  final List<String> daysOfWeek;
 
   BusinessHours({
     required this.openHour,
@@ -201,6 +330,7 @@ class BusinessHours {
     required this.closeHour,
     required this.closeMinute,
     this.isNextDay = false,
+    required this.daysOfWeek,
   });
 
   factory BusinessHours.fromJson(Map<String, dynamic> json) {
@@ -210,42 +340,19 @@ class BusinessHours {
       closeHour: json['closeHour'],
       closeMinute: json['closeMinute'],
       isNextDay: json['isNextDay'] ?? false,
+      daysOfWeek: List<String>.from(json['daysOfWeek']),
     );
   }
 
-  bool isCurrentlyOpen() {
-    final now = DateTime.now();
-    final currentHour = now.hour;
-    final currentMinute = now.minute;
-
-    final currentTime = currentHour * 60 + currentMinute;
-    final openTime = openHour * 60 + openMinute;
-    final closeTime = closeHour * 60 + closeMinute;
-
-    if (isNextDay) {
-      if (currentTime >= openTime) return true;
-      if (currentTime <= closeTime) return true;
-      return false;
-    } else {
-      return currentTime >= openTime && currentTime <= closeTime;
-    }
-  }
-
-  bool isOpenAt(DateTime dateTime) {
-    final hour = dateTime.hour;
-    final minute = dateTime.minute;
-
-    final currentTime = hour * 60 + minute;
-    final openTime = openHour * 60 + openMinute;
-    final closeTime = closeHour * 60 + closeMinute;
-
-    if (isNextDay) {
-      if (currentTime >= openTime) return true;
-      if (currentTime <= closeTime) return true;
-      return false;
-    } else {
-      return currentTime >= openTime && currentTime <= closeTime;
-    }
+  Map<String, dynamic> toJson() {
+    return {
+      'openHour': openHour,
+      'openMinute': openMinute,
+      'closeHour': closeHour,
+      'closeMinute': closeMinute,
+      'isNextDay': isNextDay,
+      'daysOfWeek': daysOfWeek,
+    };
   }
 }
 
