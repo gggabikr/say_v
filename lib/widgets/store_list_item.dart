@@ -21,72 +21,115 @@ class StoreListItem extends StatelessWidget {
         ? store.isHappyHourNow()
         : store.isHappyHourAt(selectedDateTime!);
 
-    return ListTile(
-      title: Text(store.name),
-      subtitle: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+    return Card(
+      child: Column(
         children: [
-          Row(
-            children: [
-              if (store.totalRatings > 0) ...[
-                const Icon(Icons.star, color: Colors.amber, size: 16),
-                Text(
-                  ' ${store.cachedAverageRating.toStringAsFixed(1)} ',
-                  style: const TextStyle(color: Colors.black87),
-                ),
-                Text(
-                  '(${store.totalRatings})',
-                  style: const TextStyle(color: Colors.grey),
-                ),
-              ] else
-                const Text(
-                  'New!',
-                  style: TextStyle(
-                    color: Colors.grey,
-                    fontWeight: FontWeight.w500,
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        store.name,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          if (store.totalRatings > 0) ...[
+                            const Icon(
+                              Icons.star,
+                              color: Colors.amber,
+                              size: 16,
+                            ),
+                            const SizedBox(width: 1),
+                            Text(
+                              store.cachedAverageRating.toStringAsFixed(1) ??
+                                  '0.0',
+                              style: TextStyle(
+                                color: Colors.grey[600],
+                                fontSize: 14,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              '(${store.totalRatings})',
+                              style: TextStyle(
+                                color: Colors.grey[600],
+                                fontSize: 14,
+                              ),
+                            ),
+                          ] else ...[
+                            Text(
+                              'New!',
+                              style: TextStyle(
+                                color: Colors.grey[600],
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                          if (store.distance != null) ...[
+                            const SizedBox(width: 8),
+                            const Text('•'),
+                            const SizedBox(width: 8),
+                            Text(
+                              '${store.distance!.toStringAsFixed(1)}km',
+                              style: TextStyle(
+                                color: Colors.grey[600],
+                                fontSize: 14,
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ],
                   ),
                 ),
-              const Spacer(),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: isOpen
-                      ? Colors.green.withOpacity(0.1)
-                      : Colors.red.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Text(
-                  isOpen ? 'Open' : 'Closed',
-                  style: TextStyle(
-                    color: isOpen ? Colors.green : Colors.red,
-                    fontSize: 12,
-                  ),
-                ),
-              ),
-              if (isHappyHour) ...[
-                const SizedBox(width: 4),
                 Container(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                   decoration: BoxDecoration(
-                    color: Colors.amber.withOpacity(0.1),
+                    color: isOpen
+                        ? Colors.green.withOpacity(0.1)
+                        : Colors.red.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(4),
                   ),
-                  child: const Text(
-                    'Happy Hour',
+                  child: Text(
+                    isOpen ? 'Open' : 'Closed',
                     style: TextStyle(
-                      color: Colors.amber,
+                      color: isOpen ? Colors.green : Colors.red,
                       fontSize: 12,
                     ),
                   ),
                 ),
+                if (isHappyHour) ...[
+                  const SizedBox(width: 4),
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: Colors.amber.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: const Text(
+                      'Happy Hour',
+                      style: TextStyle(
+                        color: Colors.amber,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                ],
               ],
-            ],
-          ),
-          Text(
-            store.distance != null
-                ? '${(store.distance! / 1000).toStringAsFixed(1)}km'
-                : store.address,
+            ),
           ),
         ],
       ),

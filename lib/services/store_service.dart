@@ -1,7 +1,11 @@
 import 'dart:convert';
+import 'dart:math';
 import 'package:flutter/services.dart';
 import '../models/store.dart';
 import 'package:geolocator/geolocator.dart';
+import 'dart:io';
+import 'dart:async';
+import 'package:http/http.dart' as http;
 
 class StoreService {
   Future<List<Store>> loadStores() async {
@@ -45,66 +49,89 @@ class StoreService {
 
   double _calculateDistance(
       double lat1, double lon1, double lat2, double lon2) {
-    // 간단한 유클리드 거리 계산 (실제 앱에서는 Haversine 공식 사용 추천)
-    return ((lat2 - lat1) * (lat2 - lat1) + (lon2 - lon1) * (lon2 - lon1));
+    // Haversine formula
+    var R = 6371.0; // 지구 반경 (km)
+    var dLat = _toRadians(lat2 - lat1);
+    var dLon = _toRadians(lon2 - lon1);
+
+    var a = sin(dLat / 2) * sin(dLat / 2) +
+        cos(_toRadians(lat1)) *
+            cos(_toRadians(lat2)) *
+            sin(dLon / 2) *
+            sin(dLon / 2);
+
+    var c = 2 * atan2(sqrt(a), sqrt(1 - a));
+    var d = R * c;
+
+    return d;
+  }
+
+  double _toRadians(double degree) {
+    return degree * (pi / 180.0);
   }
 
   Future<List<Store>> getAllStores() async {
     try {
+      print('Loading all stores from local data');
       final String jsonString =
           await rootBundle.loadString('assets/data/stores.json');
       final data = json.decode(jsonString);
-
       if (data['stores'] != null) {
-        return (data['stores'] as List)
+        final stores = (data['stores'] as List)
             .map((store) => Store.fromJson(store))
             .toList();
+        print('Found ${stores.length} stores');
+        return stores;
       }
-
-      return [];
     } catch (e) {
-      print('Error loading all stores: $e');
-      return [];
+      print('Error loading stores data: $e');
     }
+    return [];
   }
 
   Future<List<Store>> getNearbyStores(double latitude, double longitude) async {
+    print('Fetching nearby stores for coordinates: $latitude, $longitude');
     try {
+      print('Loading stores from local data');
       final String jsonString =
           await rootBundle.loadString('assets/data/stores.json');
       final data = json.decode(jsonString);
-
       if (data['stores'] != null) {
-        List<Store> allStores = (data['stores'] as List)
+        List<Store> stores = (data['stores'] as List)
             .map((store) => Store.fromJson(store))
             .toList();
 
-        // 각 매장의 거리 계산
-        for (var store in allStores) {
-          double distance = Geolocator.distanceBetween(
+        // 각 매장의 거리 계산 및 필터링
+        stores = stores.map((store) {
+          final distance = _calculateDistance(
             latitude,
             longitude,
             store.latitude,
             store.longitude,
           );
+          print('Distance calculation for ${store.name}:');
+          print('From: ($latitude, $longitude)');
+          print('To: (${store.latitude}, ${store.longitude})');
+          print('Calculated distance: $distance km');
           store.distance = distance;
-        }
+          return store;
+        }).toList();
 
         // 거리순으로 정렬
-        allStores.sort((a, b) => (a.distance ?? double.infinity)
+        stores.sort((a, b) => (a.distance ?? double.infinity)
             .compareTo(b.distance ?? double.infinity));
 
-        // 5km 이내의 매장만 필터링 (선택사항)
-        return allStores
-            .where(
-                (store) => store.distance != null && store.distance! <= 15000)
+        // 거리 제한 적용 (150km)
+        final filteredStores = stores
+            .where((store) => store.distance != null && store.distance! <= 150)
             .toList();
-      }
 
-      return [];
+        print('Found ${filteredStores.length} stores within 150km');
+        return filteredStores;
+      }
     } catch (e) {
-      print('Error loading nearby stores: $e');
-      return [];
+      print('Error loading local data: $e');
     }
+    return [];
   }
 }

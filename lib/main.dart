@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:geocoding/geocoding.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
@@ -47,231 +48,146 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final LocationService _locationService = LocationService();
   Position? _currentPosition;
+  String _currentAddress = '위치정보 없음';
+  bool _isLoadingLocation = true;
   Timer? _debouncer;
 
   @override
   void initState() {
     super.initState();
+    _getCurrentLocation();
     final apiKey = dotenv.env['GOOGLE_MAPS_API_KEY'];
     print('API Key: $apiKey');
   }
 
-  Future<void> _getNearbyStores() async {
-    try {
-      final position = await _locationService.getCurrentLocation();
-      if (position != null) {
-        setState(() {
-          _currentPosition = position;
-        });
+  String _processStreetAddress(String street) {
+    // 범위 주소 처리 (일반 하이픈과 특수 하이픈 모두 처리)
+    RegExp rangePattern = RegExp(r'(\d+)[-–—](\d+)');
+    street = street.replaceAllMapped(rangePattern, (match) {
+      return match.group(1)!; // 범위의 첫 번째 값만 사용
+    });
 
-        // 위치 정보를 가지�� CategoryStoresPage로 이동
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => CategoryStoresPage(
-              category: 'nearby',
-              title: 'Nearby Stores',
-              userLocation: position,
-            ),
-          ),
-        );
-      } else {
-        // 위치 정보를 받���올 수 없을 때 수동 입력 다이얼로그 표시
-        _showAddressInputDialog();
+    // 도로명 약어 변환
+    final Map<String, String> abbreviations = {
+      'Street': 'St',
+      'Avenue': 'Ave',
+      'Drive': 'Dr',
+      'Boulevard': 'Blvd',
+      'Road': 'Rd',
+      'Lane': 'Ln',
+      'Place': 'Pl',
+      'Court': 'Ct',
+      'Circle': 'Cir',
+      'Highway': 'Hwy',
+    };
+
+    abbreviations.forEach((full, abbr) {
+      street = street.replaceAll(full, abbr);
+      street = street.replaceAll(full.toLowerCase(), abbr);
+    });
+
+    return street;
+  }
+
+  Future<void> _getCurrentLocation() async {
+    try {
+      // 위치 권한 확인
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          setState(() {
+            _isLoadingLocation = false;
+            _currentAddress = '위치정보 없음';
+          });
+          return;
+        }
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        setState(() {
+          _isLoadingLocation = false;
+          _currentAddress = '위치정보 없음';
+        });
+        return;
+      }
+
+      // 현재 위치 가져오기
+      Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+      setState(() {
+        _currentPosition = position;
+      });
+
+      // 위치를 주소로 변환
+      List<Placemark> placemarks = await placemarkFromCoordinates(
+        position.latitude,
+        position.longitude,
+      );
+
+      if (placemarks.isNotEmpty) {
+        Placemark place = placemarks[0];
+        setState(() {
+          if (place.street != null && place.street!.isNotEmpty) {
+            String processedStreet = _processStreetAddress(place.street!);
+            String city = place.locality ?? '';
+
+            // 정확한 주소인 경우 (번지수가 있는 경우)
+            bool isExactAddress = RegExp(r'^\d+').hasMatch(processedStreet);
+
+            if (city.isNotEmpty) {
+              _currentAddress = '$processedStreet, $city';
+            } else {
+              _currentAddress = processedStreet;
+            }
+
+            // 정확한 주소가 아닌 경우에만 '부근' 추가
+            if (!isExactAddress) {
+              _currentAddress += ' 부근';
+            }
+          } else if (place.subLocality != null &&
+              place.subLocality!.isNotEmpty) {
+            _currentAddress = '${place.subLocality} 부근';
+          } else {
+            _currentAddress = '${place.locality ?? ''} 부근';
+          }
+          _isLoadingLocation = false;
+        });
       }
     } catch (e) {
       print('Error getting location: $e');
-      _showAddressInputDialog();
+      setState(() {
+        _currentAddress = '위치정보 없음';
+        _isLoadingLocation = false;
+      });
     }
-  }
-
-  void _showAddressInputDialog() {
-    showDialog(
-      context: context,
-      builder: (context) {
-        String address = '';
-        return AlertDialog(
-          title: const Text('주소 입력'),
-          content: TextField(
-            onChanged: (value) {
-              address = value;
-            },
-            decoration: const InputDecoration(
-              hintText: '예: 1234 Robson St, Vancouver',
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: const Text('취소'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-                // 입력된 주소로 위치 설정
-                final position = _locationService.setManualLocation(address);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => CategoryStoresPage(
-                      category: 'nearby',
-                      title: 'Nearby Stores',
-                      userLocation: position,
-                    ),
-                  ),
-                );
-              },
-              child: const Text('확인'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void _showAddressSearchDialog() {
-    showDialog(
-      context: context,
-      builder: (context) {
-        final textController = TextEditingController();
-        List<dynamic> predictions = [];
-
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return AlertDialog(
-              title: const Text('주소 검색'),
-              content: SizedBox(
-                width: double.maxFinite,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    TextField(
-                      controller: textController,
-                      decoration: const InputDecoration(
-                        hintText: '주소를 입력하세요',
-                        prefixIcon: Icon(Icons.search),
-                      ),
-                      onChanged: (value) {
-                        if (_debouncer?.isActive ?? false) _debouncer!.cancel();
-                        _debouncer =
-                            Timer(const Duration(milliseconds: 500), () async {
-                          if (value.length > 2) {
-                            print('Searching for: $value');
-                            final url = Uri.parse(
-                                'https://maps.googleapis.com/maps/api/place/autocomplete/json'
-                                '?input=$value'
-                                '&components=country:ca'
-                                '&key=${dotenv.env['GOOGLE_MAPS_API_KEY']}');
-
-                            print('Request URL: $url');
-
-                            final response = await http.get(url);
-                            print('Response status: ${response.statusCode}');
-                            print('Response body: ${response.body}');
-
-                            if (response.statusCode == 200) {
-                              final json = jsonDecode(response.body);
-                              setState(() {
-                                predictions =
-                                    json['predictions'].map((prediction) {
-                                  String description =
-                                      prediction['description'];
-                                  description =
-                                      description.replaceAll(', Canada', '');
-                                  description = description.replaceAll(
-                                      'British Columbia', 'BC');
-                                  description =
-                                      description.replaceAll('Alberta', 'AB');
-                                  description =
-                                      description.replaceAll('Ontario', 'ON');
-                                  description =
-                                      description.replaceAll('Quebec', 'QC');
-                                  return {
-                                    ...prediction,
-                                    'description': description,
-                                  };
-                                }).toList();
-                              });
-                            }
-                          }
-                        });
-                      },
-                    ),
-                    const SizedBox(height: 10),
-                    Flexible(
-                      child: ListView.builder(
-                        shrinkWrap: true,
-                        itemCount: predictions.length,
-                        itemBuilder: (context, index) {
-                          print(
-                              'Building prediction item: ${predictions[index]}'); // 각 항목 확인
-                          return ListTile(
-                            title: Text(predictions[index]['description']),
-                            onTap: () async {
-                              final placeId = predictions[index]['place_id'];
-                              final detailsUrl = Uri.parse(
-                                  'https://maps.googleapis.com/maps/api/place/details/json'
-                                  '?place_id=$placeId'
-                                  '&key=${dotenv.env['GOOGLE_MAPS_API_KEY']}');
-
-                              final response = await http.get(detailsUrl);
-                              if (response.statusCode == 200) {
-                                final json = jsonDecode(response.body);
-                                final location =
-                                    json['result']['geometry']['location'];
-
-                                final position = Position.fromMap({
-                                  'latitude': location['lat'],
-                                  'longitude': location['lng'],
-                                  'accuracy': 0,
-                                  'altitude': 0,
-                                  'speed': 0,
-                                  'speedAccuracy': 0,
-                                  'heading': 0,
-                                  'timestamp':
-                                      DateTime.now().millisecondsSinceEpoch
-                                });
-
-                                Navigator.pop(context);
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => CategoryStoresPage(
-                                      category: 'nearby',
-                                      title: 'Nearby Stores',
-                                      userLocation: position,
-                                    ),
-                                  ),
-                                );
-                              }
-                            },
-                          );
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('취소'),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leadingWidth: 150,
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 12.0),
+          child: Center(
+            child: Text(
+              _isLoadingLocation ? '위치 확인 중...' : _currentAddress,
+              style: TextStyle(
+                fontSize: 13,
+                color: Colors.grey[500],
+                height: 1.2,
+              ),
+              overflow: TextOverflow.ellipsis,
+              maxLines: 2,
+              softWrap: true,
+              textAlign: TextAlign.left,
+            ),
+          ),
+        ),
         title: const Text('Say:V'),
+        centerTitle: true,
         actions: [
           IconButton(
             icon: const Icon(Icons.search),
@@ -338,7 +254,7 @@ class _HomePageState extends State<HomePage> {
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: () {
-          // 프로모션 ���세 페이지로 이동
+          // 프로모션 세 페이지로 이동
         },
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -412,6 +328,7 @@ class _HomePageState extends State<HomePage> {
                 builder: (context) => CategoryStoresPage(
                   category: category,
                   title: label,
+                  userLocation: _currentPosition,
                 ),
               ),
             );
@@ -483,7 +400,7 @@ class _HomePageState extends State<HomePage> {
             return ListTile(
               leading: const Icon(Icons.store),
               title: Text('상점 ${index + 1}'),
-              subtitle: const Text('위치 정��'),
+              subtitle: const Text('위치 정보'),
               trailing: const Icon(Icons.arrow_forward_ios),
               onTap: () {
                 // 상점 상세 페이지로 이동

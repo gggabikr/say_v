@@ -87,7 +87,20 @@ class _NearbyPageState extends State<NearbyPage> {
         }
       });
 
-      _searchWithPosition(position);
+      print('주변 가게 검색 시작');
+      print('위치로 검색: ${position.latitude}, ${position.longitude}');
+
+      if (!context.mounted) return;
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => CategoryStoresPage(
+            category: 'nearby',
+            title: '주변 맛집',
+            userLocation: position,
+          ),
+        ),
+      );
     } catch (e) {
       print('위치 가져오기 에러: $e');
       ScaffoldMessenger.of(context).showSnackBar(

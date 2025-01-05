@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import '../models/store.dart';
 import '../services/store_service.dart';
@@ -38,6 +40,8 @@ class _CategoryStoresPageState extends State<CategoryStoresPage> {
   bool showHappyHourOnly = false;
   SortType sortType = SortType.distance;
   DateTime? selectedDateTime;
+  List<Store> loadedStores = [];
+  bool isLoading = true;
 
   // 검색 키워드 리스트 추가
   final List<String> cuisineTypes = [
@@ -61,53 +65,34 @@ class _CategoryStoresPageState extends State<CategoryStoresPage> {
   }
 
   void _onSearchChanged() {
-    if (_debouncer?.isActive ?? false) _debouncer!.cancel();
-    _debouncer = Timer(const Duration(milliseconds: 500), () {
-      _filterStores(_searchController.text);
-    });
-  }
-
-  void _filterStores(String query) {
-    if (mounted) {
+    if (_searchController.text.isEmpty && isSearching) {
       setState(() {
-        if (query.isEmpty && selectedDateTime == null) {
-          // 검색어와 날짜/시간 모두 없는 경우
-          displayStores = stores;
-        } else {
-          displayStores = stores.where((store) {
-            bool matchesQuery = query.isEmpty || // 검색어가 비어있으면 true
-                store.name.toLowerCase().contains(query.toLowerCase()) ||
-                store.category.toLowerCase().contains(query.toLowerCase());
-
-            bool matchesDateTime =
-                selectedDateTime == null || // 날짜/시간이 선택되지 않았으면 true
-                    (store.isOpenAt(selectedDateTime!) &&
-                        (widget.category == 'happy_hour'
-                            ? store.isHappyHourAt(selectedDateTime!)
-                            : true));
-
-            return matchesQuery && matchesDateTime;
-          }).toList();
-        }
+        isSearching = false;
+        displayStores = List<Store>.from(loadedStores);
       });
+    } else if (_searchController.text.isNotEmpty) {
+      setState(() {
+        isSearching = true;
+      });
+      _applyFilters();
     }
   }
 
   void _applyFilters() {
     print('\n=== Applying Filters ===');
-    print('Initial stores count: ${stores.length}');
+    print('Initial stores count: ${loadedStores.length}');
     print('Show Open Only: $showOpenOnly');
     print('Show Happy Hour Only: $showHappyHourOnly');
     print('Selected DateTime: $selectedDateTime');
 
     setState(() {
-      // 항상 원본 stores에서 시작
-      List<Store> tempStores = List<Store>.from(stores);
-      print('Starting filter with ${tempStores.length} stores');
+      // 항상 원본 loadedStores에서 시작
+      List<Store> filteredStores = List<Store>.from(loadedStores);
+      print('Starting filter with ${filteredStores.length} stores');
 
       // Open Now 필터
       if (showOpenOnly) {
-        tempStores = tempStores.where((store) {
+        filteredStores = filteredStores.where((store) {
           if (selectedDateTime != null) {
             return store.isOpenAt(selectedDateTime!);
           } else {
@@ -116,12 +101,12 @@ class _CategoryStoresPageState extends State<CategoryStoresPage> {
             return isCurrentlyOpen;
           }
         }).toList();
-        print('After Open Now filter: ${tempStores.length} stores');
+        print('After Open Now filter: ${filteredStores.length} stores');
       }
 
       // Happy Hour 필터
       if (showHappyHourOnly) {
-        tempStores = tempStores.where((store) {
+        filteredStores = filteredStores.where((store) {
           if (selectedDateTime != null) {
             return store.isHappyHourAt(selectedDateTime!);
           } else {
@@ -131,12 +116,12 @@ class _CategoryStoresPageState extends State<CategoryStoresPage> {
             return isCurrentlyHappyHour;
           }
         }).toList();
-        print('After Happy Hour filter: ${tempStores.length} stores');
+        print('After Happy Hour filter: ${filteredStores.length} stores');
       }
 
       // 검색어 필터 유지
       if (_searchController.text.isNotEmpty) {
-        tempStores = tempStores
+        filteredStores = filteredStores
             .where((store) =>
                 store.name
                     .toLowerCase()
@@ -145,11 +130,11 @@ class _CategoryStoresPageState extends State<CategoryStoresPage> {
                     .toLowerCase()
                     .contains(_searchController.text.toLowerCase()))
             .toList();
-        print('After search filter: ${tempStores.length} stores');
+        print('After search filter: ${filteredStores.length} stores');
       }
 
       // 정렬 적용
-      tempStores.sort((a, b) {
+      filteredStores.sort((a, b) {
         if (sortType == SortType.distance) {
           return (a.distance ?? double.infinity)
               .compareTo(b.distance ?? double.infinity);
@@ -159,56 +144,106 @@ class _CategoryStoresPageState extends State<CategoryStoresPage> {
         }
       });
 
-      displayStores = tempStores;
+      // 필터링된 결과를 displayStores에 할당
+      displayStores = filteredStores;
       print('Final stores count: ${displayStores.length}');
     });
   }
 
   @override
   void dispose() {
-    _debouncer?.cancel();
+    _searchController.removeListener(_onSearchChanged);
     _searchController.dispose();
     _scrollController.dispose();
     super.dispose();
   }
 
   Future<void> _loadStores() async {
-    try {
-      List<Store> loadedStores;
-      if (widget.category == 'all') {
-        loadedStores = await StoreService().getAllStores();
-      } else if (widget.category == 'nearby') {
-        if (widget.userLocation != null) {
-          loadedStores = await StoreService().getNearbyStores(
-            widget.userLocation!.latitude,
-            widget.userLocation!.longitude,
-          );
-        } else {
-          loadedStores = [];
-        }
-      } else {
-        loadedStores =
-            await StoreService().getStoresByCategory(widget.category);
-      }
+    print('Starting to load stores...');
+    setState(() {
+      isLoading = true;
+    });
 
-      if (mounted) {
-        setState(() {
-          stores = loadedStores;
-          displayStores = loadedStores;
-        });
+    try {
+      if (widget.category == 'nearby' && widget.userLocation != null) {
+        print('Loading nearby stores...');
+        List<Store> stores = await StoreService().getNearbyStores(
+          widget.userLocation!.latitude,
+          widget.userLocation!.longitude,
+        );
+        loadedStores = stores;
+        displayStores = List<Store>.from(loadedStores);
+      } else {
+        print('Loading all stores...');
+        List<Store> stores = await StoreService().getAllStores();
+        print('Loaded ${stores.length} stores');
+
+        if (widget.category != 'all') {
+          stores = stores.where((store) {
+            return store.category.contains(widget.category);
+          }).toList();
+          print(
+              'Filtered to ${stores.length} stores for category ${widget.category}');
+        }
+
+        if (widget.userLocation != null) {
+          print('Calculating distances...');
+          stores = stores.map((store) {
+            final distance = calculateDistance(
+              widget.userLocation!.latitude,
+              widget.userLocation!.longitude,
+              store.latitude,
+              store.longitude,
+            );
+            store.distance = distance;
+            return store;
+          }).toList();
+        }
+
+        loadedStores = stores;
+        displayStores = List<Store>.from(loadedStores);
+        print('Final store count: ${loadedStores.length}');
       }
     } catch (e) {
       print('Error loading stores: $e');
-      if (mounted) {
-        setState(() {
-          stores = [];
-          displayStores = [];
-        });
-      }
+    }
+
+    if (mounted) {
+      setState(() {
+        isLoading = false;
+      });
     }
   }
 
-  Widget _buildFilterBar() {
+  double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
+    print('\nCalculating distance:');
+    print('From: ($lat1, $lon1)');
+    print('To: ($lat2, $lon2)');
+
+    var R = 6371.0; // 지구의 반경 (km)
+
+    // 위도, 경도를 라디안으로 변환
+    var lat1Rad = lat1 * (pi / 180.0);
+    var lon1Rad = lon1 * (pi / 180.0);
+    var lat2Rad = lat2 * (pi / 180.0);
+    var lon2Rad = lon2 * (pi / 180.0);
+
+    // 위도, 경도의 차이
+    var dLat = lat2Rad - lat1Rad;
+    var dLon = lon2Rad - lon1Rad;
+
+    // Haversine 공식
+    var a = sin(dLat / 2) * sin(dLat / 2) +
+        cos(lat1Rad) * cos(lat2Rad) * sin(dLon / 2) * sin(dLon / 2);
+
+    var c = 2 * atan2(sqrt(a), sqrt(1 - a));
+    var distance = R * c;
+
+    print('Calculated distance: $distance km');
+    return distance;
+  }
+
+  Widget buildFilterBar() {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -389,7 +424,7 @@ class _CategoryStoresPageState extends State<CategoryStoresPage> {
     );
   }
 
-  Widget _buildTimeSelector() {
+  Widget buildTimeSelector() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8.0),
       child: Row(
@@ -447,6 +482,16 @@ class _CategoryStoresPageState extends State<CategoryStoresPage> {
     );
   }
 
+  void toggleSearch() {
+    setState(() {
+      isSearching = !isSearching;
+      if (!isSearching) {
+        _searchController.clear();
+        displayStores = List<Store>.from(loadedStores);
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -459,8 +504,9 @@ class _CategoryStoresPageState extends State<CategoryStoresPage> {
               setState(() {
                 isSearching = false;
                 _searchController.clear();
-                displayStores = stores;
+                isLoading = true;
               });
+              _loadStores();
             } else {
               Navigator.pop(context);
             }
@@ -471,19 +517,15 @@ class _CategoryStoresPageState extends State<CategoryStoresPage> {
             : [
                 IconButton(
                   icon: const Icon(Icons.search),
-                  onPressed: () {
-                    setState(() {
-                      isSearching = true;
-                    });
-                  },
+                  onPressed: toggleSearch,
                 ),
               ],
       ),
       body: Column(
         children: [
           if (isSearching) ...[
-            _buildFilterBar(),
-            _buildTimeSelector(),
+            buildFilterBar(),
+            buildTimeSelector(),
             if (selectedDateTime != null)
               Padding(
                 padding: const EdgeInsets.all(8.0),
@@ -507,13 +549,15 @@ class _CategoryStoresPageState extends State<CategoryStoresPage> {
               ),
           ],
           Expanded(
-            child: stores.isEmpty
+            child: isLoading
                 ? const Center(child: CircularProgressIndicator())
-                : PaginatedStoreList(
-                    stores: displayStores,
-                    scrollController: _scrollController,
-                    selectedDateTime: selectedDateTime,
-                  ),
+                : displayStores.isEmpty
+                    ? const Center(child: Text('검색 결과가 없습니다.'))
+                    : PaginatedStoreList(
+                        stores: displayStores,
+                        scrollController: _scrollController,
+                        selectedDateTime: selectedDateTime,
+                      ),
           ),
         ],
       ),
