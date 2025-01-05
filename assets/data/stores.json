@@ -79,8 +79,8 @@
         "category": ["all_you_can_eat"],
         "cuisineTypes": ["Japanese", "Asian", "Seafood", "Group Dining"],
         "location": {
-          "latitude": 49.2760,
-          "longitude": -123.1187
+          "latitude": 49.2634,
+          "longitude": -123.1548
         },
         "ratings": [4.0, 4.5, 4.0, 3.5, 4.0, 4.5, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5, 5.0],
         "totalRatings": 156,
@@ -135,8 +135,8 @@
         "category": ["all_you_can_eat", "special_events"],
         "cuisineTypes": ["Korean", "Asian", "BBQ", "Group Dining", "Late Night"],
         "location": {
-          "latitude": 49.2855,
-          "longitude": -123.1197
+          "latitude": 49.2651,
+          "longitude": -123.1007
         },
         "ratings": [4.5, 5.0, 4.5, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0, 4.5, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0],
         "totalRatings": 892,
@@ -182,8 +182,8 @@
         "category": ["happy_hour", "deals_and_discounts"],
         "cuisineTypes": ["Mexican", "Latin", "Bar"],
         "location": {
-          "latitude": 49.2820,
-          "longitude": -123.1180
+          "latitude": 49.2726,
+          "longitude": -123.0696
         },
         "ratings": [4.0, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5, 5.0],
         "totalRatings": 234,
@@ -215,8 +215,8 @@
         "category": ["happy_hour", "deals_and_discounts"],
         "cuisineTypes": ["British", "American", "Bar", "Pub Food"],
         "location": {
-          "latitude": 49.2840,
-          "longitude": -123.1220
+          "latitude": 49.2687,
+          "longitude": -123.1557
         },
         "ratings": [4.5, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0],
         "totalRatings": 756,
@@ -369,8 +369,8 @@
         "category": ["deals_and_discounts", "special_events"],
         "cuisineTypes": ["Vegan", "Healthy", "International", "Gluten-Free", "Organic"],
         "location": {
-          "latitude": 49.2850,
-          "longitude": -123.1170
+          "latitude": 49.2595,
+          "longitude": -123.2390
         },
         "ratings": [],
         "totalRatings": 0,
@@ -402,7 +402,7 @@
         "cuisineTypes": ["Healthy", "American", "Cafe", "Breakfast", "Brunch"],
         "location": {
           "latitude": 49.2845,
-          "longitude": -123.1175
+          "longitude": -123.1375
         },
         "ratings": [4.5, 4.0, 3.5],
         "totalRatings": 3,
@@ -425,7 +425,7 @@
         "category": ["happy_hour", "all_you_can_eat"],
         "cuisineTypes": ["BBQ", "American", "Southern", "Grill", "Smokehouse"],
         "location": {
-          "latitude": 49.2845,
+          "latitude": 49.2745,
           "longitude": -123.1230
         },
         "ratings": [4.0, 4.5, 5.0, 4.5, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0, 4.5, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5, 5.0],
@@ -458,8 +458,8 @@
         "category": ["all_you_can_eat", "special_events"],
         "cuisineTypes": ["Chinese", "Asian", "Dim Sum"],
         "location": {
-          "latitude": 49.2825,
-          "longitude": -123.1210
+          "latitude": 49.2798,
+          "longitude": -123.1010
         },
         "ratings": [4.5, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0],
         "totalRatings": 345,
@@ -482,8 +482,8 @@
         "category": ["happy_hour", "deals_and_discounts"],
         "cuisineTypes": ["American", "Burgers", "Fast Food", "Bar"],
         "location": {
-          "latitude": 49.2830,
-          "longitude": -123.1195
+          "latitude": 49.2530,
+          "longitude": -123.1015
         },
         "ratings": [2.0, 2.5, 3.0, 2.5, 2.0, 3.0, 2.5, 3.0, 2.5, 2.0, 3.5, 2.0, 2.5, 3.0, 2.5, 2.0, 2.5, 3.0, 2.5, 3.0],
         "totalRatings": 267,
@@ -515,8 +515,8 @@
         "category": ["deals_and_discounts", "special_events"],
         "cuisineTypes": ["Mediterranean", "Greek", "Middle Eastern", "Healthy"],
         "location": {
-          "latitude": 49.2840,
-          "longitude": -123.1185
+          "latitude": 49.2677,
+          "longitude": -123.1685
         },
         "ratings": [4.5, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0],
         "totalRatings": 189,
@@ -539,8 +539,8 @@
         "category": ["deals_and_discounts", "special_events"],
         "cuisineTypes": ["Dessert", "Ice Cream", "Family Friendly"],
         "location": {
-          "latitude": 49.2835,
-          "longitude": -123.1165
+          "latitude": 49.2715,
+          "longitude": -123.1365
         },
         "ratings": [3.0, 2.5, 3.0, 2.5, 3.5, 3.0, 2.5, 3.0, 3.5, 2.5, 3.0, 2.5, 3.0, 2.5, 3.5, 3.0, 2.5, 3.0, 3.5, 2.5],
         "totalRatings": 156,
@@ -563,8 +563,8 @@
         "category": ["happy_hour", "deals_and_discounts"],
         "cuisineTypes": ["Vietnamese", "Asian", "Soup", "Noodles"],
         "location": {
-          "latitude": 49.2845,
-          "longitude": -123.1175
+          "latitude": 49.2482,
+          "longitude": -123.0901
         },
         "ratings": [4.0, 4.5, 5.0, 4.5, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0, 4.5, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5, 5.0],
         "totalRatings": 432,
@@ -626,11 +626,11 @@
       {
         "storeId": "66778899",
         "name": "Langley Night Market",
-        "category": ["night_market", "special_events"],
+        "category": ["special_events"],
         "cuisineTypes": ["Asian", "Street Food", "International", "Night Market"],
         "location": {
-          "latitude": 49.2815,
-          "longitude": -123.1205
+          "latitude": 49.1042,
+          "longitude": -122.6604
         },
         "ratings": [],
         "totalRatings": 0,
@@ -650,11 +650,11 @@
       {
         "storeId": "77889900",
         "name": "Coquitlam Brew House",
-        "category": ["happy_hour", "craft_beer", "live_music"],
-        "cuisineTypes": ["Pub Food", "Craft Beer", "American", "Bar"],
+        "category": ["happy_hour", "special_events"],
+        "cuisineTypes": ["Pub Food", "Craft Beer", "American", "Bar", "Live Music"],
         "location": {
-          "latitude": 49.2850,
-          "longitude": -123.1180
+          "latitude": 49.2838,
+          "longitude": -122.7932
         },
         "ratings": [4.0, 4.5, 5.0, 4.5, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0, 4.5, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5, 5.0],
         "totalRatings": 678,
@@ -699,11 +699,11 @@
       {
         "storeId": "88990011",
         "name": "White Rock Beach Bar",
-        "category": ["happy_hour", "seafood", "beach_view"],
-        "cuisineTypes": ["Seafood", "Bar", "American", "Grill"],
+        "category": ["happy_hour", "special_events"],
+        "cuisineTypes": ["Seafood", "Bar", "American", "Grill", "Beach View"],
         "location": {
-          "latitude": 49.2855,
-          "longitude": -123.1190
+          "latitude": 49.0253,
+          "longitude": -122.8029
         },
         "ratings": [4.5, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0],
         "totalRatings": 345,
@@ -740,11 +740,11 @@
       {
         "storeId": "99001122",
         "name": "Maple Ridge Dawn Cafe",
-        "category": ["breakfast", "brunch"],
+        "category": ["deals_and_discounts"],
         "cuisineTypes": ["Breakfast", "Brunch", "Cafe", "Coffee"],
         "location": {
-          "latitude": 49.2820,
-          "longitude": -123.1200
+          "latitude": 49.2193,
+          "longitude": -122.5984
         },
         "ratings": [2.0, 2.5, 3.0, 2.0, 2.5, 3.0, 2.5, 2.0],
         "totalRatings": 8,
@@ -772,11 +772,11 @@
       {
         "storeId": "00112233",
         "name": "North Van Late Bar",
-        "category": ["happy_hour", "late_night"],
+        "category": ["happy_hour", "deals_and_discounts"],
         "cuisineTypes": ["Bar", "Pub Food", "Late Night"],
         "location": {
-          "latitude": 49.2860,
-          "longitude": -123.1210
+          "latitude": 49.3114,
+          "longitude": -123.0728
         },
         "ratings": [4.0, 4.5, 5.0, 4.5, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0, 4.5, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5, 5.0],
         "totalRatings": 234,
@@ -821,11 +821,11 @@
       {
         "storeId": "11223344",
         "name": "Whistler Mountain Lodge",
-        "category": ["happy_hour", "fine_dining", "ski_resort"],
-        "cuisineTypes": ["Fine Dining", "Canadian", "Steak", "Wine Bar"],
+        "category": ["happy_hour", "special_events"],
+        "cuisineTypes": ["Fine Dining", "Canadian", "Steak", "Wine Bar", "Ski Resort"],
         "location": {
-          "latitude": 49.2865,
-          "longitude": -123.1220
+          "latitude": 50.1162,
+          "longitude": -122.9535
         },
         "ratings": [4.5, 5.0, 4.5, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0, 4.5, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0],
         "totalRatings": 567,
@@ -862,7 +862,7 @@
       {
         "storeId": "22233344",
         "name": "Burnaby Sports Bar",
-        "category": ["happy_hour", "sports_bar"],
+        "category": ["happy_hour", "deals_and_discounts"],
         "cuisineTypes": ["Bar", "American", "Pub Food", "Sports Bar"],
         "location": {
           "latitude": 49.2488,
@@ -943,7 +943,7 @@
       {
         "storeId": "33344455",
         "name": "Richmond Izakaya",
-        "category": ["happy_hour", "japanese", "asian_fusion"],
+        "category": ["happy_hour", "deals_and_discounts"],
         "cuisineTypes": ["Japanese", "Asian Fusion", "Izakaya", "Sushi"],
         "location": {
           "latitude": 49.1666,
@@ -1024,7 +1024,7 @@
       {
         "storeId": "44455566",
         "name": "Burnaby Late Night Pub",
-        "category": ["happy_hour", "pub", "late_night"],
+        "category": ["happy_hour", "deals_and_discounts"],
         "cuisineTypes": ["Pub Food", "Western", "Bar", "Late Night"],
         "location": {
           "latitude": 49.2337,
