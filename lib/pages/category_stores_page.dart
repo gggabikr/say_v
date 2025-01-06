@@ -162,6 +162,8 @@ class _CategoryStoresPageState extends State<CategoryStoresPage> {
         print('After Happy Hour filter: ${filteredStores.length} stores');
       }
 
+      // 검색어 필터는 이미 적용되어 있으므로 여기서는 건너뜀
+
       displayStores = filteredStores;
       print('Final stores count: ${displayStores.length}');
     });
