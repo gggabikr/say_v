@@ -5,6 +5,7 @@
         "name": "The Maple Tavern",
         "category": ["happy_hour", "special_events"],
         "cuisineTypes": ["American", "Canadian", "Bar", "Late Night"],
+        "contactNumber": "6045551234",
         "location": {
           "latitude": 49.2827,
           "longitude": -123.1207
@@ -78,6 +79,7 @@
         "name": "Sushi Paradise",
         "category": ["all_you_can_eat"],
         "cuisineTypes": ["Japanese", "Asian", "Seafood", "Group Dining"],
+        "contactNumber": "7781125070",
         "location": {
           "latitude": 49.2634,
           "longitude": -123.1548
@@ -134,6 +136,7 @@
         "name": "Korean BBQ House",
         "category": ["all_you_can_eat", "special_events"],
         "cuisineTypes": ["Korean", "Asian", "BBQ", "Group Dining", "Late Night"],
+        "contactNumber": "6040477008",
         "location": {
           "latitude": 49.2651,
           "longitude": -123.1007
@@ -181,6 +184,7 @@
         "name": "Taco Tuesday",
         "category": ["happy_hour", "deals_and_discounts"],
         "cuisineTypes": ["Mexican", "Latin", "Bar"],
+        "contactNumber": "7786211270",
         "location": {
           "latitude": 49.2726,
           "longitude": -123.0696
@@ -214,6 +218,7 @@
         "name": "Pub & Grub",
         "category": ["happy_hour", "deals_and_discounts"],
         "cuisineTypes": ["British", "American", "Bar", "Pub Food"],
+        "contactNumber": "6044324522",
         "location": {
           "latitude": 49.2687,
           "longitude": -123.1557
@@ -255,6 +260,7 @@
         "name": "Sushi Express",
         "category": ["happy_hour", "deals_and_discounts"],
         "cuisineTypes": ["Japanese", "Sushi", "Asian", "Late Night"],
+        "contactNumber": "7788260448",
         "location": {
           "latitude": 49.2815,
           "longitude": -123.1190
@@ -296,6 +302,7 @@
         "name": "Pizza Paradise",
         "category": ["deals_and_discounts", "special_events"],
         "cuisineTypes": ["Italian", "Pizza", "Family Style"],
+        "contactNumber": "6042492547",
         "location": {
           "latitude": 49.2835,
           "longitude": -123.1160
@@ -368,6 +375,7 @@
         "name": "Vegan Delight",
         "category": ["deals_and_discounts", "special_events"],
         "cuisineTypes": ["Vegan", "Healthy", "International", "Gluten-Free", "Organic"],
+        "contactNumber": "7784033721",
         "location": {
           "latitude": 49.2595,
           "longitude": -123.2390
@@ -444,6 +452,7 @@
         "name": "Healthy Bites",
         "category": ["deals_and_discounts"],
         "cuisineTypes": ["Healthy", "American", "Cafe", "Breakfast", "Brunch"],
+        "contactNumber": "6046767829",
         "location": {
           "latitude": 49.2845,
           "longitude": -123.1375
@@ -512,6 +521,7 @@
         "name": "BBQ King",
         "category": ["happy_hour", "all_you_can_eat"],
         "cuisineTypes": ["BBQ", "American", "Southern", "Grill", "Smokehouse"],
+        "contactNumber": "7786666515",
         "location": {
           "latitude": 49.2745,
           "longitude": -123.1230
@@ -589,6 +599,7 @@
         "name": "Dim Sum Palace",
         "category": ["all_you_can_eat", "special_events"],
         "cuisineTypes": ["Chinese", "Asian", "Dim Sum"],
+        "contactNumber": "6047450654",
         "location": {
           "latitude": 49.2798,
           "longitude": -123.1010
@@ -657,6 +668,7 @@
         "name": "Burger Joint",
         "category": ["happy_hour", "deals_and_discounts"],
         "cuisineTypes": ["American", "Burgers", "Fast Food", "Bar"],
+        "contactNumber": "7785791633",
         "location": {
           "latitude": 49.2530,
           "longitude": -123.1015
@@ -734,6 +746,7 @@
         "name": "Mediterranean Grill",
         "category": ["deals_and_discounts", "special_events"],
         "cuisineTypes": ["Mediterranean", "Greek", "Middle Eastern", "Healthy"],
+        "contactNumber": "7785993715",
         "location": {
           "latitude": 49.2677,
           "longitude": -123.1685
@@ -802,6 +815,7 @@
         "name": "Ice Cream Paradise",
         "category": ["deals_and_discounts", "special_events"],
         "cuisineTypes": ["Dessert", "Ice Cream", "Family Friendly"],
+        "contactNumber": "6046284660",
         "location": {
           "latitude": 49.2715,
           "longitude": -123.1365
@@ -870,6 +884,7 @@
         "name": "Pho House",
         "category": ["happy_hour", "deals_and_discounts"],
         "cuisineTypes": ["Vietnamese", "Asian", "Soup", "Noodles"],
+        "contactNumber": "6047817749",
         "location": {
           "latitude": 49.2482,
           "longitude": -123.0901
@@ -947,6 +962,7 @@
         "name": "BB.Q Chicken",
         "category": ["happy_hour", "deals_and_discounts"],
         "cuisineTypes": ["Korean", "Chicken", "Asian", "Bar"],
+        "contactNumber": "6049604370",
         "location": {
           "latitude": 49.2825,
           "longitude": -123.1195
@@ -1024,6 +1040,7 @@
         "name": "Langley Night Market",
         "category": ["special_events"],
         "cuisineTypes": ["Asian", "Street Food", "International", "Night Market"],
+        "contactNumber": "7783943087",
         "location": {
           "latitude": 49.1042,
           "longitude": -122.6604
@@ -1086,6 +1103,7 @@
         "name": "Coquitlam Brew House",
         "category": ["happy_hour", "special_events"],
         "cuisineTypes": ["Pub Food", "Craft Beer", "American", "Bar", "Live Music"],
+        "contactNumber": "6046264214",
         "location": {
           "latitude": 49.2838,
           "longitude": -122.7932
@@ -1173,6 +1191,7 @@
         "name": "White Rock Beach Bar",
         "category": ["happy_hour", "special_events"],
         "cuisineTypes": ["Seafood", "Bar", "American", "Grill", "Beach View"],
+        "contactNumber": "6041822159",
         "location": {
           "latitude": 49.0253,
           "longitude": -122.8029
@@ -1252,6 +1271,7 @@
         "name": "Maple Ridge Dawn Cafe",
         "category": ["deals_and_discounts"],
         "cuisineTypes": ["Breakfast", "Brunch", "Cafe", "Coffee"],
+        "contactNumber": "6047626930",
         "location": {
           "latitude": 49.2193,
           "longitude": -122.5984
@@ -1322,6 +1342,7 @@
         "name": "North Van Late Bar",
         "category": ["happy_hour", "deals_and_discounts"],
         "cuisineTypes": ["Bar", "Pub Food", "Late Night"],
+        "contactNumber": "7789510146",
         "location": {
           "latitude": 49.3114,
           "longitude": -123.0728
@@ -1409,6 +1430,7 @@
         "name": "Whistler Mountain Lodge",
         "category": ["happy_hour", "special_events"],
         "cuisineTypes": ["Fine Dining", "Canadian", "Steak", "Wine Bar", "Ski Resort"],
+        "contactNumber": "7783593640",
         "location": {
           "latitude": 50.1162,
           "longitude": -122.9535
@@ -1450,6 +1472,7 @@
         "name": "Burnaby Sports Bar",
         "category": ["happy_hour", "deals_and_discounts"],
         "cuisineTypes": ["Bar", "American", "Pub Food", "Sports Bar"],
+        "contactNumber": "7788108334",
         "location": {
           "latitude": 49.2488,
           "longitude": -122.9805
@@ -1531,6 +1554,7 @@
         "name": "Richmond Izakaya",
         "category": ["happy_hour", "deals_and_discounts"],
         "cuisineTypes": ["Japanese", "Asian Fusion", "Izakaya", "Sushi"],
+        "contactNumber": "7788070212",
         "location": {
           "latitude": 49.1666,
           "longitude": -123.1336
@@ -1612,6 +1636,7 @@
         "name": "Burnaby Late Night Pub",
         "category": ["happy_hour", "deals_and_discounts"],
         "cuisineTypes": ["Pub Food", "Western", "Bar", "Late Night"],
+        "contactNumber": "7788070212",
         "location": {
           "latitude": 49.2337,
           "longitude": -122.9977
@@ -1693,6 +1718,7 @@
         "name": "Vancouver coast Grill",
         "category": ["deals_and_discounts", "happy_hour"],
         "cuisineTypes": ["Grill", "Seafood", "Western", "Barbecue"],
+        "contactNumber": "7786528782",
         "location": {
           "latitude": 49.2827,
           "longitude": -123.1216
@@ -1779,6 +1805,7 @@
         "name": "Burnaby Craft Brewery",
         "category": ["happy_hour", "deals_and_discounts"],
         "cuisineTypes": ["Brewery", "Pub Food", "Craft Beer", "Bar"],
+        "contactNumber": "7787423155",
         "location": {
           "latitude": 49.2622,
           "longitude": -122.9939
@@ -1860,6 +1887,7 @@
         "name": "West End Diner",
         "category": ["all_you_can_eat", "special_events"],
         "cuisineTypes": ["American", "Diner", "Breakfast", "Comfort Food"],
+        "contactNumber": "6045581619",
         "location": {
           "latitude": 49.2820,
           "longitude": -123.1171
@@ -1923,6 +1951,7 @@
         "name": "Sunset Grill & Bar",
         "category": ["happy_hour", "deals_and_discounts"],
         "cuisineTypes": ["American", "Grill", "BBQ", "Bar Food"],
+        "contactNumber": "6043577926",
         "location": {
           "latitude": 49.2828,
           "longitude": -123.1207
@@ -2003,6 +2032,7 @@
         "name": "Vancouver beer Bar",
         "category": ["happy_hour", "deals_and_discounts"],
         "cuisineTypes": ["Grill", "American", "Bar"],
+        "contactNumber": "7784442587",
         "location": {
           "latitude": 49.2827,
           "longitude": -123.1207
@@ -2075,6 +2105,7 @@
         "name": "West End Sushi & Bar",
         "category": ["happy_hour", "all_you_can_eat"],
         "cuisineTypes": ["Sushi", "Japanese", "Bar"],
+        "contactNumber": "6047438201",
         "location": {
           "latitude": 49.2892,
           "longitude": -123.1304
@@ -2210,6 +2241,7 @@
         "name": "Coastline Grill",
         "category": ["happy_hour", "deals_and_discounts", "special_events"],
         "cuisineTypes": ["Seafood", "American", "Grill", "Bar"],
+        "contactNumber": "6046330175",
         "location": {
           "latitude": 49.3023,
           "longitude": -123.0925
@@ -2274,6 +2306,7 @@
         "name": "North Shore Cafe",
         "category": ["happy_hour", "all_you_can_eat"],
         "cuisineTypes": ["Cafe", "Canadian", "Breakfast", "Brunch"],
+        "contactNumber": "6047693131",
         "location": {
           "latitude": 49.3441,
           "longitude": -123.0158
@@ -2352,6 +2385,7 @@
         "name": "Vancouver Grill",
         "category": ["special_events", "deals_and_discounts"],
         "cuisineTypes": ["Steakhouse", "American", "BBQ"],
+        "contactNumber": "6040175889",
         "location": {
           "latitude": 49.2827,
           "longitude": -123.1216
@@ -2415,6 +2449,7 @@
         "name": "Sunset Cafe",
         "category": ["special_events", "all_you_can_eat"],
         "cuisineTypes": ["Cafe", "Brunch", "Bakery"],
+        "contactNumber": "6044218175",
         "location": {
           "latitude": 49.2606,
           "longitude": -123.1149
@@ -2478,6 +2513,7 @@
         "name": "The Green Garden",
         "category": ["happy_hour", "special_events"],
         "cuisineTypes": ["Vegetarian", "Vegan", "Healthy", "Cafe"],
+        "contactNumber": "6040682614",
         "location": {
           "latitude": 49.2580,
           "longitude": -123.1143
@@ -2550,6 +2586,7 @@
         "name": "Super bbq",
         "category": ["all_you_can_eat", "special_events"],
         "cuisineTypes": ["American", "Grill", "BBQ", "Steakhouse"],
+        "contactNumber": "6040689972",
         "location": {
           "latitude": 49.2827,
           "longitude": -123.1207
@@ -2609,8 +2646,5 @@
         "happyHours": [],
         "is24Hours": false
       }
-      
-      
-      
     ]
 }
