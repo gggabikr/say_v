@@ -191,6 +191,38 @@
         },
         "ratings": [4.0, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5, 5.0],
         "totalRatings": 234,
+        "menus": [
+          {
+            "itemId": "45678902",
+            "name": "Beef Tacos",
+            "price": 10.99,
+            "type": "food"
+          },
+          {
+            "itemId": "45678903",
+            "name": "Chicken Quesadilla",
+            "price": 12.99,
+            "type": "food"
+          },
+          {
+            "itemId": "45678904",
+            "name": "Guacamole & Chips",
+            "price": 7.99,
+            "type": "food"
+          },
+          {
+            "itemId": "45678905",
+            "name": "Margarita",
+            "price": 6.99,
+            "type": "alcohol"
+          },
+          {
+            "itemId": "45678906",
+            "name": "Mexican Beer",
+            "price": 5.99,
+            "type": "alcohol"
+          }
+        ],
         "businessHours": [
           {
             "openHour": 11,
@@ -225,6 +257,38 @@
         },
         "ratings": [4.5, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0],
         "totalRatings": 756,
+        "menus": [
+          {
+            "itemId": "56789013",
+            "name": "Fish & Chips",
+            "price": 14.99,
+            "type": "food"
+          },
+          {
+            "itemId": "56789014",
+            "name": "Bangers & Mash",
+            "price": 13.99,
+            "type": "food"
+          },
+          {
+            "itemId": "56789015",
+            "name": "Beef Wellington",
+            "price": 18.99,
+            "type": "food"
+          },
+          {
+            "itemId": "56789016",
+            "name": "Pint of Ale",
+            "price": 5.99,
+            "type": "alcohol"
+          },
+          {
+            "itemId": "56789017",
+            "name": "Whiskey Sour",
+            "price": 7.99,
+            "type": "alcohol"
+          }
+        ],
         "businessHours": [
           {
             "openHour": 12,
@@ -267,6 +331,38 @@
         },
         "ratings": [4.0, 4.5, 4.0, 3.5, 4.0, 4.5, 3.5, 4.0],
         "totalRatings": 8,
+        "menus": [
+          {
+            "itemId": "67890124",
+            "name": "California Roll",
+            "price": 8.99,
+            "type": "food"
+          },
+          {
+            "itemId": "67890125",
+            "name": "Tuna Sashimi",
+            "price": 12.99,
+            "type": "food"
+          },
+          {
+            "itemId": "67890126",
+            "name": "Salmon Nigiri",
+            "price": 10.99,
+            "type": "food"
+          },
+          {
+            "itemId": "67890127",
+            "name": "Green Tea",
+            "price": 2.99,
+            "type": "drink"
+          },
+          {
+            "itemId": "67890128",
+            "name": "Sapporo Beer",
+            "price": 5.99,
+            "type": "alcohol"
+          }
+        ],
         "businessHours": [
           {
             "openHour": 11,
@@ -1437,6 +1533,38 @@
         },
         "ratings": [4.5, 5.0, 4.5, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0, 4.5, 3.5, 4.0, 4.5, 5.0, 4.0, 3.5, 4.0, 4.5, 5.0, 4.0],
         "totalRatings": 567,
+        "menus": [
+          {
+            "itemId": "11223345",
+            "name": "Filet Mignon",
+            "price": 45.99,
+            "type": "food"
+          },
+          {
+            "itemId": "11223346",
+            "name": "Lobster Tail",
+            "price": 39.99,
+            "type": "food"
+          },
+          {
+            "itemId": "11223347",
+            "name": "Caesar Salad",
+            "price": 10.99,
+            "type": "food"
+          },
+          {
+            "itemId": "11223348",
+            "name": "Chardonnay",
+            "price": 12.99,
+            "type": "alcohol"
+          },
+          {
+            "itemId": "11223349",
+            "name": "Cabernet Sauvignon",
+            "price": 14.99,
+            "type": "alcohol"
+          }
+        ],
         "businessHours": [
           {
             "openHour": 7,
@@ -2178,6 +2306,7 @@
         "name": "East Vancouver Meat Lovers",
         "category": ["special_events", "deals_and_discounts"],
         "cuisineTypes": ["BBQ", "Grill", "American", "Steakhouse"],
+        "contactNumber": "6046629763",
         "location": {
           "latitude": 49.2606,
           "longitude": -123.1043
