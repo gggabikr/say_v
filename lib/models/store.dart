@@ -10,6 +10,7 @@ class Store {
   final List<double> ratings;
   final List<String> cuisineTypes;
   final List<MenuItem> menus;
+  final String contactNumber;
   double? distance;
   late final String searchableText;
   final List<BusinessHours>? businessHours;
@@ -68,6 +69,7 @@ class Store {
     required this.ratings,
     required this.cuisineTypes,
     required this.menus,
+    required this.contactNumber,
     this.distance,
     this.businessHours,
     this.happyHours,
@@ -117,6 +119,7 @@ class Store {
               ?.map((menu) => MenuItem.fromJson(menu))
               .toList() ??
           [],
+      contactNumber: json['contactNumber']?.toString() ?? '',
       businessHours: (json['businessHours'] as List?)
           ?.map((hour) => BusinessHours.fromJson(hour))
           .toList(),

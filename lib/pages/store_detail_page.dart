@@ -44,9 +44,12 @@ class _StoreDetailPageState extends State<StoreDetailPage> {
                 title: Text(
                     'Lat: ${widget.store.latitude}, Long: ${widget.store.longitude}'),
               ),
-              const ListTile(
-                leading: Icon(Icons.phone),
-                title: Text('000-000-0000'),
+              ListTile(
+                leading: const Icon(Icons.phone),
+                title: Text(widget.store.contactNumber.replaceAllMapped(
+                        RegExp(r'(\d{3})(\d{3})(\d{4})'),
+                        (Match m) => '${m[1]}-${m[2]}-${m[3]}') ??
+                    '전화번호 없음'),
               ),
 
               const SizedBox(height: 24),
