@@ -15,6 +15,7 @@ import 'services/auth_service.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'firebase_options.dart';
+import 'pages/profile_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -219,22 +220,104 @@ class _HomePageState extends State<HomePage> {
               );
             },
           ),
-          IconButton(
-            icon: const Icon(Icons.person_outline),
-            onPressed: () {
-              _showLoginDialog(context);
+          StreamBuilder<User?>(
+            stream: FirebaseAuth.instance.authStateChanges(),
+            builder: (context, snapshot) {
+              if (snapshot.hasData) {
+                // 로그인된 상태
+                return PopupMenuButton(
+                  icon: const Icon(Icons.person),
+                  itemBuilder: (context) => [
+                    PopupMenuItem(
+                      child: const Text('프로필 설정'),
+                      onTap: () {
+                        // PopupMenuButton이 닫힌 후 실행되도록 Future.delayed 사용
+                        Future.delayed(Duration.zero, () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const ProfilePage(),
+                            ),
+                          );
+                        });
+                      },
+                    ),
+                    PopupMenuItem(
+                      child: const Text('로그아웃'),
+                      onTap: () async {
+                        await AuthService().signOut();
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('로그아웃되었습니다.'),
+                              backgroundColor: Colors.green,
+                            ),
+                          );
+                        }
+                      },
+                    ),
+                  ],
+                );
+              } else {
+                // 로그인되지 않은 상태
+                return IconButton(
+                  icon: const Icon(Icons.person_outline),
+                  onPressed: () {
+                    _showLoginDialog(context);
+                  },
+                );
+              }
             },
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            _buildCategorySection(),
-            _buildFeaturedEvents(),
-            _buildNearbySpots(),
-          ],
-        ),
+      body: Column(
+        children: [
+          // 인사말 수정
+          Container(
+            width: double.infinity,
+            padding:
+                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+            child: StreamBuilder<User?>(
+              // userChanges() 스트림을 사용하여 사용자 정보 변경을 감지
+              stream: FirebaseAuth.instance.userChanges(),
+              builder: (context, snapshot) {
+                if (snapshot.hasData) {
+                  final user = snapshot.data;
+                  return Text(
+                    'Hello, ${user?.displayName ?? 'Guest'}!',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey[600],
+                      fontWeight: FontWeight.w400,
+                    ),
+                    textAlign: TextAlign.right,
+                  );
+                }
+                return Text(
+                  'Hello, Guest!',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey[600],
+                    fontWeight: FontWeight.w400,
+                  ),
+                  textAlign: TextAlign.right,
+                );
+              },
+            ),
+          ),
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  _buildCategorySection(),
+                  _buildFeaturedEvents(),
+                  _buildNearbySpots(),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -477,15 +560,27 @@ class _HomePageState extends State<HomePage> {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
                           content: Text('로그인 성공!'),
-                          duration: Duration(seconds: 5),
                           backgroundColor: Colors.green,
                         ),
                       );
+
+                      // 사용자 이름이 없는 경우에만 프로필 페이지로 이동
+                      if (mounted) {
+                        final user = FirebaseAuth.instance.currentUser;
+                        if (user?.displayName == null ||
+                            user!.displayName!.isEmpty) {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const ProfilePage(),
+                            ),
+                          );
+                        }
+                      }
                     } else {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text('로그인 실패: $error'),
-                          duration: const Duration(seconds: 5),
                           backgroundColor: Colors.red,
                         ),
                       );
@@ -493,17 +588,36 @@ class _HomePageState extends State<HomePage> {
                   },
                 ),
                 const SizedBox(height: 16),
-                TextButton(
-                  onPressed: () {
-                    // Forgot password 기능은 나중에 구현
-                  },
-                  child: const Text(
-                    'Forgot password?',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey,
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    TextButton(
+                      onPressed: () {
+                        Navigator.of(context).pop(); // 현재 다이얼로그 닫기
+                        _showPasswordResetDialog(context); // 비밀번호 재설정 다이얼로그 표시
+                      },
+                      child: const Text(
+                        '비밀번호 찾기',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey,
+                        ),
+                      ),
                     ),
-                  ),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.of(context).pop(); // 현재 다이얼로그 닫기
+                        _showSignUpDialog(context); // 회원가입 다이얼로그 표시
+                      },
+                      child: const Text(
+                        '회원가입',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -527,22 +641,208 @@ class _HomePageState extends State<HomePage> {
                 if (error == null) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                      content: Text('로그인 성공!'),
-                      duration: Duration(seconds: 5),
+                        content: Text('로그인 성공!'),
+                        backgroundColor: Colors.green,
+                        duration: Duration(seconds: 5)),
+                  );
+
+                  // 사용자 이름이 없는 경우에만 프로필 페이지로 이동
+                  if (mounted) {
+                    final user = FirebaseAuth.instance.currentUser;
+                    if (user?.displayName == null ||
+                        user!.displayName!.isEmpty) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const ProfilePage(),
+                        ),
+                      );
+                    }
+                  }
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                        content: Text('로그인 실패: $error'),
+                        backgroundColor: Colors.red,
+                        duration: const Duration(seconds: 5)),
+                  );
+                }
+              },
+              child: const Text('로그인'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showPasswordResetDialog(BuildContext context) {
+    final TextEditingController emailController = TextEditingController();
+    final AuthService authService = AuthService();
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('비밀번호 재설정'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('비밀번호 재설정 링크를 이메일로 보내드립니다.'),
+              const SizedBox(height: 16),
+              TextField(
+                controller: emailController,
+                decoration: const InputDecoration(
+                  labelText: '이메일',
+                  hintText: 'example@email.com',
+                ),
+                keyboardType: TextInputType.emailAddress,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('취소'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                String? error = await authService.sendPasswordResetEmail(
+                  emailController.text,
+                );
+
+                Navigator.of(context).pop();
+
+                if (error == null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('비밀번호 재설정 이메일을 발송했습니다.'),
                       backgroundColor: Colors.green,
                     ),
                   );
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('로그인 실패: $error'),
-                      duration: const Duration(seconds: 5),
+                      content: Text('이메일 발송 실패: $error'),
                       backgroundColor: Colors.red,
                     ),
                   );
                 }
               },
-              child: const Text('로그인'),
+              child: const Text('이메일 보내기'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showSignUpDialog(BuildContext context) {
+    final TextEditingController emailController = TextEditingController();
+    final TextEditingController passwordController = TextEditingController();
+    final TextEditingController displayNameController = TextEditingController();
+    final AuthService authService = AuthService();
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('회원가입'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: displayNameController,
+                  decoration: const InputDecoration(
+                    labelText: '이름',
+                    hintText: '표시될 이름을 입력하세요',
+                  ),
+                  onSubmitted: (_) => FocusScope.of(context).nextFocus(),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: emailController,
+                  decoration: const InputDecoration(
+                    labelText: '이메일',
+                    hintText: 'example@email.com',
+                  ),
+                  keyboardType: TextInputType.emailAddress,
+                  onSubmitted: (_) => FocusScope.of(context).nextFocus(),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: passwordController,
+                  decoration: const InputDecoration(
+                    labelText: '비밀번호',
+                  ),
+                  obscureText: true,
+                  onSubmitted: (_) async {
+                    String? error =
+                        await authService.signUpWithEmailAndPassword(
+                      emailController.text,
+                      passwordController.text,
+                      displayNameController.text,
+                    );
+
+                    Navigator.of(context).pop();
+
+                    if (error == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('회원가입 성공!'),
+                          backgroundColor: Colors.green,
+                        ),
+                      );
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('회원가입 실패: $error'),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    }
+                  },
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('취소'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                String? error = await authService.signUpWithEmailAndPassword(
+                  emailController.text,
+                  passwordController.text,
+                  displayNameController.text,
+                );
+
+                Navigator.of(context).pop();
+
+                if (error == null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('회원가입 성공!'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('회원가입 실패: $error'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              },
+              child: const Text('회원가입'),
             ),
           ],
         );
