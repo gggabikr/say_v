@@ -11,10 +11,25 @@ import 'services/location_service.dart';
 import 'pages/category_stores_page.dart';
 import 'pages/nearby_page.dart';
 import 'dart:async';
+import 'services/auth_service.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: 'assets/data/.env');
+
+  // Firebase 초기화 시도
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    print('Firebase 초기화 성공');
+  } catch (e) {
+    print('Firebase 초기화 오류: $e');
+  }
+
   runApp(const MyApp());
 }
 
@@ -51,6 +66,7 @@ class _HomePageState extends State<HomePage> {
   String _currentAddress = '위치정보 없음';
   bool _isLoadingLocation = true;
   Timer? _debouncer;
+  final AuthService _authService = AuthService();
 
   @override
   void initState() {
@@ -421,6 +437,7 @@ class _HomePageState extends State<HomePage> {
   void _showLoginDialog(BuildContext context) {
     final TextEditingController emailController = TextEditingController();
     final TextEditingController passwordController = TextEditingController();
+    final AuthService authService = AuthService();
 
     showDialog(
       context: context,
@@ -438,6 +455,7 @@ class _HomePageState extends State<HomePage> {
                     hintText: 'example@email.com',
                   ),
                   keyboardType: TextInputType.emailAddress,
+                  onSubmitted: (_) => FocusScope.of(context).nextFocus(),
                 ),
                 const SizedBox(height: 16),
                 TextField(
@@ -446,6 +464,33 @@ class _HomePageState extends State<HomePage> {
                     labelText: '비밀번호',
                   ),
                   obscureText: true,
+                  onSubmitted: (_) async {
+                    String? error =
+                        await authService.signInWithEmailAndPassword(
+                      emailController.text,
+                      passwordController.text,
+                    );
+
+                    Navigator.of(context).pop();
+
+                    if (error == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('로그인 성공!'),
+                          duration: Duration(seconds: 5),
+                          backgroundColor: Colors.green,
+                        ),
+                      );
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('로그인 실패: $error'),
+                          duration: const Duration(seconds: 5),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    }
+                  },
                 ),
                 const SizedBox(height: 16),
                 TextButton(
@@ -471,9 +516,31 @@ class _HomePageState extends State<HomePage> {
               child: const Text('취소'),
             ),
             ElevatedButton(
-              onPressed: () {
-                // 로그인 로직은 나중에 구현
+              onPressed: () async {
+                String? error = await authService.signInWithEmailAndPassword(
+                  emailController.text,
+                  passwordController.text,
+                );
+
                 Navigator.of(context).pop();
+
+                if (error == null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('로그인 성공!'),
+                      duration: Duration(seconds: 5),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('로그인 실패: $error'),
+                      duration: const Duration(seconds: 5),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
               },
               child: const Text('로그인'),
             ),
