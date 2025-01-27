@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "323889989200",
+    "project_id": "say-v-18b2d",
+    "storage_bucket": "say-v-18b2d.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:323889989200:android:a18412658ab0e70fe53355",
+        "android_client_info": {
+          "package_name": "com.example.say_v"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCOI7lM4gmxPSBmEVxPT9FpIav6A8EWveY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
