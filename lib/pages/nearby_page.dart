@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
-import '../models/store.dart';
-import '../services/store_service.dart';
+import '../models/user_address.dart';
+import '../services/address_service.dart';
 import 'category_stores_page.dart';
 import 'dart:async';
 import 'dart:convert';
@@ -18,6 +18,7 @@ class NearbyPage extends StatefulWidget {
 
 class _NearbyPageState extends State<NearbyPage> {
   final TextEditingController _addressController = TextEditingController();
+  final AddressService _addressService = AddressService();
   Timer? _debouncer;
   List<dynamic> predictions = [];
   bool isUsingCurrentLocation = false;
@@ -25,6 +26,57 @@ class _NearbyPageState extends State<NearbyPage> {
   bool isLoadingLocation = false;
   bool isSearching = false;
   String? selectedPlaceId;
+  UserAddress? defaultAddress;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadInitialAddress();
+  }
+
+  Future<void> _loadInitialAddress() async {
+    try {
+      final address = await _addressService.getDefaultAddress();
+      if (mounted) {
+        setState(() {
+          defaultAddress = address;
+          if (address != null) {
+            isUsingCurrentLocation = false;
+            _addressController.text = address.fullAddress;
+            if (address.nickname.isNotEmpty) {
+              _addressController.text += ' (${address.nickname})';
+            }
+            // 기본 주소의 위치로 검색 실행
+            _searchWithPosition(Position(
+              latitude: address.latitude,
+              longitude: address.longitude,
+              timestamp: DateTime.now(),
+              accuracy: 0,
+              altitude: 0,
+              heading: 0,
+              speed: 0,
+              speedAccuracy: 0,
+              altitudeAccuracy: 0,
+              headingAccuracy: 0,
+            ));
+          } else {
+            // 기본 주소가 없으면 현재 위치 사용
+            isUsingCurrentLocation = true;
+            _getCurrentLocation();
+          }
+        });
+      }
+    } catch (e) {
+      print('Error loading default address: $e');
+      // 에러 발생 시 현재 위치 사용
+      if (mounted) {
+        setState(() {
+          isUsingCurrentLocation = true;
+        });
+        _getCurrentLocation();
+      }
+    }
+  }
 
   Future<bool> _handleLocationPermission() async {
     bool serviceEnabled;
@@ -123,6 +175,27 @@ class _NearbyPageState extends State<NearbyPage> {
     });
 
     try {
+      // 기본 주소인 경우
+      if (defaultAddress != null &&
+          _addressController.text.startsWith(defaultAddress!.fullAddress)) {
+        print('Using default address coordinates');
+        final position = Position(
+          latitude: defaultAddress!.latitude,
+          longitude: defaultAddress!.longitude,
+          timestamp: DateTime.now(),
+          accuracy: 0,
+          altitude: 0,
+          heading: 0,
+          speed: 0,
+          speedAccuracy: 0,
+          altitudeAccuracy: 0,
+          headingAccuracy: 0,
+        );
+        _searchWithPosition(position);
+        return;
+      }
+
+      // 검색한 주소인 경우
       if (selectedPlaceId != null) {
         print('Using placeId: $selectedPlaceId');
         final detailsUrl =
@@ -169,6 +242,24 @@ class _NearbyPageState extends State<NearbyPage> {
     }
   }
 
+  Future<void> _searchWithDefaultAddress() async {
+    if (defaultAddress != null) {
+      final position = Position(
+        latitude: defaultAddress!.latitude,
+        longitude: defaultAddress!.longitude,
+        timestamp: DateTime.now(),
+        accuracy: 0,
+        altitude: 0,
+        heading: 0,
+        speed: 0,
+        speedAccuracy: 0,
+        altitudeAccuracy: 0,
+        headingAccuracy: 0,
+      );
+      _searchWithPosition(position);
+    }
+  }
+
   void _searchWithPosition(Position position) {
     print('주변 가게 검색 시작');
     print('위치로 검색: ${position.latitude}, ${position.longitude}');
@@ -200,7 +291,9 @@ class _NearbyPageState extends State<NearbyPage> {
               title: const Text('현재 위치 사용'),
               subtitle: Text(isUsingCurrentLocation
                   ? '디바이스의 GPS 위치를 사용합니다'
-                  : '주소를 직접 입력해주세요'),
+                  : defaultAddress != null
+                      ? '기본 주소를 사용합니다'
+                      : '주소를 직접 입력해주세요'),
               value: isUsingCurrentLocation,
               onChanged: (bool value) {
                 setState(() {
@@ -208,7 +301,15 @@ class _NearbyPageState extends State<NearbyPage> {
                   if (value) {
                     _getCurrentLocation();
                   } else {
-                    _addressController.clear();
+                    if (defaultAddress != null) {
+                      _addressController.text = defaultAddress!.fullAddress;
+                      if (defaultAddress!.nickname.isNotEmpty) {
+                        _addressController.text +=
+                            ' (${defaultAddress!.nickname})';
+                      }
+                    } else {
+                      _addressController.clear();
+                    }
                     predictions = [];
                   }
                 });
@@ -221,7 +322,11 @@ class _NearbyPageState extends State<NearbyPage> {
                   controller: _addressController,
                   enabled: !isUsingCurrentLocation,
                   decoration: InputDecoration(
-                    labelText: isUsingCurrentLocation ? '현재 위치 사용 중' : '주소 입력',
+                    labelText: isUsingCurrentLocation
+                        ? '현재 위치 사용 중'
+                        : defaultAddress != null
+                            ? '기본 주소'
+                            : '주소 입력',
                     border: const OutlineInputBorder(),
                     suffixIcon: isLoadingLocation
                         ? const SizedBox(
@@ -233,7 +338,15 @@ class _NearbyPageState extends State<NearbyPage> {
                           )
                         : IconButton(
                             icon: const Icon(Icons.search),
-                            onPressed: _getLocationFromAddress,
+                            onPressed: () {
+                              if (isUsingCurrentLocation) {
+                                _getCurrentLocation();
+                              } else if (defaultAddress != null) {
+                                _searchWithDefaultAddress();
+                              } else {
+                                _getLocationFromAddress();
+                              }
+                            },
                           ),
                   ),
                   onChanged: (value) {

@@ -6,8 +6,10 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'models/store.dart';
+import 'models/user_address.dart';
 import 'services/store_service.dart';
 import 'services/location_service.dart';
+import 'services/address_service.dart';
 import 'pages/category_stores_page.dart';
 import 'pages/nearby_page.dart';
 import 'dart:async';
@@ -63,18 +65,77 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final LocationService _locationService = LocationService();
+  final AddressService _addressService = AddressService();
   Position? _currentPosition;
   String _currentAddress = '위치정보 없음';
   bool _isLoadingLocation = true;
   Timer? _debouncer;
   final AuthService _authService = AuthService();
+  UserAddress? _defaultAddress;
+  StreamSubscription<UserAddress?>? _addressSubscription;
 
   @override
   void initState() {
     super.initState();
-    _getCurrentLocation();
+    _initializeAddress();
+
+    _addressSubscription = _addressService.addressStream.listen((address) {
+      if (mounted) {
+        setState(() {
+          _defaultAddress = address;
+          if (address != null) {
+            _currentAddress = address.fullAddress;
+            if (address.nickname.isNotEmpty) {
+              _currentAddress += ' (${address.nickname})';
+            }
+            _isLoadingLocation = false;
+          }
+        });
+      }
+    });
+
     final apiKey = dotenv.env['GOOGLE_MAPS_API_KEY'];
     print('API Key: $apiKey');
+  }
+
+  @override
+  void dispose() {
+    _debouncer?.cancel();
+    _addressSubscription?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _initializeAddress() async {
+    setState(() => _isLoadingLocation = true);
+
+    try {
+      // 먼저 로그인 상태 확인
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        // 로그인된 경우 기본 주소 가져오기
+        final defaultAddress = await _addressService.getDefaultAddress();
+        if (defaultAddress != null) {
+          setState(() {
+            _defaultAddress = defaultAddress;
+            _currentAddress = defaultAddress.fullAddress;
+            if (defaultAddress.nickname.isNotEmpty) {
+              _currentAddress += ' (${defaultAddress.nickname})';
+            }
+            _isLoadingLocation = false;
+          });
+          return;
+        }
+      }
+
+      // 기본 주소가 없거나 로그인되지 않은 경우 현재 위치 사용
+      await _getCurrentLocation();
+    } catch (e) {
+      print('Error initializing address: $e');
+      setState(() {
+        _currentAddress = '위치정보 없음';
+        _isLoadingLocation = false;
+      });
+    }
   }
 
   String _processStreetAddress(String street) {
@@ -181,30 +242,94 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  Widget _buildAddressSection() {
+    return GestureDetector(
+      onTap: () {
+        showDialog(
+          context: context,
+          builder: (context) => Dialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(20),
+              child: SizedBox(
+                height: MediaQuery.of(context).size.height * 0.6,
+                child: const NearbyPage(),
+              ),
+            ),
+          ),
+        );
+      },
+      child: Tooltip(
+        preferBelow: true,
+        verticalOffset: 20,
+        margin: const EdgeInsets.symmetric(horizontal: 12),
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(8),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.3),
+              spreadRadius: 1,
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        textStyle: TextStyle(
+          fontSize: 13,
+          color: Colors.grey[700],
+          height: 1.2,
+        ),
+        waitDuration: const Duration(milliseconds: 500),
+        showDuration: const Duration(seconds: 3),
+        message: _isLoadingLocation ? '위치 확인 중...' : _currentAddress,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              _defaultAddress != null ? Icons.home : Icons.location_on,
+              size: 16,
+              color: Colors.grey[500],
+            ),
+            const SizedBox(width: 4),
+            Flexible(
+              child: Text(
+                _isLoadingLocation ? '위치 확인 중...' : _currentAddress,
+                style: TextStyle(
+                  fontSize: 13,
+                  color: Colors.grey[500],
+                  height: 1.2,
+                ),
+                overflow: TextOverflow.ellipsis,
+                maxLines: 2,
+                softWrap: true,
+              ),
+            ),
+            Icon(
+              Icons.keyboard_arrow_down,
+              size: 16,
+              color: Colors.grey[500],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leadingWidth: 150,
-        leading: Padding(
-          padding: const EdgeInsets.only(left: 12.0),
-          child: Center(
-            child: Text(
-              _isLoadingLocation ? '위치 확인 중...' : _currentAddress,
-              style: TextStyle(
-                fontSize: 13,
-                color: Colors.grey[500],
-                height: 1.2,
-              ),
-              overflow: TextOverflow.ellipsis,
-              maxLines: 2,
-              softWrap: true,
-              textAlign: TextAlign.left,
-            ),
-          ),
-        ),
         title: const Text('Say:V'),
         centerTitle: true,
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 12.0),
+          child: _buildAddressSection(),
+        ),
+        leadingWidth: 150,
         actions: [
           IconButton(
             icon: const Icon(Icons.search),
@@ -277,7 +402,7 @@ class _HomePageState extends State<HomePage> {
           Container(
             width: double.infinity,
             padding:
-                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 2.0),
             child: StreamBuilder<User?>(
               // userChanges() 스트림을 사용하여 사용자 정보 변경을 감지
               stream: FirebaseAuth.instance.userChanges(),

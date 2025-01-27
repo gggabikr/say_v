@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/auth_service.dart';
+import '../pages/address_management_page.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -104,6 +105,21 @@ class _ProfilePageState extends State<ProfilePage> {
                   }
                 },
                 child: const Text('프로필 업데이트'),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Center(
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const AddressManagementPage(),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.location_on),
+                label: const Text('주소 관리'),
               ),
             ),
           ],

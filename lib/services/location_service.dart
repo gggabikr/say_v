@@ -1,30 +1,32 @@
 import 'package:geolocator/geolocator.dart';
+import 'package:geocoding/geocoding.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class LocationService {
-  Future<Position?> getCurrentLocation() async {
+  Future<Position> getCurrentLocation() async {
     bool serviceEnabled;
     LocationPermission permission;
 
-    // 위치 서비스가 활성화되어 있는지 확인
     serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
-      return null;
+      throw Exception('Location services are disabled.');
     }
 
-    // 위치 권한 확인
     permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied) {
-        return null;
+        throw Exception('Location permissions are denied');
       }
     }
 
     if (permission == LocationPermission.deniedForever) {
-      return null;
+      throw Exception(
+          'Location permissions are permanently denied, we cannot request permissions.');
     }
 
-    // 현재 위치 반환
     return await Geolocator.getCurrentPosition();
   }
 
@@ -41,5 +43,138 @@ class LocationService {
       'heading': 0,
       'timestamp': DateTime.now().millisecondsSinceEpoch
     });
+  }
+
+  String processStreetAddress(String street) {
+    // 범위 주소 처리 (일반 하이픈과 특수 하이픈 모두 처리)
+    RegExp rangePattern = RegExp(r'(\d+)[-–—](\d+)');
+    street = street.replaceAllMapped(rangePattern, (match) {
+      return match.group(1)!; // 범위의 첫 번째 값만 사용
+    });
+
+    // 도로명 약어 변환
+    final Map<String, String> abbreviations = {
+      'Street': 'St',
+      'Avenue': 'Ave',
+      'Drive': 'Dr',
+      'Boulevard': 'Blvd',
+      'Road': 'Rd',
+      'Lane': 'Ln',
+      'Place': 'Pl',
+      'Court': 'Ct',
+      'Circle': 'Cir',
+      'Highway': 'Hwy',
+    };
+
+    abbreviations.forEach((full, abbr) {
+      street = street.replaceAll(full, abbr);
+      street = street.replaceAll(full.toLowerCase(), abbr);
+    });
+
+    return street;
+  }
+
+  Future<List<Map<String, dynamic>>> searchAddress(String query) async {
+    if (query.length < 2) return [];
+
+    // 한글 문자 제거
+    query = query.replaceAll(RegExp(r'[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]'), '');
+    if (query.trim().isEmpty) return [];
+
+    try {
+      print('Searching address for query: $query');
+      List<Location> locations = [];
+
+      try {
+        locations = await locationFromAddress('$query Canada',
+            localeIdentifier: 'en_CA');
+      } catch (e) {
+        print('Canada search error: $e');
+        try {
+          locations = await locationFromAddress('$query USA',
+              localeIdentifier: 'en_US');
+        } catch (e) {
+          print('USA search error: $e');
+        }
+      }
+
+      print('Found ${locations.length} locations');
+      List<Map<String, dynamic>> results = [];
+
+      for (var location in locations) {
+        try {
+          print(
+              'Processing location: ${location.latitude}, ${location.longitude}');
+          List<Placemark> placemarks = await placemarkFromCoordinates(
+              location.latitude, location.longitude,
+              localeIdentifier: 'en_CA');
+          print('Found ${placemarks.length} placemarks');
+
+          if (placemarks.isNotEmpty) {
+            Placemark place = placemarks[0];
+            String address = '';
+
+            try {
+              if (place.street != null && place.street!.isNotEmpty) {
+                address = place.street!;
+              }
+
+              if (place.locality != null && place.locality!.isNotEmpty) {
+                address +=
+                    address.isEmpty ? place.locality! : ', ${place.locality}';
+              }
+
+              if (place.administrativeArea != null &&
+                  place.administrativeArea!.isNotEmpty) {
+                address += ', ${place.administrativeArea}';
+              }
+
+              if (address.isNotEmpty) {
+                results.add({
+                  'address': address.trim(),
+                  'latitude': location.latitude,
+                  'longitude': location.longitude,
+                });
+              }
+            } catch (e) {
+              print('Address formatting error: $e');
+              continue;
+            }
+          }
+        } catch (e) {
+          print('Placemark error: $e');
+          continue;
+        }
+      }
+
+      return results;
+    } catch (e) {
+      print('Address search error: $e');
+      return [];
+    }
+  }
+
+  Future<String> getAddressFromCoordinates(
+      double latitude, double longitude) async {
+    try {
+      final apiKey = dotenv.env['GOOGLE_MAPS_API_KEY'];
+      final response = await http.get(
+        Uri.parse(
+          'https://maps.googleapis.com/maps/api/geocode/json?latlng=$latitude,$longitude&key=$apiKey',
+        ),
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['status'] == 'OK' && data['results'].isNotEmpty) {
+          return data['results'][0]['formatted_address'];
+        }
+      }
+
+      return '주소를 찾을 수 없습니다';
+    } catch (e) {
+      print('Error getting address from coordinates: $e');
+      return '주소를 찾을 수 없습니다';
+    }
   }
 }
