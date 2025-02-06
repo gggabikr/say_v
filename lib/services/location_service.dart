@@ -157,23 +157,33 @@ class LocationService {
   Future<String> getAddressFromCoordinates(
       double latitude, double longitude) async {
     try {
-      final apiKey = dotenv.env['GOOGLE_MAPS_API_KEY'];
-      final response = await http.get(
-        Uri.parse(
-          'https://maps.googleapis.com/maps/api/geocode/json?latlng=$latitude,$longitude&key=$apiKey',
-        ),
-      );
+      print('주소 검색 시작: $latitude, $longitude');
 
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        if (data['status'] == 'OK' && data['results'].isNotEmpty) {
-          return data['results'][0]['formatted_address'];
+      // geocoding 패키지 사용
+      final placemarks = await placemarkFromCoordinates(latitude, longitude);
+
+      if (placemarks.isNotEmpty) {
+        final place = placemarks[0];
+        print('Geocoding 결과: $place');
+
+        // 주소 구성
+        final List<String> addressParts = [];
+
+        if (place.street?.isNotEmpty ?? false) addressParts.add(place.street!);
+        if (place.locality?.isNotEmpty ?? false)
+          addressParts.add(place.locality!);
+        if (place.subLocality?.isNotEmpty ?? false)
+          addressParts.add(place.subLocality!);
+
+        if (addressParts.isNotEmpty) {
+          return addressParts.join(', ');
         }
       }
 
+      print('주소를 찾을 수 없음');
       return '주소를 찾을 수 없습니다';
     } catch (e) {
-      print('Error getting address from coordinates: $e');
+      print('주소 검색 에러: $e');
       return '주소를 찾을 수 없습니다';
     }
   }

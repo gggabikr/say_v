@@ -8,6 +8,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import '../services/event_bus.dart';
 
 class NearbyPage extends StatefulWidget {
   const NearbyPage({Key? key}) : super(key: key);
@@ -132,6 +133,10 @@ class _NearbyPageState extends State<NearbyPage> {
       );
       print('가져온 위치: ${position.latitude}, ${position.longitude}');
 
+      // 위치 업데이트 이벤트 발생 시 로그 추가
+      print('위치 업데이트 이벤트 발생');
+      EventBus().updateLocation(position);
+
       setState(() {
         currentPosition = position;
         if (isUsingCurrentLocation) {
@@ -154,10 +159,12 @@ class _NearbyPageState extends State<NearbyPage> {
         ),
       );
     } catch (e) {
-      print('위치 가져오기 에러: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('위치를 가져오는데 실패했습니다: ${e.toString()}')),
-      );
+      print('Error getting current location: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('위치를 가져오는데 실패했습니다: ${e.toString()}')),
+        );
+      }
       setState(() {
         isUsingCurrentLocation = false;
       });

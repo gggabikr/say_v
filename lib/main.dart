@@ -18,6 +18,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'firebase_options.dart';
 import 'pages/profile_page.dart';
+import 'services/event_bus.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -96,6 +97,39 @@ class _HomePageState extends State<HomePage> {
 
     final apiKey = dotenv.env['GOOGLE_MAPS_API_KEY'];
     print('API Key: $apiKey');
+
+    // 로그인 상태 변경 감지
+    FirebaseAuth.instance.authStateChanges().listen((user) {
+      if (user == null) {
+        // 로그아웃 상태일 때 현재 위치 가져오기
+        _getCurrentLocation();
+      } else {
+        // 로그인 상태일 때는 기존대로 기본 주소 확인
+        _initializeAddress();
+      }
+    });
+
+    // 위치 업데이트 이벤트 구독
+    EventBus().onLocationUpdate.listen((event) async {
+      print(
+          '위치 업데이트 이벤트 수신됨: ${event.position.latitude}, ${event.position.longitude}');
+      try {
+        final address = await _locationService.getAddressFromCoordinates(
+          event.position.latitude,
+          event.position.longitude,
+        );
+        if (mounted) {
+          setState(() {
+            _currentPosition = event.position;
+            _currentAddress = address;
+            _isLoadingLocation = false;
+          });
+        }
+        print('주소 업데이트 완료: $address');
+      } catch (e) {
+        print('주소 업데이트 실패: $e');
+      }
+    });
   }
 
   @override
@@ -168,83 +202,61 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _getCurrentLocation() async {
+    setState(() => _isLoadingLocation = true);
+
     try {
-      // 위치 권한 확인
-      LocationPermission permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
-        if (permission == LocationPermission.denied) {
-          setState(() {
-            _isLoadingLocation = false;
-            _currentAddress = '위치정보 없음';
-          });
-          return;
-        }
-      }
-
-      if (permission == LocationPermission.deniedForever) {
-        setState(() {
-          _isLoadingLocation = false;
-          _currentAddress = '위치정보 없음';
-        });
-        return;
-      }
-
-      // 현재 위치 가져오기
-      Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
-      );
-      setState(() {
-        _currentPosition = position;
-      });
-
-      // 위치를 주소로 변환
-      List<Placemark> placemarks = await placemarkFromCoordinates(
+      final position = await _locationService.getCurrentLocation();
+      final address = await _locationService.getAddressFromCoordinates(
         position.latitude,
         position.longitude,
       );
 
-      if (placemarks.isNotEmpty) {
-        Placemark place = placemarks[0];
+      if (mounted) {
         setState(() {
-          if (place.street != null && place.street!.isNotEmpty) {
-            String processedStreet = _processStreetAddress(place.street!);
-            String city = place.locality ?? '';
-
-            // 정확한 주소인 경우 (번지수가 있는 경우)
-            bool isExactAddress = RegExp(r'^\d+').hasMatch(processedStreet);
-
-            if (city.isNotEmpty) {
-              _currentAddress = '$processedStreet, $city';
-            } else {
-              _currentAddress = processedStreet;
-            }
-
-            // 정확한 주소가 아닌 경우에만 '부근' 추가
-            if (!isExactAddress) {
-              _currentAddress += ' 부근';
-            }
-          } else if (place.subLocality != null &&
-              place.subLocality!.isNotEmpty) {
-            _currentAddress = '${place.subLocality} 부근';
-          } else {
-            _currentAddress = '${place.locality ?? ''} 부근';
-          }
+          _currentPosition = position;
+          _currentAddress = address;
+          _defaultAddress = null;
           _isLoadingLocation = false;
         });
       }
     } catch (e) {
-      print('Error getting location: $e');
-      setState(() {
-        _currentAddress = '위치정보 없음';
-        _isLoadingLocation = false;
-      });
+      print('Error getting current location: $e');
+      if (mounted) {
+        setState(() {
+          _currentAddress = '위치정보 없음';
+          _isLoadingLocation = false;
+        });
+      }
+    }
+  }
+
+  void updateCurrentAddress(Position position) async {
+    try {
+      final address = await _locationService.getAddressFromCoordinates(
+        position.latitude,
+        position.longitude,
+      );
+
+      if (mounted) {
+        setState(() {
+          _currentPosition = position;
+          _currentAddress = address;
+          _isLoadingLocation = false;
+        });
+      }
+    } catch (e) {
+      print('Error updating address: $e');
     }
   }
 
   Widget _buildAddressSection() {
     return GestureDetector(
-      onTap: () {
+      onTap: () async {
+        if (_currentAddress == '위치정보 없음' ||
+            _currentAddress == '주소를 찾을 수 없습니다.') {
+          final position = await _locationService.getCurrentLocation();
+          updateCurrentAddress(position);
+        }
         showDialog(
           context: context,
           builder: (context) => Dialog(
