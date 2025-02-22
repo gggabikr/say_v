@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:geolocator/geolocator.dart';
 
 class Store {
   final String id;
@@ -11,52 +12,60 @@ class Store {
   final List<String> cuisineTypes;
   final List<MenuItem> menus;
   final String contactNumber;
-  double? distance;
+  double? _cachedDistance;
+  Position? _lastPosition;
   late final String searchableText;
   final List<BusinessHours>? businessHours;
   final List<HappyHour>? happyHours;
   final bool is24Hours;
   final int totalRatings;
 
-  // 최근 200개 평점만 사용하여 평균 계산
-  Future<double> calculateAverageAsync() async {
-    return compute(_calculateAverage, ratings);
-  }
-
-  static double _calculateAverage(List<double> ratings) {
-    if (ratings.isEmpty) return 0.0;
-    final recentRatings = ratings.length > RATING_LIMIT
-        ? ratings.sublist(ratings.length - RATING_LIMIT)
-        : ratings;
-    return recentRatings.reduce((a, b) => a + b) / recentRatings.length;
-  }
-
-  // 캐싱을 위한 변수
   double? _cachedAverageRating;
   int? _lastRatingsLength;
 
-  // 캐싱을 적용한 평균 계산
-  double get cachedAverageRating {
-    // ratings 길이가 변경되었을 때만 재계산
+  double get averageRating {
     if (_lastRatingsLength != ratings.length || _cachedAverageRating == null) {
-      _cachedAverageRating = _calculateAverage(ratings);
+      if (ratings.isEmpty) {
+        _cachedAverageRating = 0.0;
+      } else {
+        final recentRatings = ratings.length > RATING_LIMIT
+            ? ratings.sublist(ratings.length - RATING_LIMIT)
+            : ratings;
+        _cachedAverageRating =
+            recentRatings.reduce((a, b) => a + b) / recentRatings.length;
+      }
       _lastRatingsLength = ratings.length;
     }
     return _cachedAverageRating!;
   }
 
-  // 최근 평점 수 (20개 제한 적용)
   static const RATING_LIMIT = 20; // 나중에 200으로 변경 가능
 
   int get recentRatingsCount =>
       ratings.length > RATING_LIMIT ? RATING_LIMIT : ratings.length;
 
-  // 평균 평점 계산 (최근 20개만 사용)
-  double calculateAverageRating() {
-    if (ratings.isEmpty) return 0;
+  double? get distance => _cachedDistance;
 
-    final recentRatings = ratings.take(RATING_LIMIT).toList();
-    return recentRatings.reduce((a, b) => a + b) / recentRatings.length;
+  void calculateDistance(Position currentPosition) {
+    // 같은 위치에서 이미 계산했다면 캐시된 값 반환
+    if (_lastPosition?.latitude == currentPosition.latitude &&
+        _lastPosition?.longitude == currentPosition.longitude) {
+      return;
+    }
+
+    _lastPosition = currentPosition;
+    _cachedDistance = Geolocator.distanceBetween(
+          currentPosition.latitude,
+          currentPosition.longitude,
+          latitude,
+          longitude,
+        ) /
+        1000; // 미터를 킬로미터로 변환
+  }
+
+  // 거리가 특정 범위 내인지 확인하는 유틸리티 메서드
+  bool isWithinDistance(double maxDistanceKm) {
+    return (distance ?? double.infinity) <= maxDistanceKm;
   }
 
   Store({
@@ -70,7 +79,6 @@ class Store {
     required this.cuisineTypes,
     required this.menus,
     required this.contactNumber,
-    this.distance,
     this.businessHours,
     this.happyHours,
     this.is24Hours = false,
@@ -131,88 +139,77 @@ class Store {
     );
   }
 
-  bool isCurrentlyOpen() {
-    if (is24Hours) return true;
-    if (businessHours == null || businessHours!.isEmpty) return false;
+  String _formatTimeFromHourMinute(int hour, int minute) {
+    return '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}';
+  }
 
-    final now = DateTime.now();
-    final currentDayOfWeek = _getDayOfWeek(now);
+  bool _isTimeInRange(DateTime dateTime, int startHour, int startMinute,
+      int endHour, int endMinute, bool isNextDay) {
+    final time = _formatTimeFromHourMinute(dateTime.hour, dateTime.minute);
+    final start = _formatTimeFromHourMinute(startHour, startMinute);
+    final end = _formatTimeFromHourMinute(endHour, endMinute);
 
-    return businessHours!.any((hours) {
-      if (!hours.daysOfWeek.contains(currentDayOfWeek)) return false;
-
-      final currentHour = now.hour;
-      final currentMinute = now.minute;
-      final currentTime = currentHour * 60 + currentMinute;
-      final openTime = hours.openHour * 60 + hours.openMinute;
-      final closeTime = hours.closeHour * 60 + hours.closeMinute;
-
-      if (hours.isNextDay) {
-        if (currentTime >= openTime) return true;
-        if (currentTime <= closeTime) return true;
-        return false;
-      } else {
-        return currentTime >= openTime && currentTime <= closeTime;
+    if (!isNextDay) {
+      return time.compareTo(start) >= 0 && time.compareTo(end) <= 0;
+    } else {
+      // 다음날까지 이어지는 경우 (예: 오후 11시 ~ 다음날 오전 2시)
+      if (time.compareTo(start) >= 0 || time.compareTo(end) <= 0) {
+        return true;
       }
-    });
+    }
+    return false;
   }
 
   bool isOpenAt(DateTime dateTime) {
     if (is24Hours) return true;
     if (businessHours == null || businessHours!.isEmpty) return false;
 
-    final dayOfWeek = _getDayOfWeek(dateTime);
-
-    return businessHours!.any((hours) {
-      if (!hours.daysOfWeek.contains(dayOfWeek)) return false;
-
-      final hour = dateTime.hour;
-      final minute = dateTime.minute;
-      final currentTime = hour * 60 + minute;
-      final openTime = hours.openHour * 60 + hours.openMinute;
-      final closeTime = hours.closeHour * 60 + hours.closeMinute;
-
-      if (hours.isNextDay) {
-        if (currentTime >= openTime) return true;
-        if (currentTime <= closeTime) return true;
-        return false;
-      } else {
-        return currentTime >= openTime && currentTime <= closeTime;
-      }
-    });
+    final dayOfWeek = dateTime.weekday;
+    return businessHours!.any((hours) =>
+        hours.daysOfWeek.contains(_getDayOfWeekString(dayOfWeek)) &&
+        _isTimeInRange(dateTime, hours.openHour, hours.openMinute,
+            hours.closeHour, hours.closeMinute, hours.isNextDay));
   }
 
-  bool isHappyHourNow() {
-    if (happyHours == null || happyHours!.isEmpty) return false;
-    return happyHours!.any((hour) => hour.isHappyHourNow());
+  bool isCurrentlyOpen() {
+    final now = DateTime.now();
+    return isOpenAt(now);
   }
 
   bool isHappyHourAt(DateTime dateTime) {
     if (happyHours == null || happyHours!.isEmpty) return false;
 
-    final dayOfWeek = _getDayOfWeek(dateTime);
-
-    return happyHours!.any((hours) {
-      if (!hours.daysOfWeek.contains(dayOfWeek)) return false;
-
-      final hour = dateTime.hour;
-      final minute = dateTime.minute;
-      final currentTime = hour * 60 + minute;
-      final startTime = hours.startHour * 60 + hours.startMinute;
-      final endTime = hours.endHour * 60 + hours.endMinute;
-
-      if (hours.isNextDay) {
-        if (currentTime >= startTime) return true;
-        if (currentTime <= endTime) return true;
-        return false;
-      } else {
-        return currentTime >= startTime && currentTime <= endTime;
-      }
-    });
+    final dayOfWeek = dateTime.weekday;
+    return happyHours!.any((hours) =>
+        hours.daysOfWeek.contains(_getDayOfWeekString(dayOfWeek)) &&
+        _isTimeInRange(dateTime, hours.startHour, hours.startMinute,
+            hours.endHour, hours.endMinute, hours.isNextDay));
   }
 
-  bool isCurrentlyHappyHour() {
-    return isHappyHourAt(DateTime.now());
+  bool isHappyHourNow() {
+    final now = DateTime.now();
+    return isHappyHourAt(now);
+  }
+
+  String _getDayOfWeekString(int dayOfWeek) {
+    switch (dayOfWeek) {
+      case DateTime.monday:
+        return 'MON';
+      case DateTime.tuesday:
+        return 'TUE';
+      case DateTime.wednesday:
+        return 'WED';
+      case DateTime.thursday:
+        return 'THU';
+      case DateTime.friday:
+        return 'FRI';
+      case DateTime.saturday:
+        return 'SAT';
+      case DateTime.sunday:
+        return 'SUN';
+      default:
+        throw ArgumentError('Invalid day of week');
+    }
   }
 
   Map<String, dynamic> toJson() {
@@ -242,27 +239,6 @@ class Store {
           .toList(),
       'is24Hours': is24Hours,
     };
-  }
-
-  String _getDayOfWeek(DateTime date) {
-    switch (date.weekday) {
-      case 1:
-        return "MON";
-      case 2:
-        return "TUE";
-      case 3:
-        return "WED";
-      case 4:
-        return "THU";
-      case 5:
-        return "FRI";
-      case 6:
-        return "SAT";
-      case 7:
-        return "SUN";
-      default:
-        return "";
-    }
   }
 }
 

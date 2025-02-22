@@ -37,13 +37,10 @@ void main() {
 
     test('평점순 정렬 테스트', () {
       final stores = List<Store>.from(testStores);
-      stores.sort(
-          (a, b) => b.cachedAverageRating.compareTo(a.cachedAverageRating));
+      stores.sort((a, b) => b.averageRating.compareTo(a.averageRating));
 
       for (int i = 0; i < stores.length - 1; i++) {
-        expect(
-            stores[i].cachedAverageRating >= stores[i + 1].cachedAverageRating,
-            true);
+        expect(stores[i].averageRating >= stores[i + 1].averageRating, true);
       }
     });
   });
@@ -181,18 +178,13 @@ void main() {
       final stores = List<Store>.from(testStores)
           .where((store) => store.isHappyHourAt(now))
           .toList()
-        ..sort(
-            (a, b) => b.cachedAverageRating.compareTo(a.cachedAverageRating));
+        ..sort((a, b) => b.averageRating.compareTo(a.averageRating));
 
-      // 해피아워 확인
       expect(stores.every((store) => store.isHappyHourAt(now)), true,
           reason: '모든 가게가 현재 해피아워여야 함');
 
-      // 평점순 정렬 확인
       for (int i = 0; i < stores.length - 1; i++) {
-        expect(
-            stores[i].cachedAverageRating >= stores[i + 1].cachedAverageRating,
-            true,
+        expect(stores[i].averageRating >= stores[i + 1].averageRating, true,
             reason: '평점순으로 정렬되어야 함');
       }
     });

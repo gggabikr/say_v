@@ -150,7 +150,7 @@ class _CategoryStoresPageState extends State<CategoryStoresPage> {
           if (selectedDateTime != null) {
             return store.isHappyHourAt(selectedDateTime!);
           } else {
-            return store.isCurrentlyHappyHour();
+            return store.isHappyHourNow();
           }
         }).toList();
         print('After Happy Hour filter: ${displayStores.length} stores');
@@ -158,13 +158,9 @@ class _CategoryStoresPageState extends State<CategoryStoresPage> {
 
       // 정렬 로직
       if (sortType == SortType.rating) {
-        print('Attempting to sort by rating');
-        print(
-            'Before sort - First store rating: ${displayStores.isNotEmpty ? displayStores.first.cachedAverageRating : "no stores"}');
-        displayStores.sort(
-            (a, b) => b.cachedAverageRating.compareTo(a.cachedAverageRating));
-        print(
-            'After sort - First store rating: ${displayStores.isNotEmpty ? displayStores.first.cachedAverageRating : "no stores"}');
+        displayStores
+            .sort((a, b) => b.averageRating.compareTo(a.averageRating));
+        print('Sorted by rating');
       } else if (sortType == SortType.distance && widget.userLocation != null) {
         print('Attempting to sort by distance');
         print(
@@ -270,6 +266,12 @@ class _CategoryStoresPageState extends State<CategoryStoresPage> {
 
     print('Calculated distance: $distance km');
     return distance;
+  }
+
+  void calculateDistances(Position currentPosition) {
+    for (var store in stores) {
+      store.calculateDistance(currentPosition);
+    }
   }
 
   Widget buildFilterBar() {
