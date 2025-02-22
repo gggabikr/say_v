@@ -105,11 +105,11 @@ class _CategoryStoresPageState extends State<CategoryStoresPage> {
   }
 
   void _applyFilters() {
-    print('\n=== Applying Filters ===');
+    print('\n=== Applying Filters and Sorting ===');
     print('Initial stores count: ${loadedStores.length}');
+    print('Current sort type: $sortType');
     print('Show Open Only: $showOpenOnly');
     print('Show Happy Hour Only: $showHappyHourOnly');
-    print('Selected DateTime: $selectedDateTime');
 
     setState(() {
       // 검색어가 있는 경우, 먼저 검색 결과를 다시 계산
@@ -130,41 +130,51 @@ class _CategoryStoresPageState extends State<CategoryStoresPage> {
         displayStores = List<Store>.from(loadedStores);
       }
 
-      List<Store> filteredStores = List<Store>.from(displayStores);
-      print('Starting filter with ${filteredStores.length} stores');
+      print('After search filter: ${displayStores.length} stores');
 
       // Open Now 필터
       if (showOpenOnly) {
-        filteredStores = filteredStores.where((store) {
+        displayStores = displayStores.where((store) {
           if (selectedDateTime != null) {
             return store.isOpenAt(selectedDateTime!);
           } else {
-            bool isCurrentlyOpen = store.isCurrentlyOpen();
-            print('Store: ${store.name} - Is Currently Open: $isCurrentlyOpen');
-            return isCurrentlyOpen;
+            return store.isCurrentlyOpen();
           }
         }).toList();
-        print('After Open Now filter: ${filteredStores.length} stores');
+        print('After Open Now filter: ${displayStores.length} stores');
       }
 
       // Happy Hour 필터
       if (showHappyHourOnly) {
-        filteredStores = filteredStores.where((store) {
+        displayStores = displayStores.where((store) {
           if (selectedDateTime != null) {
             return store.isHappyHourAt(selectedDateTime!);
           } else {
-            bool isCurrentlyHappyHour = store.isCurrentlyHappyHour();
-            print(
-                'Store: ${store.name} - Is Currently Happy Hour: $isCurrentlyHappyHour');
-            return isCurrentlyHappyHour;
+            return store.isCurrentlyHappyHour();
           }
         }).toList();
-        print('After Happy Hour filter: ${filteredStores.length} stores');
+        print('After Happy Hour filter: ${displayStores.length} stores');
       }
 
-      // 검색어 필터는 이미 적용되어 있으므로 여기서는 건너뜀
+      // 정렬 로직
+      if (sortType == SortType.rating) {
+        print('Attempting to sort by rating');
+        print(
+            'Before sort - First store rating: ${displayStores.isNotEmpty ? displayStores.first.cachedAverageRating : "no stores"}');
+        displayStores.sort(
+            (a, b) => b.cachedAverageRating.compareTo(a.cachedAverageRating));
+        print(
+            'After sort - First store rating: ${displayStores.isNotEmpty ? displayStores.first.cachedAverageRating : "no stores"}');
+      } else if (sortType == SortType.distance && widget.userLocation != null) {
+        print('Attempting to sort by distance');
+        print(
+            'Before sort - First store distance: ${displayStores.isNotEmpty ? displayStores.first.distance : "no stores"}');
+        displayStores.sort((a, b) => (a.distance ?? double.infinity)
+            .compareTo(b.distance ?? double.infinity));
+        print(
+            'After sort - First store distance: ${displayStores.isNotEmpty ? displayStores.first.distance : "no stores"}');
+      }
 
-      displayStores = filteredStores;
       print('Final stores count: ${displayStores.length}');
     });
   }
