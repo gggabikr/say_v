@@ -61,4 +61,29 @@ class UserAddress {
       'lastUsed': Timestamp.fromDate(lastUsed),
     };
   }
+
+  // copyWith 메서드 추가 - Address의 일부만을 수정하고싶을때 사용함. 간결하고 실수확률이 줄어듬.
+  UserAddress copyWith({
+    String? docId,
+    String? fullAddress,
+    double? latitude,
+    double? longitude,
+    String? nickname,
+    String? notes,
+    String? unitNumber,
+    bool? isDefault,
+    DateTime? lastUsed,
+  }) {
+    return UserAddress(
+      docId: docId ?? this.docId,
+      fullAddress: fullAddress ?? this.fullAddress,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
+      nickname: nickname ?? this.nickname,
+      notes: notes ?? this.notes,
+      unitNumber: unitNumber ?? this.unitNumber,
+      isDefault: isDefault ?? this.isDefault,
+      lastUsed: lastUsed ?? this.lastUsed,
+    );
+  }
 }
