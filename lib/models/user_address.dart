@@ -25,15 +25,14 @@ class UserAddress {
 
   factory UserAddress.fromMap(Map<String, dynamic> map,
       {required String docId}) {
-    // lastUsed 필드 처리를 더 유연하게 수정
     DateTime parseLastUsed(dynamic lastUsedValue) {
+      if (lastUsedValue == null) return DateTime(1970);
       if (lastUsedValue is Timestamp) {
         return lastUsedValue.toDate();
       } else if (lastUsedValue is String) {
         return DateTime.parse(lastUsedValue);
-      } else {
-        return DateTime.now(); // 기본값
       }
+      return DateTime(1970);
     }
 
     return UserAddress(
@@ -62,7 +61,6 @@ class UserAddress {
     };
   }
 
-  // copyWith 메서드 추가 - Address의 일부만을 수정하고싶을때 사용함. 간결하고 실수확률이 줄어듬.
   UserAddress copyWith({
     String? docId,
     String? fullAddress,

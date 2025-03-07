@@ -4,6 +4,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:geocoding/geocoding.dart';
 import '../models/user_address.dart';
 import 'package:flutter/foundation.dart';
+import 'package:geolocator/geolocator.dart';
+import '../services/event_bus.dart';
 
 class AddressService {
   static final AddressService _instance = AddressService._internal();
@@ -136,6 +138,26 @@ class AddressService {
           docId: updatedAddress.id,
         );
         _addressController.add(address);
+
+        // EventBus를 통해 위치 업데이트 이벤트 발생
+        print(
+            'Updating address through EventBus: ${address.latitude}, ${address.longitude}');
+        final position = Position(
+          latitude: address.latitude,
+          longitude: address.longitude,
+          timestamp: DateTime.now(),
+          accuracy: 0,
+          altitude: 0,
+          heading: 0,
+          speed: 0,
+          speedAccuracy: 0,
+          altitudeAccuracy: 0,
+          headingAccuracy: 0,
+        );
+
+        // 위치와 주소 정보 모두 업데이트
+        EventBus().updateLocation(position);
+        EventBus().updateAddress(position, address.fullAddress);
       }
     } catch (e) {
       print('Error setting default address: $e');

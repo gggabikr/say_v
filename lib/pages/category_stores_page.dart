@@ -6,6 +6,7 @@ import '../services/store_service.dart';
 import '../widgets/paginated_store_list.dart';
 import 'package:geolocator/geolocator.dart';
 import 'dart:async';
+import '../services/event_bus.dart';
 
 enum SortType { distance, rating }
 
@@ -57,11 +58,36 @@ class _CategoryStoresPageState extends State<CategoryStoresPage> {
     'Mediterranean',
   ];
 
+  // 로컬 위치 변수 추가
+  Position? _currentPosition;
+  // 리스너 구독 관리를 위한 변수 추가
+  StreamSubscription? _addressSubscription;
+
   @override
   void initState() {
     super.initState();
+    // 초기값 설정
+    _currentPosition = widget.userLocation;
+    _setupAddressListener();
     _loadStores();
     _searchController.addListener(_onSearchChanged);
+  }
+
+  // 주소 업데이트 이벤트 리스너 설정
+  void _setupAddressListener() {
+    print('Setting up address listener in CategoryStoresPage');
+    _addressSubscription = EventBus().onAddressUpdate.listen((event) {
+      print(
+          'Received address update event: ${event.position.latitude}, ${event.position.longitude}');
+      if (mounted) {
+        setState(() {
+          // 로컬 위치 변수 업데이트
+          _currentPosition = event.position;
+        });
+        // 스토어 목록 다시 로드
+        _loadStores();
+      }
+    });
   }
 
   void _onSearchChanged() {
@@ -161,7 +187,7 @@ class _CategoryStoresPageState extends State<CategoryStoresPage> {
         displayStores
             .sort((a, b) => b.averageRating.compareTo(a.averageRating));
         print('Sorted by rating');
-      } else if (sortType == SortType.distance && widget.userLocation != null) {
+      } else if (sortType == SortType.distance && _currentPosition != null) {
         print('Attempting to sort by distance');
         print(
             'Before sort - First store distance: ${displayStores.isNotEmpty ? displayStores.first.distance : "no stores"}');
@@ -177,6 +203,8 @@ class _CategoryStoresPageState extends State<CategoryStoresPage> {
 
   @override
   void dispose() {
+    // 리스너 구독 해제
+    _addressSubscription?.cancel();
     _searchController.removeListener(_onSearchChanged);
     _searchController.dispose();
     _scrollController.dispose();
@@ -184,53 +212,52 @@ class _CategoryStoresPageState extends State<CategoryStoresPage> {
   }
 
   Future<void> _loadStores() async {
-    print('Starting to load stores...');
+    print('\n=== _loadStores Started ===');
+    print('Category: ${widget.category}');
+    print('User Location: $_currentPosition');
+
     setState(() {
       isLoading = true;
     });
 
     try {
-      if (widget.category == 'nearby' && widget.userLocation != null) {
+      final storeService = StoreService();
+
+      if (widget.category == 'nearby' && _currentPosition != null) {
         print('Loading nearby stores...');
-        List<Store> stores = await StoreService().getNearbyStores(
-          widget.userLocation!.latitude,
-          widget.userLocation!.longitude,
+        loadedStores = await storeService.getNearbyStores(
+          _currentPosition!.latitude,
+          _currentPosition!.longitude,
         );
-        loadedStores = stores;
-        displayStores = List<Store>.from(loadedStores);
+        print('Loaded ${loadedStores.length} nearby stores');
       } else {
-        print('Loading all stores...');
-        List<Store> stores = await StoreService().getAllStores();
-        print('Loaded ${stores.length} stores');
-
-        if (widget.category != 'all') {
-          stores = stores.where((store) {
-            return store.category.contains(widget.category);
-          }).toList();
+        print('Loading stores for category: ${widget.category}');
+        if (_currentPosition != null) {
+          print('Getting stores with location data');
+          loadedStores = await storeService.getStoresByCategory(
+            widget.category,
+            _currentPosition!,
+          );
           print(
-              'Filtered to ${stores.length} stores for category ${widget.category}');
+              'First store distance: ${loadedStores.isNotEmpty ? loadedStores.first.distance : "no stores"}');
+        } else {
+          print('Getting stores without location data');
+          List<Store> stores = await storeService.loadStores();
+          loadedStores = stores
+              .where((store) => store.category.contains(widget.category))
+              .toList();
         }
+        print('Loaded ${loadedStores.length} stores for category');
+      }
 
-        if (widget.userLocation != null) {
-          print('Calculating distances...');
-          stores = stores.map((store) {
-            final distance = calculateDistance(
-              widget.userLocation!.latitude,
-              widget.userLocation!.longitude,
-              store.latitude,
-              store.longitude,
-            );
-            store.distance = distance;
-            return store;
-          }).toList();
-        }
-
-        loadedStores = stores;
-        displayStores = List<Store>.from(loadedStores);
-        print('Final store count: ${loadedStores.length}');
+      displayStores = List<Store>.from(loadedStores);
+      print('Display stores count: ${displayStores.length}');
+      if (displayStores.isNotEmpty) {
+        print('First display store distance: ${displayStores.first.distance}');
       }
     } catch (e) {
       print('Error loading stores: $e');
+      print('Stack trace: ${StackTrace.current}');
     }
 
     if (mounted) {
@@ -238,6 +265,7 @@ class _CategoryStoresPageState extends State<CategoryStoresPage> {
         isLoading = false;
       });
     }
+    print('=== _loadStores Ended ===\n');
   }
 
   double calculateDistance(double lat1, double lon1, double lat2, double lon2) {

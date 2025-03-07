@@ -78,7 +78,7 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    _initializeAddress();
+    _setupAddressListener();
 
     _addressSubscription = _addressService.addressStream.listen((address) {
       if (mounted) {
@@ -139,30 +139,67 @@ class _HomePageState extends State<HomePage> {
     super.dispose();
   }
 
+  void _setupAddressListener() {
+    EventBus().onAddressUpdate.listen((event) {
+      if (mounted) {
+        setState(() {
+          _currentPosition = event.position;
+          _currentAddress = event.address;
+          _isLoadingLocation = false;
+        });
+      }
+    });
+  }
+
   Future<void> _initializeAddress() async {
     setState(() => _isLoadingLocation = true);
 
     try {
-      // 먼저 로그인 상태 확인
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
-        // 로그인된 경우 기본 주소 가져오기
         final defaultAddress = await _addressService.getDefaultAddress();
         if (defaultAddress != null) {
+          final position = Position(
+            latitude: defaultAddress.latitude,
+            longitude: defaultAddress.longitude,
+            timestamp: DateTime.now(),
+            accuracy: 0,
+            altitude: 0,
+            heading: 0,
+            speed: 0,
+            speedAccuracy: 0,
+            altitudeAccuracy: 0,
+            headingAccuracy: 0,
+          );
+
+          // 디버그 로그 추가
+          print(
+              'Updating address with position: ${position.latitude}, ${position.longitude}');
+
+          // 이벤트 발생
+          EventBus().updateAddress(
+              position,
+              defaultAddress.fullAddress +
+                  (defaultAddress.nickname.isNotEmpty
+                      ? ' (${defaultAddress.nickname})'
+                      : ''));
+
           setState(() {
             _defaultAddress = defaultAddress;
+            _currentPosition = position;
             _currentAddress = defaultAddress.fullAddress;
             if (defaultAddress.nickname.isNotEmpty) {
               _currentAddress += ' (${defaultAddress.nickname})';
             }
             _isLoadingLocation = false;
           });
-          return;
         }
       }
 
       // 기본 주소가 없거나 로그인되지 않은 경우 현재 위치 사용
-      await _getCurrentLocation();
+      if (_currentPosition == null) {
+        await _getCurrentLocation();
+      }
     } catch (e) {
       print('Error initializing address: $e');
       setState(() {
@@ -237,6 +274,18 @@ class _HomePageState extends State<HomePage> {
         position.longitude,
       );
 
+      // 디버그 로그 추가
+      print(
+          'Updating address from nearby page: ${position.latitude}, ${position.longitude}');
+
+      // 이벤트 발생 전 상태 확인
+      print('Current position before event: $_currentPosition');
+
+      // 이벤트 발생
+      EventBus().updateAddress(position, address);
+
+      print('Address update event emitted');
+
       if (mounted) {
         setState(() {
           _currentPosition = position;
@@ -246,6 +295,7 @@ class _HomePageState extends State<HomePage> {
       }
     } catch (e) {
       print('Error updating address: $e');
+      print('Stack trace: ${StackTrace.current}');
     }
   }
 

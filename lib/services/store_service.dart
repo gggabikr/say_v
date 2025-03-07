@@ -8,27 +8,48 @@ import 'dart:async';
 import 'package:http/http.dart' as http;
 
 class StoreService {
+  final String jsonPath;
+
+  StoreService({this.jsonPath = 'assets/data/stores.json'});
+
   Future<List<Store>> loadStores() async {
-    final String jsonString =
-        await rootBundle.loadString('assets/data/stores.json');
-    final Map<String, dynamic> json = jsonDecode(jsonString);
-    return (json['stores'] as List)
-        .map((store) => Store.fromJson(store))
-        .toList();
+    try {
+      print('Loading stores from local data');
+      final String jsonString = await rootBundle.loadString(jsonPath);
+      final data = json.decode(jsonString);
+      if (data['stores'] != null) {
+        final stores = (data['stores'] as List)
+            .map((store) => Store.fromJson(store))
+            .toList();
+        print('Found ${stores.length} stores');
+        return stores;
+      }
+    } catch (e) {
+      print('Error loading stores data: $e');
+    }
+    return [];
   }
 
   Future<List<Store>> getStores() async {
     return await loadStores();
   }
 
-  Future<List<Store>> getStoresByCategory(String category) async {
+  Future<List<Store>> getStoresByCategory(
+      String category, Position position) async {
     print('Searching for stores with category: $category');
-
     final stores = await loadStores();
-    final filteredStores = stores
-        .where((store) => store.category.contains(category))
-        .toList()
-      ..sort((a, b) => a.name.compareTo(b.name));
+
+    final filteredStores =
+        stores.where((store) => store.category.contains(category)).toList();
+
+    // 위치 정보로 거리 계산
+    for (var store in filteredStores) {
+      store.calculateDistance(position);
+    }
+
+    // 거리순으로 정렬
+    filteredStores.sort((a, b) => (a.distance ?? double.infinity)
+        .compareTo(b.distance ?? double.infinity));
 
     print('Found ${filteredStores.length} stores');
     return filteredStores;
@@ -101,21 +122,24 @@ class StoreService {
             .map((store) => Store.fromJson(store))
             .toList();
 
-        // 각 매장의 거리 계산 및 필터링
-        stores = stores.map((store) {
-          final distance = _calculateDistance(
-            latitude,
-            longitude,
-            store.latitude,
-            store.longitude,
-          );
-          print('Distance calculation for ${store.name}:');
-          print('From: ($latitude, $longitude)');
-          print('To: (${store.latitude}, ${store.longitude})');
-          print('Calculated distance: $distance km');
-          store.distance = distance;
-          return store;
-        }).toList();
+        // 현재 위치 생성
+        final currentPosition = Position(
+          latitude: latitude,
+          longitude: longitude,
+          timestamp: DateTime.now(),
+          accuracy: 0,
+          altitude: 0,
+          altitudeAccuracy: 0,
+          heading: 0,
+          speed: 0,
+          speedAccuracy: 0,
+          headingAccuracy: 0,
+        );
+
+        // 각 매장의 거리 계산
+        for (var store in stores) {
+          store.calculateDistance(currentPosition);
+        }
 
         // 거리순으로 정렬
         stores.sort((a, b) => (a.distance ?? double.infinity)
@@ -133,5 +157,12 @@ class StoreService {
       print('Error loading local data: $e');
     }
     return [];
+  }
+
+  Future<List<Store>> getStoresByCuisineType(String cuisineType) async {
+    final stores = await loadStores();
+    return stores
+        .where((store) => store.cuisineTypes.contains(cuisineType))
+        .toList();
   }
 }

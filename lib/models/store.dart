@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
+import '../services/location_service.dart';
 
 class Store {
   final String id;
@@ -23,6 +24,9 @@ class Store {
   double? _cachedAverageRating;
   int? _lastRatingsLength;
 
+  String? _cachedAddress;
+  final LocationService _locationService = LocationService();
+
   double get averageRating {
     if (_lastRatingsLength != ratings.length || _cachedAverageRating == null) {
       if (ratings.isEmpty) {
@@ -45,6 +49,7 @@ class Store {
       ratings.length > RATING_LIMIT ? RATING_LIMIT : ratings.length;
 
   double? get distance => _cachedDistance;
+  set distance(double? value) => _cachedDistance = value;
 
   void calculateDistance(Position currentPosition) {
     // 같은 위치에서 이미 계산했다면 캐시된 값 반환
@@ -240,6 +245,26 @@ class Store {
       'is24Hours': is24Hours,
     };
   }
+
+  Future<String> getAddress() async {
+    if (_cachedAddress != null) return _cachedAddress!;
+
+    _cachedAddress =
+        await _locationService.getAddressFromCoordinates(latitude, longitude);
+    return _cachedAddress!;
+  }
+
+  static Future<Map<String, dynamic>?> getLocationFromAddress(
+      String address) async {
+    final locationService = LocationService();
+    final results = await locationService.searchAddress(address);
+    if (results.isNotEmpty) {
+      return results.first;
+    }
+    return null;
+  }
+
+  Future<String> get formattedAddress => getAddress();
 }
 
 class Location {
