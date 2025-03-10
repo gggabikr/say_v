@@ -7,6 +7,7 @@ import '../widgets/paginated_store_list.dart';
 import 'package:geolocator/geolocator.dart';
 import 'dart:async';
 import '../services/event_bus.dart';
+import '../widgets/scroll_to_top.dart';
 
 enum SortType { distance, rating }
 
@@ -620,6 +621,10 @@ class _CategoryStoresPageState extends State<CategoryStoresPage> {
           ),
         ],
       ),
+      floatingActionButton: ScrollToTop(
+        scrollController: _scrollController,
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
 }
