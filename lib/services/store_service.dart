@@ -55,19 +55,6 @@ class StoreService {
     return filteredStores;
   }
 
-  Future<List<Store>> getStoresSortedByDistance(
-      double userLat, double userLng) async {
-    final stores = await loadStores();
-    return stores
-      ..sort((a, b) {
-        final distA =
-            _calculateDistance(userLat, userLng, a.latitude, a.longitude);
-        final distB =
-            _calculateDistance(userLat, userLng, b.latitude, b.longitude);
-        return distA.compareTo(distB);
-      });
-  }
-
   double _calculateDistance(
       double lat1, double lon1, double lat2, double lon2) {
     // Haversine formula
