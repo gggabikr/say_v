@@ -390,13 +390,31 @@ class _HomePageState extends State<HomePage> {
         actions: [
           IconButton(
             icon: const Icon(Icons.search),
-            onPressed: () {
+            onPressed: () async {
+              // async 추가
+              // 현재 위치 정보가 없다면 가져오기 시도
+              Position? position = _currentPosition;
+              if (position == null) {
+                try {
+                  position = await Geolocator.getCurrentPosition();
+                  setState(() {
+                    _currentPosition = position;
+                  });
+                } catch (e) {
+                  print('Error getting current position: $e');
+                }
+              }
+
+              if (!mounted) return;
+
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => const CategoryStoresPage(
+                  builder: (context) => CategoryStoresPage(
                     category: 'all',
-                    title: '전체 매장',
+                    title: 'All Stores',
+                    userLocation: position, // null이 아닌 실제 위치 정보 전달
+                    address: _currentAddress,
                   ),
                 ),
               );

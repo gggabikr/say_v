@@ -275,6 +275,23 @@ class _CategoryStoresPageState extends State<CategoryStoresPage> {
           _currentPosition!.longitude,
         );
         print('Loaded ${loadedStores.length} nearby stores');
+      } else if (widget.category == 'all') {
+        print('Loading all stores...');
+        loadedStores = await storeService.loadStores();
+        if (_currentPosition != null) {
+          print(
+              'Calculating distances from position: ${_currentPosition!.latitude}, ${_currentPosition!.longitude}');
+          for (var store in loadedStores) {
+            store.calculateDistance(_currentPosition!);
+            print('Distance calculated for ${store.name}: ${store.distance}km');
+          }
+          // 거리 기준으로 정렬
+          loadedStores.sort((a, b) => (a.distance ?? double.infinity)
+              .compareTo(b.distance ?? double.infinity));
+        } else {
+          print('No current position available for distance calculation');
+        }
+        print('Loaded ${loadedStores.length} total stores');
       } else {
         print('Loading stores for category: ${widget.category}');
         if (_currentPosition != null) {
@@ -283,6 +300,9 @@ class _CategoryStoresPageState extends State<CategoryStoresPage> {
             widget.category,
             _currentPosition!,
           );
+          // 거리 기준으로 정렬
+          loadedStores.sort((a, b) => (a.distance ?? double.infinity)
+              .compareTo(b.distance ?? double.infinity));
           print(
               'First store distance: ${loadedStores.isNotEmpty ? loadedStores.first.distance : "no stores"}');
         } else {
@@ -298,8 +318,9 @@ class _CategoryStoresPageState extends State<CategoryStoresPage> {
 
       displayStores = List<Store>.from(loadedStores);
       print('Display stores count: ${displayStores.length}');
-      if (displayStores.isNotEmpty) {
-        print('First display store distance: ${displayStores.first.distance}');
+      if (displayStores.isNotEmpty && _currentPosition != null) {
+        print(
+            'First display store distance: ${displayStores.first.distance}km');
       }
     } catch (e) {
       print('Error loading stores: $e');
