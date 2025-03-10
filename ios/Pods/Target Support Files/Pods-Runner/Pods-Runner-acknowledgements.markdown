@@ -5226,6 +5226,11 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
+## integration_test
+
+Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
+
+
 ## leveldb-library
 
 Copyright (c) 2011 The LevelDB Authors. All rights reserved.

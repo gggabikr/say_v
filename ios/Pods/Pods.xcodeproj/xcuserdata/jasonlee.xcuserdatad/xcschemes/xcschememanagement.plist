@@ -204,6 +204,11 @@
 			<key>isShown</key>
 			<false/>
 		</dict>
+		<key>integration_test.xcscheme</key>
+		<dict>
+			<key>isShown</key>
+			<false/>
+		</dict>
 		<key>leveldb-library-leveldb_Privacy.xcscheme</key>
 		<dict>
 			<key>isShown</key>
