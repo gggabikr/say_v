@@ -46,3 +46,6 @@ app.*.map.json
 macos/Flutter/GeneratedPluginRegistrant.swift
 *.cc
 *.cmake
+*.modulemap
+*.h
+/ios/Pods
