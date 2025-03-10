@@ -3,8 +3,6 @@ import 'dart:math';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:say_v/models/store.dart';
-import 'package:say_v/pages/category_stores_page.dart';
-import 'package:say_v/services/store_service.dart';
 import 'package:geolocator/geolocator.dart';
 
 void main() {

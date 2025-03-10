@@ -3,9 +3,7 @@ import 'dart:math';
 import 'package:flutter/services.dart';
 import '../models/store.dart';
 import 'package:geolocator/geolocator.dart';
-import 'dart:io';
 import 'dart:async';
-import 'package:http/http.dart' as http;
 
 class StoreService {
   final String jsonPath;

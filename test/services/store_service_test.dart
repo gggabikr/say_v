@@ -1,6 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:say_v/services/store_service.dart';
-import 'package:say_v/models/store.dart';
 import 'package:geolocator/geolocator.dart';
 
 void main() {

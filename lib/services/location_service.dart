@@ -170,10 +170,12 @@ class LocationService {
         final List<String> addressParts = [];
 
         if (place.street?.isNotEmpty ?? false) addressParts.add(place.street!);
-        if (place.locality?.isNotEmpty ?? false)
+        if (place.locality?.isNotEmpty ?? false) {
           addressParts.add(place.locality!);
-        if (place.subLocality?.isNotEmpty ?? false)
+        }
+        if (place.subLocality?.isNotEmpty ?? false) {
           addressParts.add(place.subLocality!);
+        }
 
         if (addressParts.isNotEmpty) {
           return addressParts.join(', ');

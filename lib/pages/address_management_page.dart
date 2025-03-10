@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 import '../models/user_address.dart';
 import '../services/address_service.dart';
-import 'package:geolocator/geolocator.dart';
-import 'package:geocoding/geocoding.dart';
 import '../services/location_service.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';

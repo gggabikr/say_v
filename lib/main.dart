@@ -1,13 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:geocoding/geocoding.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
-import 'models/store.dart';
 import 'models/user_address.dart';
-import 'services/store_service.dart';
 import 'services/location_service.dart';
 import 'services/address_service.dart';
 import 'pages/category_stores_page.dart';
