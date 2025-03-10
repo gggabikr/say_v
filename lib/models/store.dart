@@ -2,13 +2,33 @@ import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
 import '../services/location_service.dart';
 
+enum StoreCategory {
+  happyHour('happy_hour'),
+  allYouCanEat('all_you_can_eat'),
+  specialEvents('special_events'),
+  dealsAndDiscounts('deals_and_discounts');
+
+  final String value;
+  const StoreCategory(this.value);
+
+  static List<StoreCategory> fromString(String categories) {
+    final categoryList = categories.split(',');
+    return categoryList
+        .map((category) => StoreCategory.values.firstWhere(
+              (e) => e.value == category.trim(),
+              orElse: () => throw ArgumentError('Invalid category: $category'),
+            ))
+        .toList();
+  }
+}
+
 class Store {
   final String id;
   final String name;
   final String address;
   final double latitude;
   final double longitude;
-  final String category;
+  final List<StoreCategory> categories;
   final List<double> ratings;
   final List<String> cuisineTypes;
   final List<MenuItem> menus;
@@ -79,7 +99,7 @@ class Store {
     required this.address,
     required this.latitude,
     required this.longitude,
-    required this.category,
+    required String category,
     required this.ratings,
     required this.cuisineTypes,
     required this.menus,
@@ -88,7 +108,7 @@ class Store {
     this.happyHours,
     this.is24Hours = false,
     required this.totalRatings,
-  }) {
+  }) : categories = StoreCategory.fromString(category) {
     searchableText = [
       name.toLowerCase(),
       ...cuisineTypes.map((type) => type.toLowerCase()),
@@ -222,7 +242,7 @@ class Store {
       'storeId': id,
       'name': name,
       'address': address,
-      'category': category,
+      'category': categories.map((c) => c.value).toList(),
       'cuisineTypes': cuisineTypes,
       'location': {
         'latitude': latitude,

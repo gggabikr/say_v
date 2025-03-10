@@ -37,8 +37,9 @@ class StoreService {
     print('Searching for stores with category: $category');
     final stores = await loadStores();
 
-    final filteredStores =
-        stores.where((store) => store.category.contains(category)).toList();
+    final filteredStores = stores
+        .where((store) => store.categories.any((cat) => cat.value == category))
+        .toList();
 
     // 위치 정보로 거리 계산
     for (var store in filteredStores) {

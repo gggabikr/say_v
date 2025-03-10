@@ -109,15 +109,15 @@ class _CategoryStoresPageState extends State<CategoryStoresPage> {
           bool matches = store.name
                   .toLowerCase()
                   .contains(_searchController.text.toLowerCase()) ||
-              store.category
+              store.categories.any((cat) => cat.value
                   .toLowerCase()
-                  .contains(_searchController.text.toLowerCase()) ||
-              (store.cuisineTypes.any((cuisine) => cuisine
-                      .toLowerCase()
-                      .contains(_searchController.text.toLowerCase())) ??
-                  false);
+                  .contains(_searchController.text.toLowerCase())) ||
+              store.cuisineTypes.any((cuisine) => cuisine
+                  .toLowerCase()
+                  .contains(_searchController.text.toLowerCase()));
           print('Checking store: ${store.name}');
-          print('Categories: ${store.category}');
+          print(
+              'Categories: ${store.categories.map((c) => c.value).join(", ")}');
           print('Cuisine Types: ${store.cuisineTypes}');
           print('Matches: $matches');
           return matches;
@@ -144,13 +144,12 @@ class _CategoryStoresPageState extends State<CategoryStoresPage> {
           return store.name
                   .toLowerCase()
                   .contains(_searchController.text.toLowerCase()) ||
-              store.category
+              store.categories.any((cat) => cat.value
                   .toLowerCase()
-                  .contains(_searchController.text.toLowerCase()) ||
-              (store.cuisineTypes.any((cuisine) => cuisine
-                      .toLowerCase()
-                      .contains(_searchController.text.toLowerCase())) ??
-                  false);
+                  .contains(_searchController.text.toLowerCase())) ||
+              store.cuisineTypes.any((cuisine) => cuisine
+                  .toLowerCase()
+                  .contains(_searchController.text.toLowerCase()));
         }).toList();
       } else {
         displayStores = List<Store>.from(loadedStores);
@@ -244,7 +243,8 @@ class _CategoryStoresPageState extends State<CategoryStoresPage> {
           print('Getting stores without location data');
           List<Store> stores = await storeService.loadStores();
           loadedStores = stores
-              .where((store) => store.category.contains(widget.category))
+              .where((store) =>
+                  store.categories.any((cat) => cat.value == widget.category))
               .toList();
         }
         print('Loaded ${loadedStores.length} stores for category');

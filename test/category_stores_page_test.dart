@@ -71,7 +71,8 @@ void main() {
       final stores = List<Store>.from(testStores)
           .where((store) =>
               store.name.toLowerCase().contains(searchQuery) ||
-              store.category.toLowerCase().contains(searchQuery) ||
+              store.categories.any(
+                  (cat) => cat.value.toLowerCase().contains(searchQuery)) ||
               store.cuisineTypes
                   .any((type) => type.toLowerCase().contains(searchQuery)))
           .toList();
@@ -79,7 +80,8 @@ void main() {
       expect(
           stores.every((store) =>
               store.name.toLowerCase().contains(searchQuery) ||
-              store.category.toLowerCase().contains(searchQuery) ||
+              store.categories.any(
+                  (cat) => cat.value.toLowerCase().contains(searchQuery)) ||
               store.cuisineTypes
                   .any((type) => type.toLowerCase().contains(searchQuery))),
           true);
@@ -138,7 +140,8 @@ void main() {
       final stores = List<Store>.from(testStores)
           .where((store) =>
               (store.name.toLowerCase().contains(searchQuery) ||
-                  store.category.toLowerCase().contains(searchQuery) ||
+                  store.categories.any(
+                      (cat) => cat.value.toLowerCase().contains(searchQuery)) ||
                   store.cuisineTypes.any(
                       (type) => type.toLowerCase().contains(searchQuery))) &&
               store.isOpenAt(now))
@@ -146,11 +149,11 @@ void main() {
         ..sort((a, b) => (a.distance ?? double.infinity)
             .compareTo(b.distance ?? double.infinity));
 
-      // 검색어 필터링 확인
       expect(
           stores.every((store) =>
               store.name.toLowerCase().contains(searchQuery) ||
-              store.category.toLowerCase().contains(searchQuery) ||
+              store.categories.any(
+                  (cat) => cat.value.toLowerCase().contains(searchQuery)) ||
               store.cuisineTypes
                   .any((type) => type.toLowerCase().contains(searchQuery))),
           true,
@@ -249,22 +252,38 @@ void main() {
           reason: '필터링된 모든 가게가 현재 해피아워여야 함');
     });
 
-    test('특정 카테고리(예: Korean) 테스트', () {
-      const testCategory = 'Korean';
-      final koreanStores = List<Store>.from(testStores)
+    test('특정 카테고리(예: happy_hour) 테스트', () {
+      final testCategory = StoreCategory.happyHour.value;
+      final categoryStores = List<Store>.from(testStores)
           .where((store) =>
-              store.category.contains(testCategory) ||
-              store.cuisineTypes.contains(testCategory))
+              store.categories.any((cat) => cat.value == testCategory))
           .toList();
 
-      expect(koreanStores.isNotEmpty, true, reason: '한식 카테고리 가게가 존재해야 함');
+      expect(categoryStores.isNotEmpty, true,
+          reason: 'happy_hour 카테고리 가게가 존재해야 함');
 
       expect(
-          koreanStores.every((store) =>
-              store.category.contains(testCategory) ||
-              store.cuisineTypes.contains(testCategory)),
+          categoryStores.every((store) =>
+              store.categories.any((cat) => cat.value == testCategory)),
           true,
-          reason: '모든 가게가 Korean 카테고리여야 함');
+          reason: '모든 가게가 happy_hour 카테고리여야 함');
+    });
+
+    test('특정 음식 종류(예: Korean) 필터링 테스트', () {
+      const testCuisine = 'Korean';
+      final koreanCuisineStores = List<Store>.from(testStores)
+          .where((store) => store.cuisineTypes
+              .any((type) => type.toLowerCase() == testCuisine.toLowerCase()))
+          .toList();
+
+      expect(koreanCuisineStores.isNotEmpty, true,
+          reason: 'Korean 음식점이 존재해야 함');
+
+      expect(
+          koreanCuisineStores.every((store) => store.cuisineTypes
+              .any((type) => type.toLowerCase() == testCuisine.toLowerCase())),
+          true,
+          reason: '모든 가게가 Korean 음식점이어야 함');
     });
   });
 }
