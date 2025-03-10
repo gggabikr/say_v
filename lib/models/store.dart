@@ -40,6 +40,7 @@ class Store {
   final List<HappyHour>? happyHours;
   final bool is24Hours;
   final int totalRatings;
+  final List<String>? images;
 
   double? _cachedAverageRating;
   int? _lastRatingsLength;
@@ -108,6 +109,7 @@ class Store {
     this.happyHours,
     this.is24Hours = false,
     required this.totalRatings,
+    this.images,
   }) : categories = StoreCategory.fromString(category) {
     searchableText = [
       name.toLowerCase(),
@@ -161,6 +163,7 @@ class Store {
           .toList(),
       is24Hours: json['is24Hours'] ?? false,
       totalRatings: (json['totalRatings'] as num?)?.toInt() ?? 0,
+      images: (json['images'] as List?)?.cast<String>(),
     );
   }
 
@@ -263,6 +266,7 @@ class Store {
               })
           .toList(),
       'is24Hours': is24Hours,
+      'images': images,
     };
   }
 
