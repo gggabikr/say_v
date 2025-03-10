@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:say_v/widgets/scroll_to_top.dart';
 import '../models/store.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:geocoding/geocoding.dart';
+import 'package:url_launcher/url_launcher_string.dart';
+import 'dart:io' show Platform;
+import 'package:flutter/rendering.dart';
 
 class StoreDetailPage extends StatefulWidget {
   final Store store;
@@ -21,6 +27,203 @@ class _StoreDetailPageState extends State<StoreDetailPage> {
     'Cate 2',
     'Cate 3'
   ];
+  final ScrollController _scrollController = ScrollController();
+  String? _address;
+  bool _isLoadingAddress = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedCategory =
+        widget.store.menus.isNotEmpty ? widget.store.menus.first.type : 'food';
+    _loadAddress();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadAddress() async {
+    try {
+      final placemarks = await placemarkFromCoordinates(
+        widget.store.latitude,
+        widget.store.longitude,
+      );
+
+      if (placemarks.isNotEmpty) {
+        final placemark = placemarks.first;
+        setState(() {
+          _address = _formatAddress(placemark);
+          _isLoadingAddress = false;
+        });
+      }
+    } catch (e) {
+      print('Error getting address: $e');
+      setState(() {
+        _address = '주소를 불러올 수 없습니다';
+        _isLoadingAddress = false;
+      });
+    }
+  }
+
+  String _formatAddress(Placemark placemark) {
+    final components = <String>[];
+
+    // Street number and name
+    if (placemark.street?.isNotEmpty ?? false) {
+      components.add(placemark.street!);
+    }
+
+    // City
+    if (placemark.locality?.isNotEmpty ?? false) {
+      components.add(placemark.locality!);
+    }
+
+    // Province/State
+    if (placemark.administrativeArea?.isNotEmpty ?? false) {
+      components.add(placemark.administrativeArea!);
+    }
+
+    // Postal code
+    if (placemark.postalCode?.isNotEmpty ?? false) {
+      components.add(placemark.postalCode!);
+    }
+
+    return components.join(', ');
+  }
+
+  Future<void> _openMapsNavigation() async {
+    final lat = widget.store.latitude;
+    final lng = widget.store.longitude;
+
+    try {
+      // 구글맵 앱으로 연결 시도
+      if (Platform.isIOS) {
+        final googleMapsUrl = 'comgooglemaps://?q=$lat,$lng';
+        if (await canLaunchUrlString(googleMapsUrl)) {
+          await launchUrlString(googleMapsUrl);
+          return;
+        }
+      } else {
+        final googleMapsUrl = 'geo:$lat,$lng?q=$lat,$lng';
+        if (await canLaunchUrlString(googleMapsUrl)) {
+          await launchUrlString(googleMapsUrl);
+          return;
+        }
+      }
+
+      // 구글맵 앱으로 연결 실패시 웹으로 열기
+      final webUrl = 'https://www.google.com/maps?q=$lat,$lng';
+      if (await canLaunchUrlString(webUrl)) {
+        await launchUrlString(
+          webUrl,
+          mode: LaunchMode.externalApplication,
+        );
+      } else if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('지도를 열 수 없습니다.'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      print('Error launching maps: $e');
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('지도를 열 수 없습니다.'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _openPhoneApp() async {
+    final phoneNumber =
+        widget.store.contactNumber.replaceAll(RegExp(r'[^\d]'), '');
+    if (phoneNumber.isEmpty) return;
+
+    try {
+      final urlString = Platform.isIOS
+          ? 'telprompt://$phoneNumber' // iOS는 telprompt:// 사용
+          : 'tel:$phoneNumber'; // Android는 tel: 사용
+
+      print('Attempting to launch phone URL: $urlString'); // 디버그 로그
+
+      if (await canLaunchUrlString(urlString)) {
+        await launchUrlString(
+          urlString,
+          mode: LaunchMode.externalApplication,
+        );
+      } else {
+        // 첫 번째 방법 실패시 다른 방법 시도
+        final backupUrl = 'tel://$phoneNumber';
+        if (await canLaunchUrlString(backupUrl)) {
+          await launchUrlString(
+            backupUrl,
+            mode: LaunchMode.externalApplication,
+          );
+        } else if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('전화 앱을 열 수 없습니다.'),
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      print('Error launching phone app: $e');
+      // 에러 발생시 클립보드에 복사
+      if (context.mounted) {
+        await Clipboard.setData(ClipboardData(text: phoneNumber));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('전화번호가 클립보드에 복사되었습니다.'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    }
+  }
+
+  void _showCopyDialog(String text, String label) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          content: Text('$label을(를) 복사하시겠습니까?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('취소'),
+            ),
+            TextButton(
+              onPressed: () async {
+                await Clipboard.setData(ClipboardData(text: text));
+                if (context.mounted) {
+                  Navigator.of(context).pop();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('$label이(가) 클립보드에 복사되었습니다.'),
+                      duration: const Duration(seconds: 2),
+                    ),
+                  );
+                }
+              },
+              child: const Text('복사'),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,6 +232,7 @@ class _StoreDetailPageState extends State<StoreDetailPage> {
         title: Text(widget.store.name),
       ),
       body: SingleChildScrollView(
+        controller: _scrollController,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -46,35 +250,64 @@ class _StoreDetailPageState extends State<StoreDetailPage> {
                   const SizedBox(height: 8),
                   Column(
                     children: [
-                      SizedBox(
-                        height: 40, // ListTile의 높이를 직접 지정
+                      GestureDetector(
+                        onLongPress: _address != null
+                            ? () => _showCopyDialog(_address!, '주소')
+                            : null,
                         child: ListTile(
                           contentPadding:
                               const EdgeInsets.symmetric(horizontal: 16),
                           leading: const Icon(Icons.location_on),
-                          title: Text(
-                              'Lat: ${widget.store.latitude}, Long: ${widget.store.longitude}'),
+                          title: _isLoadingAddress
+                              ? const Text('주소 불러오는 중...')
+                              : Text(
+                                  _address ?? '주소를 불러올 수 없습니다',
+                                  style: const TextStyle(height: 1.3),
+                                ),
                           minVerticalPadding: 0,
                           visualDensity: VisualDensity.compact,
+                          onTap: _address != null ? _openMapsNavigation : null,
+                          trailing: _address != null
+                              ? const Icon(Icons.navigation,
+                                  size: 20, color: Colors.blue)
+                              : null,
                         ),
                       ),
                       SizedBox(
-                        height: 40, // ListTile의 높이를 직접 지정
+                        height: 40,
                         child: _buildCurrentStatus(),
                       ),
                       SizedBox(
-                        height: 40, // ListTile의 높이를 직접 지정
-                        child: ListTile(
-                          contentPadding:
-                              const EdgeInsets.symmetric(horizontal: 16),
-                          leading: const Icon(Icons.phone),
-                          title: Text(widget.store.contactNumber
-                                  .replaceAllMapped(
-                                      RegExp(r'(\d{3})(\d{3})(\d{4})'),
-                                      (Match m) => '${m[1]}-${m[2]}-${m[3]}') ??
-                              '전화번호 없음'),
-                          minVerticalPadding: 0,
-                          visualDensity: VisualDensity.compact,
+                        height: 40,
+                        child: GestureDetector(
+                          onLongPress: widget.store.contactNumber.isNotEmpty
+                              ? () => _showCopyDialog(
+                                  widget.store.contactNumber.replaceAllMapped(
+                                    RegExp(r'(\d{3})(\d{3})(\d{4})'),
+                                    (Match m) => '${m[1]}-${m[2]}-${m[3]}',
+                                  ),
+                                  '전화번호')
+                              : null,
+                          child: ListTile(
+                            contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 4),
+                            leading: const Icon(Icons.phone),
+                            title: Text(widget.store.contactNumber
+                                    .replaceAllMapped(
+                                        RegExp(r'(\d{3})(\d{3})(\d{4})'),
+                                        (Match m) =>
+                                            '${m[1]}-${m[2]}-${m[3]}') ??
+                                '전화번호 없음'),
+                            minVerticalPadding: 0,
+                            visualDensity: VisualDensity.compact,
+                            onTap: widget.store.contactNumber.isNotEmpty
+                                ? _openPhoneApp
+                                : null,
+                            trailing: widget.store.contactNumber.isNotEmpty
+                                ? const Icon(Icons.phone_enabled,
+                                    size: 20, color: Colors.blue)
+                                : null,
+                          ),
                         ),
                       ),
                     ],
@@ -153,6 +386,10 @@ class _StoreDetailPageState extends State<StoreDetailPage> {
           ],
         ),
       ),
+      floatingActionButton: ScrollToTop(
+        scrollController: _scrollController,
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
 
