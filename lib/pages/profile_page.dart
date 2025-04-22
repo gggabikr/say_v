@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/auth_service.dart';
 import '../pages/address_management_page.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import '../pages/admin_creation_screen.dart';
+import '../pages/store_owner_creation_screen.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -13,6 +16,7 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage> {
   final AuthService _authService = AuthService();
   final TextEditingController _displayNameController = TextEditingController();
+  final String? _currentUserUid = FirebaseAuth.instance.currentUser?.uid;
 
   @override
   void initState() {
@@ -122,6 +126,75 @@ class _ProfilePageState extends State<ProfilePage> {
                 label: const Text('주소 관리'),
               ),
             ),
+            if (_currentUserUid != null)
+              StreamBuilder<DocumentSnapshot>(
+                stream: FirebaseFirestore.instance
+                    .collection('users')
+                    .doc(_currentUserUid)
+                    .snapshots(),
+                builder: (context, snapshot) {
+                  print('Current user UID: $_currentUserUid');
+                  print('Snapshot has data: ${snapshot.hasData}');
+                  print(
+                      'Snapshot connection state: ${snapshot.connectionState}');
+                  print('Snapshot error: ${snapshot.error}');
+
+                  if (snapshot.hasData && snapshot.data != null) {
+                    final userData =
+                        snapshot.data!.data() as Map<String, dynamic>?;
+                    print('User data: $userData');
+
+                    if (userData != null && userData['role'] == 'admin') {
+                      return Card(
+                        margin: const EdgeInsets.all(16.0),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                '관리자 도구',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              ListTile(
+                                leading: const Icon(Icons.admin_panel_settings),
+                                title: const Text('새 관리자 계정 생성'),
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          const AdminCreationScreen(),
+                                    ),
+                                  );
+                                },
+                              ),
+                              ListTile(
+                                leading: const Icon(Icons.store),
+                                title: const Text('새 스토어 오너 계정 생성'),
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          const StoreOwnerCreationScreen(),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }
+                  }
+                  return Container();
+                },
+              ),
           ],
         ),
       ),

@@ -14,6 +14,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'firebase_options.dart';
 import 'pages/profile_page.dart';
 import 'services/event_bus.dart';
+import 'pages/my_stores_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -431,12 +432,24 @@ class _HomePageState extends State<HomePage> {
                     PopupMenuItem(
                       child: const Text('프로필 설정'),
                       onTap: () {
-                        // PopupMenuButton이 닫힌 후 실행되도록 Future.delayed 사용
                         Future.delayed(Duration.zero, () {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
                               builder: (context) => const ProfilePage(),
+                            ),
+                          );
+                        });
+                      },
+                    ),
+                    PopupMenuItem(
+                      child: const Text('내 상점'),
+                      onTap: () {
+                        Future.delayed(Duration.zero, () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const MyStoresScreen(),
                             ),
                           );
                         });
