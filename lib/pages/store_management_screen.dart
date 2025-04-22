@@ -390,8 +390,9 @@ class _StoreManagementScreenState extends State<StoreManagementScreen> {
   }
 
   Widget _buildBusinessHoursSection(Map<String, dynamic> storeData) {
-    final List<dynamic> businessHours =
-        (storeData['businessHours'] as List?) ?? [];
+    final List<dynamic> hours = List.from(storeData['businessHours'] ?? []);
+    final pendingHours = _pendingAdditions['businessHours'] ?? [];
+    final deletedHours = _pendingDeletions['businessHours'] ?? [];
     final bool is24Hours = storeData['is24Hours'] ?? false;
 
     if (is24Hours) {
@@ -420,7 +421,7 @@ class _StoreManagementScreenState extends State<StoreManagementScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                _buildSectionHeader('영업 시간', 'business_hours'),
+                _buildSectionHeader('영업 시간', 'businessHours'),
                 IconButton(
                   icon: const Icon(Icons.add),
                   onPressed: () => _showBusinessHoursDialog(),
@@ -431,26 +432,64 @@ class _StoreManagementScreenState extends State<StoreManagementScreen> {
             ListView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
-              itemCount: businessHours.length,
+              itemCount: hours.length + pendingHours.length,
               itemBuilder: (context, index) {
-                final hours = businessHours[index];
-                final List<String> days =
-                    List<String>.from(hours['daysOfWeek']);
-                return ListTile(
-                  title: Text(days.join(', ')),
-                  subtitle: Text(
-                      '${hours['openHour']}:${hours['openMinute'].toString().padLeft(2, '0')} - '
-                      '${hours['closeHour']}:${hours['closeMinute'].toString().padLeft(2, '0')}'),
-                  trailing: IconButton(
-                    icon: const Icon(Icons.delete),
-                    onPressed: () {
-                      List<dynamic> newHours = List.from(businessHours)
-                        ..removeAt(index);
-                      _updateStore(
-                          {'businessHours': newHours}, 'business_hours');
+                if (index < hours.length) {
+                  final hour = hours[index];
+                  // 각 항목의 고유 식별자로 daysOfWeek를 문자열로 변환하여 사용
+                  final String hourId = (hour['daysOfWeek'] as List).join(',');
+                  final isDeleted = deletedHours.any((deletedHour) =>
+                      (deletedHour['daysOfWeek'] as List).join(',') == hourId);
+                  final List<String> days =
+                      List<String>.from(hour['daysOfWeek']);
+
+                  return _buildListItemWithPendingChanges(
+                    item: hour,
+                    type: 'businessHours',
+                    isPending: false,
+                    isDeleted: isDeleted,
+                    title: days.join(', '),
+                    subtitle:
+                        '${hour['openHour'].toString().padLeft(2, '0')}:${hour['openMinute'].toString().padLeft(2, '0')} - '
+                        '${hour['closeHour'].toString().padLeft(2, '0')}:${hour['closeMinute'].toString().padLeft(2, '0')}',
+                    onEdit: () => _showBusinessHoursDialog(existingHours: hour),
+                    onDelete: () => _markForDeletion(hour, 'businessHours'),
+                    onRestore: () => _restoreItem(hour, 'businessHours'),
+                  );
+                } else {
+                  final pendingHour = pendingHours[index - hours.length];
+                  final List<String> days =
+                      List<String>.from(pendingHour['daysOfWeek']);
+
+                  return _buildListItemWithPendingChanges(
+                    item: pendingHour,
+                    type: 'businessHours',
+                    isPending: true,
+                    isDeleted: false,
+                    title: days.join(', '),
+                    subtitle:
+                        '${pendingHour['openHour'].toString().padLeft(2, '0')}:${pendingHour['openMinute'].toString().padLeft(2, '0')} - '
+                        '${pendingHour['closeHour'].toString().padLeft(2, '0')}:${pendingHour['closeMinute'].toString().padLeft(2, '0')}',
+                    onEdit: () =>
+                        _showBusinessHoursDialog(existingHours: pendingHour),
+                    onDelete: () {
+                      setState(() {
+                        _pendingAdditions['businessHours']?.remove(pendingHour);
+                        if (_pendingAdditions['businessHours']?.isEmpty ??
+                            false) {
+                          _pendingAdditions.remove('businessHours');
+                        }
+                        _hasUnsavedChanges = _pendingAdditions.isNotEmpty ||
+                            _pendingDeletions.isNotEmpty ||
+                            _pendingChanges.isNotEmpty;
+                        if (!_hasUnsavedChanges) {
+                          _modifiedSections.remove('businessHours');
+                        }
+                      });
                     },
-                  ),
-                );
+                    onRestore: () {}, // 사용되지 않음
+                  );
+                }
               },
             ),
           ],
@@ -460,7 +499,9 @@ class _StoreManagementScreenState extends State<StoreManagementScreen> {
   }
 
   Widget _buildHappyHoursSection(Map<String, dynamic> storeData) {
-    final List<dynamic> happyHours = (storeData['happyHours'] as List?) ?? [];
+    final List<dynamic> hours = List.from(storeData['happyHours'] ?? []);
+    final pendingHours = _pendingAdditions['happyHours'] ?? [];
+    final deletedHours = _pendingDeletions['happyHours'] ?? [];
 
     return Card(
       child: Padding(
@@ -471,7 +512,7 @@ class _StoreManagementScreenState extends State<StoreManagementScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                _buildSectionHeader('해피아워', 'happy_hours'),
+                _buildSectionHeader('해피아워', 'happyHours'),
                 IconButton(
                   icon: const Icon(Icons.add),
                   onPressed: () => _showHappyHourDialog(),
@@ -482,25 +523,62 @@ class _StoreManagementScreenState extends State<StoreManagementScreen> {
             ListView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
-              itemCount: happyHours.length,
+              itemCount: hours.length + pendingHours.length,
               itemBuilder: (context, index) {
-                final hours = happyHours[index];
-                final List<String> days =
-                    List<String>.from(hours['daysOfWeek']);
-                return ListTile(
-                  title: Text(days.join(', ')),
-                  subtitle: Text(
-                      '${hours['startHour']}:${hours['startMinute'].toString().padLeft(2, '0')} - '
-                      '${hours['endHour']}:${hours['endMinute'].toString().padLeft(2, '0')}'),
-                  trailing: IconButton(
-                    icon: const Icon(Icons.delete),
-                    onPressed: () {
-                      List<dynamic> newHours = List.from(happyHours)
-                        ..removeAt(index);
-                      _updateStore({'happyHours': newHours}, 'happy_hours');
+                if (index < hours.length) {
+                  final hour = hours[index];
+                  final String hourId = (hour['daysOfWeek'] as List).join(',');
+                  final isDeleted = deletedHours.any((deletedHour) =>
+                      (deletedHour['daysOfWeek'] as List).join(',') == hourId);
+                  final List<String> days =
+                      List<String>.from(hour['daysOfWeek']);
+
+                  return _buildListItemWithPendingChanges(
+                    item: hour,
+                    type: 'happyHours',
+                    isPending: false,
+                    isDeleted: isDeleted,
+                    title: days.join(', '),
+                    subtitle:
+                        '${hour['startHour'].toString().padLeft(2, '0')}:${hour['startMinute'].toString().padLeft(2, '0')} - '
+                        '${hour['endHour'].toString().padLeft(2, '0')}:${hour['endMinute'].toString().padLeft(2, '0')}',
+                    onEdit: () => _showHappyHourDialog(existingHours: hour),
+                    onDelete: () => _markForDeletion(hour, 'happyHours'),
+                    onRestore: () => _restoreItem(hour, 'happyHours'),
+                  );
+                } else {
+                  final pendingHour = pendingHours[index - hours.length];
+                  final List<String> days =
+                      List<String>.from(pendingHour['daysOfWeek']);
+
+                  return _buildListItemWithPendingChanges(
+                    item: pendingHour,
+                    type: 'happyHours',
+                    isPending: true,
+                    isDeleted: false,
+                    title: days.join(', '),
+                    subtitle:
+                        '${pendingHour['startHour'].toString().padLeft(2, '0')}:${pendingHour['startMinute'].toString().padLeft(2, '0')} - '
+                        '${pendingHour['endHour'].toString().padLeft(2, '0')}:${pendingHour['endMinute'].toString().padLeft(2, '0')}',
+                    onEdit: () =>
+                        _showHappyHourDialog(existingHours: pendingHour),
+                    onDelete: () {
+                      setState(() {
+                        _pendingAdditions['happyHours']?.remove(pendingHour);
+                        if (_pendingAdditions['happyHours']?.isEmpty ?? false) {
+                          _pendingAdditions.remove('happyHours');
+                        }
+                        _hasUnsavedChanges = _pendingAdditions.isNotEmpty ||
+                            _pendingDeletions.isNotEmpty ||
+                            _pendingChanges.isNotEmpty;
+                        if (!_hasUnsavedChanges) {
+                          _modifiedSections.remove('happyHours');
+                        }
+                      });
                     },
-                  ),
-                );
+                    onRestore: () {}, // 사용되지 않음
+                  );
+                }
               },
             ),
           ],
@@ -537,15 +615,50 @@ class _StoreManagementScreenState extends State<StoreManagementScreen> {
               itemCount: menus.length + pendingMenus.length,
               itemBuilder: (context, index) {
                 if (index < menus.length) {
-                  // 기존 메뉴 항목
                   final menu = menus[index];
                   final isDeleted = deletedMenus.any(
                       (deletedMenu) => deletedMenu['itemId'] == menu['itemId']);
-                  return _buildListItem(menu, 'menu', false, isDeleted);
+
+                  return _buildListItemWithPendingChanges(
+                    item: menu,
+                    type: 'menu',
+                    isPending: false,
+                    isDeleted: isDeleted,
+                    title: menu['name'] ?? '',
+                    subtitle: '\$${menu['price']} - ${menu['type']}',
+                    onEdit: () => _showMenuItemDialog(existingMenu: menu),
+                    onDelete: () => _markForDeletion(menu, 'menu'),
+                    onRestore: () => _restoreItem(menu, 'menu'),
+                  );
                 } else {
-                  // 새로 추가된 메뉴 항목
                   final pendingMenu = pendingMenus[index - menus.length];
-                  return _buildListItem(pendingMenu, 'menu', true, false);
+
+                  return _buildListItemWithPendingChanges(
+                    item: pendingMenu,
+                    type: 'menu',
+                    isPending: true,
+                    isDeleted: false,
+                    title: pendingMenu['name'] ?? '',
+                    subtitle:
+                        '\$${pendingMenu['price']} - ${pendingMenu['type']}',
+                    onEdit: () =>
+                        _showMenuItemDialog(existingMenu: pendingMenu),
+                    onDelete: () {
+                      setState(() {
+                        _pendingAdditions['menu']?.remove(pendingMenu);
+                        if (_pendingAdditions['menu']?.isEmpty ?? false) {
+                          _pendingAdditions.remove('menu');
+                        }
+                        _hasUnsavedChanges = _pendingAdditions.isNotEmpty ||
+                            _pendingDeletions.isNotEmpty ||
+                            _pendingChanges.isNotEmpty;
+                        if (!_hasUnsavedChanges) {
+                          _modifiedSections.remove('menu');
+                        }
+                      });
+                    },
+                    onRestore: () {}, // 사용되지 않음
+                  );
                 }
               },
             ),
@@ -664,6 +777,34 @@ class _StoreManagementScreenState extends State<StoreManagementScreen> {
           _pendingChanges['cuisineTypes'] = currentTypes;
         }
         // 다른 섹션들에 대한 처리도 비슷하게 추가...
+        else if (section == 'businessHours') {
+          List<dynamic> currentHours =
+              List.from(storeData['businessHours'] ?? []);
+          // 삭제 예정 항목 제거
+          currentHours.removeWhere((hour) =>
+              _pendingDeletions['businessHours']?.any((deletedHour) =>
+                  (deletedHour['daysOfWeek'] as List).join(',') ==
+                  (hour['daysOfWeek'] as List).join(',')) ??
+              false);
+          // 새로운 항목 추가
+          if (_pendingAdditions['businessHours'] != null) {
+            currentHours.addAll(_pendingAdditions['businessHours']!);
+          }
+          _pendingChanges['businessHours'] = currentHours;
+        } else if (section == 'happyHours') {
+          List<dynamic> currentHours = List.from(storeData['happyHours'] ?? []);
+          // 삭제 예정 항목 제거
+          currentHours.removeWhere((hour) =>
+              _pendingDeletions['happyHours']?.any((deletedHour) =>
+                  (deletedHour['daysOfWeek'] as List).join(',') ==
+                  (hour['daysOfWeek'] as List).join(',')) ??
+              false);
+          // 새로운 항목 추가
+          if (_pendingAdditions['happyHours'] != null) {
+            currentHours.addAll(_pendingAdditions['happyHours']!);
+          }
+          _pendingChanges['happyHours'] = currentHours;
+        }
       }
 
       // 모든 변경사항 한번에 저장
@@ -754,7 +895,8 @@ class _StoreManagementScreenState extends State<StoreManagementScreen> {
       'SAT',
       'SUN'
     ];
-    List<String> selectedDays = existingHours?['daysOfWeek'] ?? [];
+    List<String> selectedDays =
+        List<String>.from(existingHours?['daysOfWeek'] ?? []);
     TimeOfDay openTime = existingHours != null
         ? TimeOfDay(
             hour: existingHours['openHour'],
@@ -770,8 +912,8 @@ class _StoreManagementScreenState extends State<StoreManagementScreen> {
     showDialog(
       context: context,
       builder: (context) => StatefulBuilder(
-        builder: (context, setState) => AlertDialog(
-          title: const Text('영업 시간 설정'),
+        builder: (context, setDialogState) => AlertDialog(
+          title: Text(existingHours == null ? '영업 시간 추가' : '영업 시간 수정'),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -784,7 +926,7 @@ class _StoreManagementScreenState extends State<StoreManagementScreen> {
                             label: Text(day),
                             selected: selectedDays.contains(day),
                             onSelected: (selected) {
-                              setState(() {
+                              setDialogState(() {
                                 if (selected) {
                                   selectedDays.add(day);
                                 } else {
@@ -804,7 +946,7 @@ class _StoreManagementScreenState extends State<StoreManagementScreen> {
                       initialTime: openTime,
                     );
                     if (time != null) {
-                      setState(() => openTime = time);
+                      setDialogState(() => openTime = time);
                     }
                   },
                 ),
@@ -817,7 +959,7 @@ class _StoreManagementScreenState extends State<StoreManagementScreen> {
                       initialTime: closeTime,
                     );
                     if (time != null) {
-                      setState(() => closeTime = time);
+                      setDialogState(() => closeTime = time);
                     }
                   },
                 ),
@@ -825,7 +967,7 @@ class _StoreManagementScreenState extends State<StoreManagementScreen> {
                   title: const Text('다음날까지'),
                   value: isNextDay,
                   onChanged: (value) {
-                    setState(() => isNextDay = value ?? false);
+                    setDialogState(() => isNextDay = value ?? false);
                   },
                 ),
               ],
@@ -840,29 +982,33 @@ class _StoreManagementScreenState extends State<StoreManagementScreen> {
               onPressed: () {
                 if (selectedDays.isNotEmpty) {
                   final Map<String, dynamic> hours = {
+                    'daysOfWeek': selectedDays,
                     'openHour': openTime.hour,
                     'openMinute': openTime.minute,
                     'closeHour': closeTime.hour,
                     'closeMinute': closeTime.minute,
                     'isNextDay': isNextDay,
-                    'daysOfWeek': selectedDays,
                   };
 
-                  FirebaseFirestore.instance
-                      .collection('stores')
-                      .doc(widget.storeId)
-                      .get()
-                      .then((doc) {
-                    List<dynamic> currentHours =
-                        List.from(doc.data()?['businessHours'] ?? []);
-                    currentHours.add(hours);
-                    _updateStore(
-                        {'businessHours': currentHours}, 'business_hours');
-                  });
+                  if (existingHours != null) {
+                    // 기존 항목 수정
+                    _updateStore({'businessHours': hours}, 'businessHours');
+                  } else {
+                    // 새 항목 추가
+                    // 상위 위젯의 setState 사용
+                    setState(() {
+                      if (!_pendingAdditions.containsKey('businessHours')) {
+                        _pendingAdditions['businessHours'] = [];
+                      }
+                      _pendingAdditions['businessHours']!.add(hours);
+                      _hasUnsavedChanges = true;
+                      _modifiedSections.add('businessHours');
+                    });
+                  }
                   Navigator.pop(context);
                 }
               },
-              child: const Text('저장'),
+              child: Text(existingHours == null ? '추가' : '수정'),
             ),
           ],
         ),
@@ -880,7 +1026,8 @@ class _StoreManagementScreenState extends State<StoreManagementScreen> {
       'SAT',
       'SUN'
     ];
-    List<String> selectedDays = existingHours?['daysOfWeek'] ?? [];
+    List<String> selectedDays =
+        List<String>.from(existingHours?['daysOfWeek'] ?? []);
     TimeOfDay startTime = existingHours != null
         ? TimeOfDay(
             hour: existingHours['startHour'],
@@ -895,8 +1042,8 @@ class _StoreManagementScreenState extends State<StoreManagementScreen> {
     showDialog(
       context: context,
       builder: (context) => StatefulBuilder(
-        builder: (context, setState) => AlertDialog(
-          title: const Text('해피아워 설정'),
+        builder: (context, setDialogState) => AlertDialog(
+          title: Text(existingHours == null ? '해피아워 추가' : '해피아워 수정'),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -909,7 +1056,7 @@ class _StoreManagementScreenState extends State<StoreManagementScreen> {
                             label: Text(day),
                             selected: selectedDays.contains(day),
                             onSelected: (selected) {
-                              setState(() {
+                              setDialogState(() {
                                 if (selected) {
                                   selectedDays.add(day);
                                 } else {
@@ -929,7 +1076,7 @@ class _StoreManagementScreenState extends State<StoreManagementScreen> {
                       initialTime: startTime,
                     );
                     if (time != null) {
-                      setState(() => startTime = time);
+                      setDialogState(() => startTime = time);
                     }
                   },
                 ),
@@ -942,7 +1089,7 @@ class _StoreManagementScreenState extends State<StoreManagementScreen> {
                       initialTime: endTime,
                     );
                     if (time != null) {
-                      setState(() => endTime = time);
+                      setDialogState(() => endTime = time);
                     }
                   },
                 ),
@@ -950,7 +1097,7 @@ class _StoreManagementScreenState extends State<StoreManagementScreen> {
                   title: const Text('다음날까지'),
                   value: isNextDay,
                   onChanged: (value) {
-                    setState(() => isNextDay = value ?? false);
+                    setDialogState(() => isNextDay = value ?? false);
                   },
                 ),
               ],
@@ -965,28 +1112,32 @@ class _StoreManagementScreenState extends State<StoreManagementScreen> {
               onPressed: () {
                 if (selectedDays.isNotEmpty) {
                   final Map<String, dynamic> hours = {
+                    'daysOfWeek': selectedDays,
                     'startHour': startTime.hour,
                     'startMinute': startTime.minute,
                     'endHour': endTime.hour,
                     'endMinute': endTime.minute,
                     'isNextDay': isNextDay,
-                    'daysOfWeek': selectedDays,
                   };
 
-                  FirebaseFirestore.instance
-                      .collection('stores')
-                      .doc(widget.storeId)
-                      .get()
-                      .then((doc) {
-                    List<dynamic> currentHours =
-                        List.from(doc.data()?['happyHours'] ?? []);
-                    currentHours.add(hours);
-                    _updateStore({'happyHours': currentHours}, 'happy_hours');
-                  });
+                  if (existingHours != null) {
+                    // 기존 항목 수정
+                    _updateStore({'happyHours': hours}, 'happyHours');
+                  } else {
+                    // 새 항목 추가
+                    setState(() {
+                      if (!_pendingAdditions.containsKey('happyHours')) {
+                        _pendingAdditions['happyHours'] = [];
+                      }
+                      _pendingAdditions['happyHours']!.add(hours);
+                      _hasUnsavedChanges = true;
+                      _modifiedSections.add('happyHours');
+                    });
+                  }
                   Navigator.pop(context);
                 }
               },
-              child: const Text('저장'),
+              child: Text(existingHours == null ? '추가' : '수정'),
             ),
           ],
         ),
@@ -1158,8 +1309,17 @@ class _StoreManagementScreenState extends State<StoreManagementScreen> {
     }
   }
 
-  Widget _buildListItem(
-      dynamic item, String type, bool isPending, bool isDeleted) {
+  Widget _buildListItemWithPendingChanges({
+    required dynamic item,
+    required String type,
+    required bool isPending,
+    required bool isDeleted,
+    required String title, // 표시할 제목
+    required String? subtitle, // 표시할 부제목
+    required VoidCallback onEdit,
+    required VoidCallback onDelete,
+    required VoidCallback onRestore,
+  }) {
     return Container(
       decoration: isPending
           ? BoxDecoration(
@@ -1169,7 +1329,7 @@ class _StoreManagementScreenState extends State<StoreManagementScreen> {
           : null,
       child: ListTile(
         title: Text(
-          item['name'] ?? '',
+          title,
           style: TextStyle(
             color: isPending ? Colors.grey[800] : null,
             decoration: isDeleted ? TextDecoration.lineThrough : null,
@@ -1177,24 +1337,16 @@ class _StoreManagementScreenState extends State<StoreManagementScreen> {
             decorationThickness: 2,
           ),
         ),
-        subtitle: type == 'menu'
+        subtitle: subtitle != null
             ? Text(
-                '\$${item['price']} - ${item['type']}',
+                subtitle,
                 style: TextStyle(
                   color: isPending ? Colors.grey[700] : Colors.grey[700],
                   decoration: isDeleted ? TextDecoration.lineThrough : null,
                   decorationColor: Colors.grey[400],
                 ),
               )
-            : Text(
-                '${item['startHour']}:${item['startMinute'].toString().padLeft(2, '0')} - '
-                '${item['endHour']}:${item['endMinute'].toString().padLeft(2, '0')}',
-                style: TextStyle(
-                  color: isPending ? Colors.grey[700] : Colors.grey[700],
-                  decoration: isDeleted ? TextDecoration.lineThrough : null,
-                  decorationColor: Colors.grey[400],
-                ),
-              ),
+            : null,
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -1202,17 +1354,17 @@ class _StoreManagementScreenState extends State<StoreManagementScreen> {
               IconButton(
                 icon: Icon(Icons.edit,
                     color: isPending ? Colors.grey[700] : null),
-                onPressed: () => _showEditDialog(item, type),
+                onPressed: onEdit,
               ),
               IconButton(
                 icon: Icon(Icons.delete,
                     color: isPending ? Colors.grey[700] : null),
-                onPressed: () => _markForDeletion(item, type),
+                onPressed: onDelete,
               ),
             ] else
               IconButton(
                 icon: const Icon(Icons.restore),
-                onPressed: () => _restoreItem(item, type),
+                onPressed: onRestore,
               ),
           ],
         ),
