@@ -92,7 +92,7 @@ class _HomePageState extends State<HomePage> {
     });
 
     final apiKey = dotenv.env['GOOGLE_MAPS_API_KEY'];
-    print('API Key: $apiKey');
+    // print('API Key: $apiKey');
 
     // 로그인 상태 변경 감지
     FirebaseAuth.instance.authStateChanges().listen((user) {

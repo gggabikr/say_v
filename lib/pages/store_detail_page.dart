@@ -314,39 +314,29 @@ class _StoreDetailPageState extends State<StoreDetailPage> {
                   ),
                   const Divider(height: 32, thickness: 0.5, color: Colors.grey),
                   Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              '영업 시간',
-                              style: TextStyle(
-                                  fontSize: 20, fontWeight: FontWeight.bold),
-                            ),
-                            const SizedBox(height: 8),
-                            _buildBusinessHours(),
-                          ],
+                      const Expanded(
+                        flex: 2,
+                        child: Text(
+                          '영업 시간',
+                          style: TextStyle(
+                              fontSize: 20, fontWeight: FontWeight.bold),
                         ),
                       ),
+                      const SizedBox(width: 8),
                       if (widget.store.happyHours?.isNotEmpty ?? false)
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                '해피 아워',
-                                style: TextStyle(
-                                    fontSize: 20, fontWeight: FontWeight.bold),
-                              ),
-                              const SizedBox(height: 8),
-                              _buildHappyHours(),
-                            ],
+                        const Expanded(
+                          flex: 2,
+                          child: Text(
+                            '해피 아워',
+                            style: TextStyle(
+                                fontSize: 20, fontWeight: FontWeight.bold),
                           ),
                         ),
                     ],
                   ),
+                  const SizedBox(height: 8),
+                  _buildBusinessAndHappyHours(),
                   const Divider(
                     height: 32,
                     thickness: 0.5,
@@ -652,7 +642,7 @@ class _StoreDetailPageState extends State<StoreDetailPage> {
     return days[weekday - 1];
   }
 
-  Widget _buildBusinessHours() {
+  Widget _buildBusinessAndHappyHours() {
     if (widget.store.is24Hours) {
       return const Text('24시간 영업');
     }
@@ -660,8 +650,8 @@ class _StoreDetailPageState extends State<StoreDetailPage> {
     final List<String> days = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
     return Column(
       children: days.map((day) {
-        // 해당 요일의 영업시간 찾기
-        var dayHours = widget.store.businessHours?.firstWhere(
+        // 영업시간 찾기
+        var businessHours = widget.store.businessHours?.firstWhere(
           (hours) => hours.daysOfWeek.contains(day),
           orElse: () => BusinessHours(
             openHour: 0,
@@ -672,59 +662,78 @@ class _StoreDetailPageState extends State<StoreDetailPage> {
           ),
         );
 
-        // 영업시간 문자열 생성
-        String hours = dayHours?.daysOfWeek.isEmpty ?? true
-            ? '휴무'
-            : '${dayHours!.openHour}:${dayHours.openMinute.toString().padLeft(2, '0')} - ${dayHours.closeHour}:${dayHours.closeMinute.toString().padLeft(2, '0')}';
+        // 해당 요일의 모든 해피아워 찾기
+        var happyHours = widget.store.happyHours
+                ?.where((hours) => hours.daysOfWeek.contains(day))
+                .toList() ??
+            [];
 
-        return Padding(
-          padding: const EdgeInsets.symmetric(vertical: 4),
-          child: Row(
-            children: [
-              SizedBox(
-                width: 50,
-                child: Text(day),
+        // 시작 시간 기준으로 정렬
+        happyHours.sort((a, b) {
+          int aTime = a.startHour * 60 + a.startMinute;
+          int bTime = b.startHour * 60 + b.startMinute;
+          return aTime.compareTo(bTime);
+        });
+
+        return Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 요일
+                  SizedBox(
+                    width: 40,
+                    child: Text(
+                      day,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black87,
+                      ),
+                    ),
+                  ),
+                  // 영업시간
+                  Expanded(
+                    flex: 2,
+                    child: Text(
+                      businessHours?.daysOfWeek.isEmpty ?? true
+                          ? '휴무'
+                          : '${_formatTime(businessHours!.openHour, businessHours.openMinute)} - ${_formatTime(businessHours.closeHour, businessHours.closeMinute)}',
+                      style: const TextStyle(height: 1.3),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  // 해피아워
+                  if (widget.store.happyHours?.isNotEmpty ?? false)
+                    Expanded(
+                      flex: 2,
+                      child: happyHours.isEmpty
+                          ? const Text('-', style: TextStyle(height: 1.3))
+                          : Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: happyHours.map((hours) {
+                                return Text(
+                                  '${_formatTime(hours.startHour, hours.startMinute)} - ${_formatTime(hours.endHour, hours.endMinute)}',
+                                  style: TextStyle(
+                                    fontSize: happyHours.length > 1 ? 12 : 14,
+                                    height: 1.3,
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                    ),
+                ],
               ),
-              Text(hours),
-            ],
-          ),
-        );
-      }).toList(),
-    );
-  }
-
-  Widget _buildHappyHours() {
-    final List<String> days = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
-    return Column(
-      children: days.map((day) {
-        // 해당 요일의 해피아워 찾기
-        var dayHours = widget.store.happyHours?.firstWhere(
-          (hours) => hours.daysOfWeek.contains(day),
-          orElse: () => HappyHour(
-            startHour: 0,
-            startMinute: 0,
-            endHour: 0,
-            endMinute: 0,
-            daysOfWeek: [],
-          ),
-        );
-
-        // 해피아워 문자열 생성
-        String hours = dayHours?.daysOfWeek.isEmpty ?? true
-            ? '-'
-            : '${dayHours!.startHour}:${dayHours.startMinute.toString().padLeft(2, '0')} - ${dayHours.endHour}:${dayHours.endMinute.toString().padLeft(2, '0')}';
-
-        return Padding(
-          padding: const EdgeInsets.symmetric(vertical: 4),
-          child: Row(
-            children: [
-              SizedBox(
-                width: 50,
-                child: Text(day),
+            ),
+            // 마지막 요일이 아닐 경우에만 구분선 추가
+            if (day != days.last)
+              const Divider(
+                height: 1,
+                thickness: 0.5,
+                color: Color(0xFFEEEEEE),
               ),
-              Text(hours),
-            ],
-          ),
+          ],
         );
       }).toList(),
     );

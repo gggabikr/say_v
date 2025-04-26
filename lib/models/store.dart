@@ -134,12 +134,34 @@ class Store {
       }
     }
 
+    double parseLatitude() {
+      final location = json['location'];
+      if (location is Map) {
+        return (location['latitude'] ?? 0.0).toDouble();
+      } else if (location != null) {
+        // GeoPoint 처리
+        return location.latitude.toDouble();
+      }
+      return 0.0;
+    }
+
+    double parseLongitude() {
+      final location = json['location'];
+      if (location is Map) {
+        return (location['longitude'] ?? 0.0).toDouble();
+      } else if (location != null) {
+        // GeoPoint 처리
+        return location.longitude.toDouble();
+      }
+      return 0.0;
+    }
+
     return Store(
       id: json['storeId']?.toString() ?? '',
       name: json['name']?.toString() ?? '',
       address: json['address']?.toString() ?? '',
-      latitude: (json['location']?['latitude'] ?? 0.0).toDouble(),
-      longitude: (json['location']?['longitude'] ?? 0.0).toDouble(),
+      latitude: parseLatitude(),
+      longitude: parseLongitude(),
       category: (json['category'] as List?)
               ?.map((e) => e.toString())
               .toList()

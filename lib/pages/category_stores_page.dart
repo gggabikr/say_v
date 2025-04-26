@@ -32,7 +32,6 @@ class CategoryStoresPage extends StatefulWidget {
 class _CategoryStoresPageState extends State<CategoryStoresPage> {
   final TextEditingController _searchController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
-  Timer? _debouncer;
 
   List<Store> stores = [];
   List<Store> displayStores = [];
@@ -277,21 +276,13 @@ class _CategoryStoresPageState extends State<CategoryStoresPage> {
         print('Loaded ${loadedStores.length} nearby stores');
       } else if (widget.category == 'all') {
         print('Loading all stores...');
-        loadedStores = await storeService.loadStores();
         if (_currentPosition != null) {
-          print(
-              'Calculating distances from position: ${_currentPosition!.latitude}, ${_currentPosition!.longitude}');
-          for (var store in loadedStores) {
-            store.calculateDistance(_currentPosition!);
-            print('Distance calculated for ${store.name}: ${store.distance}km');
-          }
-          // 거리 기준으로 정렬
-          loadedStores.sort((a, b) => (a.distance ?? double.infinity)
-              .compareTo(b.distance ?? double.infinity));
+          loadedStores = await storeService.getAllStores(_currentPosition!);
+          print('Loaded ${loadedStores.length} total stores');
         } else {
-          print('No current position available for distance calculation');
+          print('No current position available');
+          loadedStores = [];
         }
-        print('Loaded ${loadedStores.length} total stores');
       } else {
         print('Loading stores for category: ${widget.category}');
         if (_currentPosition != null) {
