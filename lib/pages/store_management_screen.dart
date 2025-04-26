@@ -244,8 +244,14 @@ class _StoreManagementScreenState extends State<StoreManagementScreen> {
   }
 
   Widget _buildCategoriesSection(Map<String, dynamic> storeData) {
-    final List<String> categories =
-        (storeData['category'] as List?)?.cast<String>() ?? [];
+    // 현재 저장된 카테고리와 pending 변경사항을 모두 고려
+    List<String> currentCategories =
+        List<String>.from(storeData['category'] ?? []);
+
+    // pending changes가 있다면 반영
+    if (_pendingChanges.containsKey('category')) {
+      currentCategories = List<String>.from(_pendingChanges['category'] ?? []);
+    }
 
     return Card(
       child: Padding(
@@ -258,13 +264,14 @@ class _StoreManagementScreenState extends State<StoreManagementScreen> {
             Wrap(
               spacing: 8,
               children: [
-                _buildCategoryChip('Happy Hour', 'happy_hour', categories),
                 _buildCategoryChip(
-                    'All You Can Eat', 'all_you_can_eat', categories),
+                    'Happy Hour', 'happy_hour', currentCategories),
                 _buildCategoryChip(
-                    'Special Events', 'special_events', categories),
+                    'All You Can Eat', 'all_you_can_eat', currentCategories),
                 _buildCategoryChip(
-                    'Deals & Discounts', 'deals_and_discounts', categories),
+                    'Special Events', 'special_events', currentCategories),
+                _buildCategoryChip('Deals & Discounts', 'deals_and_discounts',
+                    currentCategories),
               ],
             ),
           ],
@@ -275,9 +282,11 @@ class _StoreManagementScreenState extends State<StoreManagementScreen> {
 
   Widget _buildCategoryChip(
       String label, String value, List<String> selectedCategories) {
+    final bool isSelected = selectedCategories.contains(value);
+
     return FilterChip(
       label: Text(label),
-      selected: selectedCategories.contains(value),
+      selected: isSelected,
       onSelected: (bool selected) {
         List<String> newCategories = List.from(selectedCategories);
         if (selected) {
@@ -285,7 +294,11 @@ class _StoreManagementScreenState extends State<StoreManagementScreen> {
         } else {
           newCategories.remove(value);
         }
-        _updateStore({'category': newCategories}, 'category');
+        setState(() {
+          _pendingChanges['category'] = newCategories;
+          _hasUnsavedChanges = true;
+          _modifiedSections.add('category');
+        });
       },
     );
   }
@@ -503,87 +516,128 @@ class _StoreManagementScreenState extends State<StoreManagementScreen> {
     final pendingHours = _pendingAdditions['happyHours'] ?? [];
     final deletedHours = _pendingDeletions['happyHours'] ?? [];
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    // 현재 선택된 카테고리 확인
+    List<String> currentCategories =
+        List<String>.from(storeData['category'] ?? []);
+    if (_pendingChanges.containsKey('category')) {
+      currentCategories = List<String>.from(_pendingChanges['category'] ?? []);
+    }
+    final bool isHappyHourEnabled = currentCategories.contains('happy_hour');
+
+    return Stack(
+      children: [
+        Card(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildSectionHeader('해피아워', 'happyHours'),
-                IconButton(
-                  icon: const Icon(Icons.add),
-                  onPressed: () => _showHappyHourDialog(),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    _buildSectionHeader('해피아워', 'happyHours'),
+                    IconButton(
+                      icon: const Icon(Icons.add),
+                      onPressed: isHappyHourEnabled
+                          ? () => _showHappyHourDialog()
+                          : null,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: hours.length + pendingHours.length,
+                  itemBuilder: (context, index) {
+                    if (index < hours.length) {
+                      final hour = hours[index];
+                      final String hourId =
+                          (hour['daysOfWeek'] as List).join(',');
+                      final isDeleted = deletedHours.any((deletedHour) =>
+                          (deletedHour['daysOfWeek'] as List).join(',') ==
+                          hourId);
+                      final List<String> days =
+                          List<String>.from(hour['daysOfWeek']);
+
+                      return _buildListItemWithPendingChanges(
+                        item: hour,
+                        type: 'happyHours',
+                        isPending: false,
+                        isDeleted: isDeleted,
+                        title: days.join(', '),
+                        subtitle:
+                            '${hour['startHour'].toString().padLeft(2, '0')}:${hour['startMinute'].toString().padLeft(2, '0')} - '
+                            '${hour['endHour'].toString().padLeft(2, '0')}:${hour['endMinute'].toString().padLeft(2, '0')}',
+                        onEdit: isHappyHourEnabled
+                            ? () => _showHappyHourDialog(existingHours: hour)
+                            : null,
+                        onDelete: isHappyHourEnabled
+                            ? () => _markForDeletion(hour, 'happyHours')
+                            : null,
+                        onRestore: isHappyHourEnabled
+                            ? () => _restoreItem(hour, 'happyHours')
+                            : null,
+                      );
+                    } else {
+                      final pendingHour = pendingHours[index - hours.length];
+                      final List<String> days =
+                          List<String>.from(pendingHour['daysOfWeek']);
+
+                      return _buildListItemWithPendingChanges(
+                        item: pendingHour,
+                        type: 'happyHours',
+                        isPending: true,
+                        isDeleted: false,
+                        title: days.join(', '),
+                        subtitle:
+                            '${pendingHour['startHour'].toString().padLeft(2, '0')}:${pendingHour['startMinute'].toString().padLeft(2, '0')} - '
+                            '${pendingHour['endHour'].toString().padLeft(2, '0')}:${pendingHour['endMinute'].toString().padLeft(2, '0')}',
+                        onEdit: () =>
+                            _showHappyHourDialog(existingHours: pendingHour),
+                        onDelete: () {
+                          setState(() {
+                            _pendingAdditions['happyHours']
+                                ?.remove(pendingHour);
+                            if (_pendingAdditions['happyHours']?.isEmpty ??
+                                false) {
+                              _pendingAdditions.remove('happyHours');
+                            }
+                            _hasUnsavedChanges = _pendingAdditions.isNotEmpty ||
+                                _pendingDeletions.isNotEmpty ||
+                                _pendingChanges.isNotEmpty;
+                            if (!_hasUnsavedChanges) {
+                              _modifiedSections.remove('happyHours');
+                            }
+                          });
+                        },
+                        onRestore: () {}, // 사용되지 않음
+                      );
+                    }
+                  },
                 ),
               ],
             ),
-            const SizedBox(height: 16),
-            ListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: hours.length + pendingHours.length,
-              itemBuilder: (context, index) {
-                if (index < hours.length) {
-                  final hour = hours[index];
-                  final String hourId = (hour['daysOfWeek'] as List).join(',');
-                  final isDeleted = deletedHours.any((deletedHour) =>
-                      (deletedHour['daysOfWeek'] as List).join(',') == hourId);
-                  final List<String> days =
-                      List<String>.from(hour['daysOfWeek']);
-
-                  return _buildListItemWithPendingChanges(
-                    item: hour,
-                    type: 'happyHours',
-                    isPending: false,
-                    isDeleted: isDeleted,
-                    title: days.join(', '),
-                    subtitle:
-                        '${hour['startHour'].toString().padLeft(2, '0')}:${hour['startMinute'].toString().padLeft(2, '0')} - '
-                        '${hour['endHour'].toString().padLeft(2, '0')}:${hour['endMinute'].toString().padLeft(2, '0')}',
-                    onEdit: () => _showHappyHourDialog(existingHours: hour),
-                    onDelete: () => _markForDeletion(hour, 'happyHours'),
-                    onRestore: () => _restoreItem(hour, 'happyHours'),
-                  );
-                } else {
-                  final pendingHour = pendingHours[index - hours.length];
-                  final List<String> days =
-                      List<String>.from(pendingHour['daysOfWeek']);
-
-                  return _buildListItemWithPendingChanges(
-                    item: pendingHour,
-                    type: 'happyHours',
-                    isPending: true,
-                    isDeleted: false,
-                    title: days.join(', '),
-                    subtitle:
-                        '${pendingHour['startHour'].toString().padLeft(2, '0')}:${pendingHour['startMinute'].toString().padLeft(2, '0')} - '
-                        '${pendingHour['endHour'].toString().padLeft(2, '0')}:${pendingHour['endMinute'].toString().padLeft(2, '0')}',
-                    onEdit: () =>
-                        _showHappyHourDialog(existingHours: pendingHour),
-                    onDelete: () {
-                      setState(() {
-                        _pendingAdditions['happyHours']?.remove(pendingHour);
-                        if (_pendingAdditions['happyHours']?.isEmpty ?? false) {
-                          _pendingAdditions.remove('happyHours');
-                        }
-                        _hasUnsavedChanges = _pendingAdditions.isNotEmpty ||
-                            _pendingDeletions.isNotEmpty ||
-                            _pendingChanges.isNotEmpty;
-                        if (!_hasUnsavedChanges) {
-                          _modifiedSections.remove('happyHours');
-                        }
-                      });
-                    },
-                    onRestore: () {}, // 사용되지 않음
-                  );
-                }
-              },
-            ),
-          ],
+          ),
         ),
-      ),
+        if (!isHappyHourEnabled)
+          Positioned.fill(
+            child: Container(
+              color: Colors.grey.withOpacity(0.5),
+              child: const Center(
+                child: Text(
+                  '해피아워를 활성화하려면\n카테고리에서 Happy Hour를 선택하세요',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+          ),
+      ],
     );
   }
 
@@ -1314,11 +1368,11 @@ class _StoreManagementScreenState extends State<StoreManagementScreen> {
     required String type,
     required bool isPending,
     required bool isDeleted,
-    required String title, // 표시할 제목
-    required String? subtitle, // 표시할 부제목
-    required VoidCallback onEdit,
-    required VoidCallback onDelete,
-    required VoidCallback onRestore,
+    required String title,
+    required String? subtitle,
+    required VoidCallback? onEdit,
+    required VoidCallback? onDelete,
+    required VoidCallback? onRestore,
   }) {
     return Container(
       decoration: isPending
