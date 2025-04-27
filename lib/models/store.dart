@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
 import '../services/location_service.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 enum StoreCategory {
   happyHour('happy_hour'),
@@ -29,7 +30,6 @@ class Store {
   final double latitude;
   final double longitude;
   final List<StoreCategory> categories;
-  final List<double> ratings;
   final List<String> cuisineTypes;
   final List<MenuItem> menus;
   final String contactNumber;
@@ -39,35 +39,13 @@ class Store {
   final List<BusinessHours>? businessHours;
   final List<HappyHour>? happyHours;
   final bool is24Hours;
-  final int totalRatings;
   final List<String>? images;
-
-  double? _cachedAverageRating;
-  int? _lastRatingsLength;
+  final double averageRating; // Firestore에서 직접 받아오는 값
+  final int totalRatings; // Firestore에서 직접 받아오는 값
+  final Map<String, Review> reviews;
 
   String? _cachedAddress;
   final LocationService _locationService = LocationService();
-
-  double get averageRating {
-    if (_lastRatingsLength != ratings.length || _cachedAverageRating == null) {
-      if (ratings.isEmpty) {
-        _cachedAverageRating = 0.0;
-      } else {
-        final recentRatings = ratings.length > RATING_LIMIT
-            ? ratings.sublist(ratings.length - RATING_LIMIT)
-            : ratings;
-        _cachedAverageRating =
-            recentRatings.reduce((a, b) => a + b) / recentRatings.length;
-      }
-      _lastRatingsLength = ratings.length;
-    }
-    return _cachedAverageRating!;
-  }
-
-  static const RATING_LIMIT = 20; // 나중에 200으로 변경 가능
-
-  int get recentRatingsCount =>
-      ratings.length > RATING_LIMIT ? RATING_LIMIT : ratings.length;
 
   double? get distance => _cachedDistance;
   set distance(double? value) => _cachedDistance = value;
@@ -101,92 +79,23 @@ class Store {
     required this.latitude,
     required this.longitude,
     required String category,
-    required this.ratings,
     required this.cuisineTypes,
     required this.menus,
     required this.contactNumber,
     this.businessHours,
     this.happyHours,
     this.is24Hours = false,
-    required this.totalRatings,
     this.images,
-  }) : categories = StoreCategory.fromString(category) {
+    this.averageRating = 0.0,
+    this.totalRatings = 0,
+    Map<String, Review>? reviews,
+  })  : reviews = reviews ?? {},
+        categories = StoreCategory.fromString(category) {
     searchableText = [
       name.toLowerCase(),
       ...cuisineTypes.map((type) => type.toLowerCase()),
       ...menus.map((menu) => menu.name.toLowerCase()),
     ].join(' ');
-  }
-
-  factory Store.fromJson(Map<String, dynamic> json) {
-    List<double> parseRatings() {
-      try {
-        final ratingsList = json['ratings'];
-        if (ratingsList == null) return [];
-        if (ratingsList is! List) return [];
-        return ratingsList
-            .whereType<num>()
-            .map((rating) => rating.toDouble())
-            .toList();
-      } catch (e) {
-        print('Error parsing ratings: $e');
-        return [];
-      }
-    }
-
-    double parseLatitude() {
-      final location = json['location'];
-      if (location is Map) {
-        return (location['latitude'] ?? 0.0).toDouble();
-      } else if (location != null) {
-        // GeoPoint 처리
-        return location.latitude.toDouble();
-      }
-      return 0.0;
-    }
-
-    double parseLongitude() {
-      final location = json['location'];
-      if (location is Map) {
-        return (location['longitude'] ?? 0.0).toDouble();
-      } else if (location != null) {
-        // GeoPoint 처리
-        return location.longitude.toDouble();
-      }
-      return 0.0;
-    }
-
-    return Store(
-      id: json['storeId']?.toString() ?? '',
-      name: json['name']?.toString() ?? '',
-      address: json['address']?.toString() ?? '',
-      latitude: parseLatitude(),
-      longitude: parseLongitude(),
-      category: (json['category'] as List?)
-              ?.map((e) => e.toString())
-              .toList()
-              .join(',') ??
-          '',
-      ratings: parseRatings(),
-      cuisineTypes: (json['cuisineTypes'] as List?)
-              ?.map((type) => type.toString())
-              .toList() ??
-          [],
-      menus: (json['menus'] as List?)
-              ?.map((menu) => MenuItem.fromJson(menu))
-              .toList() ??
-          [],
-      contactNumber: json['contactNumber']?.toString() ?? '',
-      businessHours: (json['businessHours'] as List?)
-          ?.map((hour) => BusinessHours.fromJson(hour))
-          .toList(),
-      happyHours: (json['happyHours'] as List?)
-          ?.map((hour) => HappyHour.fromJson(hour))
-          .toList(),
-      is24Hours: json['is24Hours'] ?? false,
-      totalRatings: (json['totalRatings'] as num?)?.toInt() ?? 0,
-      images: (json['images'] as List?)?.cast<String>(),
-    );
   }
 
   String _formatTimeFromHourMinute(int hour, int minute) {
@@ -273,7 +182,7 @@ class Store {
         'latitude': latitude,
         'longitude': longitude,
       },
-      'ratings': ratings,
+      'ratings': totalRatings,
       'totalRatings': totalRatings,
       'menus': menus.map((x) => x.toJson()).toList(),
       'businessHours': businessHours?.map((x) => x.toJson()).toList(),
@@ -492,5 +401,40 @@ class HappyHour {
       default:
         return "";
     }
+  }
+}
+
+class Review {
+  final String userId;
+  final double score;
+  final String comment;
+  final DateTime timestamp;
+  final String userName; // Firestore users 컬렉션에서 가져올 사용자 이름
+
+  Review({
+    required this.userId,
+    required this.score,
+    required this.comment,
+    required this.timestamp,
+    required this.userName,
+  });
+
+  factory Review.fromJson(Map<String, dynamic> json, String userId) {
+    return Review(
+      userId: userId,
+      score: (json['score'] as num).toDouble(),
+      comment: json['comment'] as String? ?? '',
+      timestamp: (json['timestamp'] as Timestamp).toDate(),
+      userName: json['userName'] as String? ?? 'Unknown User',
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'score': score,
+      'comment': comment,
+      'timestamp': Timestamp.fromDate(timestamp),
+      'userName': userName,
+    };
   }
 }

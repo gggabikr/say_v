@@ -27,7 +27,10 @@ class StoreListItem extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => StoreDetailPage(store: store),
+            builder: (context) => StoreDetailPage(
+              store: store,
+              currentUserId: 'test_user_id', // TODO: 실제 사용자 ID로 교체 필요
+            ),
           ),
         );
       },

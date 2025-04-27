@@ -6,11 +6,15 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 import 'dart:io' show Platform;
+import 'package:say_v/widgets/review_section.dart';
 
 class StoreDetailPage extends StatefulWidget {
   final Store store;
+  final String currentUserId;
 
-  const StoreDetailPage({Key? key, required this.store}) : super(key: key);
+  const StoreDetailPage(
+      {Key? key, required this.store, required this.currentUserId})
+      : super(key: key);
 
   @override
   State<StoreDetailPage> createState() => _StoreDetailPageState();
@@ -227,153 +231,183 @@ class _StoreDetailPageState extends State<StoreDetailPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.store.name),
-      ),
-      body: SingleChildScrollView(
-        controller: _scrollController,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildImageGallery(),
-            const Divider(height: 32, thickness: 0.5, color: Colors.grey),
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    '기본 정보',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 8),
-                  Column(
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            expandedHeight: 200.0,
+            pinned: true,
+            flexibleSpace: FlexibleSpaceBar(
+              title: Text(widget.store.name),
+              background: _buildImageGallery(),
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildImageGallery(),
+                const Divider(height: 32, thickness: 0.5, color: Colors.grey),
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      GestureDetector(
-                        onLongPress: _address != null
-                            ? () => _showCopyDialog(_address!, '주소')
-                            : null,
-                        child: ListTile(
-                          contentPadding:
-                              const EdgeInsets.symmetric(horizontal: 16),
-                          leading: const Icon(Icons.location_on),
-                          title: _isLoadingAddress
-                              ? const Text('주소 불러오는 중...')
-                              : Text(
-                                  _address ?? '주소를 불러올 수 없습니다',
-                                  style: const TextStyle(height: 1.3),
-                                ),
-                          minVerticalPadding: 0,
-                          visualDensity: VisualDensity.compact,
-                          onTap: _address != null ? _openMapsNavigation : null,
-                          trailing: _address != null
-                              ? const Icon(Icons.navigation,
-                                  size: 20, color: Colors.blue)
-                              : null,
-                        ),
+                      const Text(
+                        '기본 정보',
+                        style: TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.bold),
                       ),
-                      SizedBox(
-                        height: 40,
-                        child: _buildCurrentStatus(),
-                      ),
-                      SizedBox(
-                        height: 40,
-                        child: GestureDetector(
-                          onLongPress: widget.store.contactNumber.isNotEmpty
-                              ? () => _showCopyDialog(
-                                  widget.store.contactNumber.replaceAllMapped(
-                                    RegExp(r'(\d{3})(\d{3})(\d{4})'),
-                                    (Match m) => '${m[1]}-${m[2]}-${m[3]}',
-                                  ),
-                                  '전화번호')
-                              : null,
-                          child: ListTile(
-                            contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 4),
-                            leading: const Icon(Icons.phone),
-                            title: Text(widget.store.contactNumber
-                                    .replaceAllMapped(
+                      const SizedBox(height: 8),
+                      Column(
+                        children: [
+                          GestureDetector(
+                            onLongPress: _address != null
+                                ? () => _showCopyDialog(_address!, '주소')
+                                : null,
+                            child: ListTile(
+                              contentPadding:
+                                  const EdgeInsets.symmetric(horizontal: 16),
+                              leading: const Icon(Icons.location_on),
+                              title: _isLoadingAddress
+                                  ? const Text('주소 불러오는 중...')
+                                  : Text(
+                                      _address ?? '주소를 불러올 수 없습니다',
+                                      style: const TextStyle(height: 1.3),
+                                    ),
+                              minVerticalPadding: 0,
+                              visualDensity: VisualDensity.compact,
+                              onTap:
+                                  _address != null ? _openMapsNavigation : null,
+                              trailing: _address != null
+                                  ? const Icon(Icons.navigation,
+                                      size: 20, color: Colors.blue)
+                                  : null,
+                            ),
+                          ),
+                          SizedBox(
+                            height: 40,
+                            child: _buildCurrentStatus(),
+                          ),
+                          SizedBox(
+                            height: 40,
+                            child: GestureDetector(
+                              onLongPress: widget.store.contactNumber.isNotEmpty
+                                  ? () => _showCopyDialog(
+                                      widget.store.contactNumber
+                                          .replaceAllMapped(
                                         RegExp(r'(\d{3})(\d{3})(\d{4})'),
-                                        (Match m) =>
-                                            '${m[1]}-${m[2]}-${m[3]}') ??
-                                '전화번호 없음'),
-                            minVerticalPadding: 0,
-                            visualDensity: VisualDensity.compact,
-                            onTap: widget.store.contactNumber.isNotEmpty
-                                ? _openPhoneApp
-                                : null,
-                            trailing: widget.store.contactNumber.isNotEmpty
-                                ? const Icon(Icons.phone_enabled,
-                                    size: 20, color: Colors.blue)
-                                : null,
+                                        (Match m) => '${m[1]}-${m[2]}-${m[3]}',
+                                      ),
+                                      '전화번호')
+                                  : null,
+                              child: ListTile(
+                                contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 16, vertical: 4),
+                                leading: const Icon(Icons.phone),
+                                title: Text(widget.store.contactNumber
+                                        .replaceAllMapped(
+                                            RegExp(r'(\d{3})(\d{3})(\d{4})'),
+                                            (Match m) =>
+                                                '${m[1]}-${m[2]}-${m[3]}') ??
+                                    '전화번호 없음'),
+                                minVerticalPadding: 0,
+                                visualDensity: VisualDensity.compact,
+                                onTap: widget.store.contactNumber.isNotEmpty
+                                    ? _openPhoneApp
+                                    : null,
+                                trailing: widget.store.contactNumber.isNotEmpty
+                                    ? const Icon(Icons.phone_enabled,
+                                        size: 20, color: Colors.blue)
+                                    : null,
+                              ),
+                            ),
                           ),
+                        ],
+                      ),
+                      const Divider(
+                          height: 32, thickness: 0.5, color: Colors.grey),
+                      Row(
+                        children: [
+                          const Expanded(
+                            flex: 2,
+                            child: Text(
+                              '영업 시간',
+                              style: TextStyle(
+                                  fontSize: 20, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          if (widget.store.happyHours?.isNotEmpty ?? false)
+                            const Expanded(
+                              flex: 2,
+                              child: Text(
+                                '해피 아워',
+                                style: TextStyle(
+                                    fontSize: 20, fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      _buildBusinessAndHappyHours(),
+                      const Divider(
+                        height: 32,
+                        thickness: 0.5,
+                        color: Colors.grey,
+                      ),
+                      const Text(
+                        '메뉴',
+                        style: TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 8),
+                      SizedBox(
+                        height: 50,
+                        child: ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: _categories.length,
+                          itemBuilder: (context, index) {
+                            return Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 4),
+                              child: ChoiceChip(
+                                label: Text(_categories[index]),
+                                selected:
+                                    _selectedCategory == _categories[index],
+                                onSelected: (bool selected) {
+                                  setState(() {
+                                    _selectedCategory = _categories[index];
+                                  });
+                                },
+                              ),
+                            );
+                          },
                         ),
                       ),
+                      const SizedBox(height: 16),
+                      _buildMenuList(),
                     ],
                   ),
-                  const Divider(height: 32, thickness: 0.5, color: Colors.grey),
-                  Row(
-                    children: [
-                      const Expanded(
-                        flex: 2,
-                        child: Text(
-                          '영업 시간',
-                          style: TextStyle(
-                              fontSize: 20, fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      if (widget.store.happyHours?.isNotEmpty ?? false)
-                        const Expanded(
-                          flex: 2,
-                          child: Text(
-                            '해피 아워',
-                            style: TextStyle(
-                                fontSize: 20, fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  _buildBusinessAndHappyHours(),
-                  const Divider(
-                    height: 32,
-                    thickness: 0.5,
-                    color: Colors.grey,
-                  ),
-                  const Text(
-                    '메뉴',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 8),
-                  SizedBox(
-                    height: 50,
-                    child: ListView.builder(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: _categories.length,
-                      itemBuilder: (context, index) {
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 4),
-                          child: ChoiceChip(
-                            label: Text(_categories[index]),
-                            selected: _selectedCategory == _categories[index],
-                            onSelected: (bool selected) {
-                              setState(() {
-                                _selectedCategory = _categories[index];
-                              });
-                            },
-                          ),
-                        );
-                      },
+                ),
+                const Divider(height: 32),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Text(
+                    '리뷰',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const SizedBox(height: 16),
-                  _buildMenuList(),
-                ],
-              ),
+                ),
+                ReviewSection(
+                  store: widget.store,
+                  currentUserId: widget.currentUserId,
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
       floatingActionButton: ScrollToTop(
         scrollController: _scrollController,
