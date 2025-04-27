@@ -6,7 +6,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 import 'dart:io' show Platform;
-import 'package:flutter/rendering.dart';
 
 class StoreDetailPage extends StatefulWidget {
   final Store store;
