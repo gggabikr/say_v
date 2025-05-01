@@ -348,10 +348,10 @@ class MenuItem {
 
   factory MenuItem.fromJson(Map<String, dynamic> json) {
     return MenuItem(
-      itemId: json['itemId'],
-      name: json['name'],
-      price: json['price'].toDouble(),
-      type: json['type'],
+      itemId: json['itemId']?.toString() ?? json['id']?.toString() ?? '',
+      name: json['name']?.toString() ?? '',
+      price: (json['price'] as num?)?.toDouble() ?? 0.0,
+      type: json['type']?.toString() ?? 'default',
     );
   }
 

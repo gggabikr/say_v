@@ -5,7 +5,28 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class StoreService {
+  // 싱글톤 인스턴스
+  static final StoreService _instance = StoreService._internal();
+
+  // 팩토리 생성자
+  factory StoreService() => _instance;
+
+  // private 생성자
+  StoreService._internal();
+
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  DocumentSnapshot? _lastDocument;
+  final Set<String> _loadedDocumentIds = {}; // 이미 로드된 문서 ID 추적
+  String? _currentCategory; // 현재 카테고리 추적
+  bool _hasMoreData = true; // 추가 데이터 존재 여부
+  bool _isLoading = false; // 현재 로딩 중인지 여부
+  static const int pageSize = 10;
+
+  // 추가 데이터 존재 여부 확인
+  bool get hasMoreData => _hasMoreData;
+
+  // 로딩 중인지 확인
+  bool get isLoading => _isLoading;
 
   Future<List<Store>> loadStores() async {
     try {
@@ -244,5 +265,96 @@ class StoreService {
 
   double _toRadians(double degree) {
     return degree * (pi / 180.0);
+  }
+
+  Future<List<Store>> loadStoresPage({
+    String? category,
+    Position? position,
+    int limit = pageSize,
+  }) async {
+    if (_isLoading) {
+      print('Skip loading: Already loading');
+      return [];
+    }
+
+    if (!_hasMoreData && _currentCategory == category) {
+      print('Skip loading: No more data for current category');
+      return [];
+    }
+
+    try {
+      _isLoading = true;
+
+      // 카테고리가 변경되었는지 확인
+      if (_currentCategory != category) {
+        print('Category changed from $_currentCategory to $category');
+        resetPagination();
+        _currentCategory = category;
+        _hasMoreData = true; // 새 카테고리니까 데이터가 있다고 가정
+      }
+
+      Query<Map<String, dynamic>> query = _firestore.collection('stores');
+
+      if (category != null && category != 'nearby' && category != 'all') {
+        query = query.where('category', arrayContains: category);
+      }
+
+      query = query.orderBy('name').limit(limit);
+
+      if (_lastDocument != null) {
+        query = query.startAfterDocument(_lastDocument!);
+      }
+
+      final snapshot = await query.get();
+
+      if (snapshot.docs.isEmpty) {
+        _hasMoreData = false;
+        print('No more documents available');
+        return [];
+      }
+
+      final stores = snapshot.docs
+          .where((doc) => !_loadedDocumentIds.contains(doc.id))
+          .map((doc) {
+        _loadedDocumentIds.add(doc.id);
+        final data = doc.data();
+        data['id'] = doc.id;
+        return Store.fromJson(data);
+      }).toList();
+
+      if (stores.isNotEmpty) {
+        _lastDocument = snapshot.docs.last;
+      }
+
+      // 가져온 데이터가 요청한 limit보다 적으면 더 이상 데이터가 없는 것
+      if (snapshot.docs.length < limit) {
+        _hasMoreData = false;
+        print('Reached the end of data');
+      }
+
+      if (position != null) {
+        for (var store in stores) {
+          store.calculateDistance(position);
+        }
+        stores.sort((a, b) => (a.distance ?? double.infinity)
+            .compareTo(b.distance ?? double.infinity));
+      }
+
+      return stores;
+    } catch (e) {
+      print('Error loading stores page: $e');
+      return [];
+    } finally {
+      _isLoading = false;
+    }
+  }
+
+  void resetPagination() {
+    print('Resetting pagination...');
+    _lastDocument = null;
+    _loadedDocumentIds.clear();
+    _hasMoreData = true;
+    _isLoading = false;
+    print('Reset complete. All pagination data cleared.');
   }
 }
