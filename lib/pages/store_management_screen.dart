@@ -1199,7 +1199,7 @@ class _StoreManagementScreenState extends State<StoreManagementScreen> {
     );
   }
 
-  void _showMenuItemDialog({Map<String, dynamic>? existingMenu, int? index}) {
+  void _showMenuItemDialog({Map<String, dynamic>? existingMenu}) {
     final nameController =
         TextEditingController(text: existingMenu?['name'] ?? '');
     final priceController = TextEditingController(

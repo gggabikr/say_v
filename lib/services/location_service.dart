@@ -1,8 +1,5 @@
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class LocationService {
   Future<Position> getCurrentLocation() async {

@@ -1,6 +1,4 @@
-import 'dart:convert';
 import 'dart:math';
-import 'package:flutter/services.dart';
 import '../models/store.dart';
 import 'package:geolocator/geolocator.dart';
 import 'dart:async';
