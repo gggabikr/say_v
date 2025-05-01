@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Add Reviews to Specific Store</title>
+    <meta charset="UTF-8">
+</head>
+
+<body>
+    <h2>Add Reviews to Specific Store</h2>
+    <button onclick="addReviews()">Add Reviews</button>
+    <div id="status"></div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+    <script>
+        const app = firebase.initializeApp({
+            apiKey: "AIzaSyA10vSduReQ5zzUbtdNRyQkH7QlZnedpPU",
+            authDomain: "say-v-18b2d.firebaseapp.com",
+            projectId: "say-v-18b2d",
+            storageBucket: "say-v-18b2d.appspot.com",
+            messagingSenderId: "323889989200",
+            appId: "1:323889989200:web:287479e06acd1da0e53355",
+            measurementId: "G-NY5Z33E4FF"
+        });
+
+        const db = firebase.firestore(app);
+
+        const sampleComments = {
+            high: [
+                "최고의 식당입니다! 또 방문하고 싶어요",
+                "Excellent food and service!",
+                "분위기도 좋고 음식도 맛있어요"
+            ]
+        };
+
+        const updateStatus = (message) => {
+            console.log(message);
+            document.getElementById('status').innerHTML += `<p>${message}</p>`;
+        };
+
+        const addReviews = async () => {
+            try {
+                updateStatus('Starting update process...');
+
+                const storeRef = db.collection('stores').doc('Nnub7BhJFzOUny4v0Wvw');
+                const storeDoc = await storeRef.get();
+
+                if (!storeDoc.exists) {
+                    updateStatus('Store not found!');
+                    return;
+                }
+
+                const data = storeDoc.data();
+                const ratings = data.ratings || {};
+                const reviews = ratings.reviews || {};
+
+                // 10개의 새로운 리뷰 생성
+                const newReviews = {};
+                const scores = [3.5, 4.0, 4.0, 4.5, 4.5, 4.5, 5.0, 5.0, 5.0, 5.0];
+
+                // 코멘트를 달 리뷰 3개 선택
+                const commentIndexes = new Set();
+                while (commentIndexes.size < 3) {
+                    commentIndexes.add(Math.floor(Math.random() * 10));
+                }
+
+                scores.forEach((score, index) => {
+                    const timestamp = new Date();
+                    timestamp.setDate(timestamp.getDate() - Math.floor(Math.random() * 30));
+
+                    newReviews[`review_${index}`] = {
+                        score: score,
+                        timestamp: firebase.firestore.Timestamp.fromDate(timestamp),
+                        userId: `user_${index}`,
+                        userName: `User ${index}`,
+                        comment: commentIndexes.has(index) ?
+                            sampleComments.high[Math.floor(Math.random() * sampleComments.high.length)] :
+                            ""
+                    };
+                });
+
+                // 평균 계산
+                const average = scores.reduce((a, b) => a + b, 0) / scores.length;
+
+                await storeRef.update({
+                    ratings: {
+                        average: Number(average.toFixed(3)),
+                        total: 10,
+                        reviews: newReviews
+                    }
+                });
+
+                updateStatus('Successfully added 10 reviews!');
+
+            } catch (error) {
+                console.error('Error:', error);
+                updateStatus(`Error occurred: ${error.message}`);
+            }
+        };
+    </script>
+</body>
+
+</html>
