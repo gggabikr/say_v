@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:geolocator/geolocator.dart';
 import '../services/location_service.dart';
 
@@ -28,7 +29,9 @@ class Store {
   final double latitude;
   final double longitude;
   final List<StoreCategory> categories;
-  final List<double> ratings;
+  final double averageRating;
+  final int totalRatings;
+  final Map<String, Review> reviews;
   final List<String> cuisineTypes;
   final List<MenuItem> menus;
   final String contactNumber;
@@ -38,35 +41,12 @@ class Store {
   final List<BusinessHours>? businessHours;
   final List<HappyHour>? happyHours;
   final bool is24Hours;
-  final int totalRatings;
   final List<String>? images;
-
-  double? _cachedAverageRating;
-  int? _lastRatingsLength;
 
   String? _cachedAddress;
   final LocationService _locationService = LocationService();
 
-  double get averageRating {
-    if (_lastRatingsLength != ratings.length || _cachedAverageRating == null) {
-      if (ratings.isEmpty) {
-        _cachedAverageRating = 0.0;
-      } else {
-        final recentRatings = ratings.length > RATING_LIMIT
-            ? ratings.sublist(ratings.length - RATING_LIMIT)
-            : ratings;
-        _cachedAverageRating =
-            recentRatings.reduce((a, b) => a + b) / recentRatings.length;
-      }
-      _lastRatingsLength = ratings.length;
-    }
-    return _cachedAverageRating!;
-  }
-
-  static const RATING_LIMIT = 20; // 나중에 200으로 변경 가능
-
-  int get recentRatingsCount =>
-      ratings.length > RATING_LIMIT ? RATING_LIMIT : ratings.length;
+  int get recentRatingsCount => totalRatings;
 
   double? get distance => _cachedDistance;
   set distance(double? value) => _cachedDistance = value;
@@ -100,14 +80,15 @@ class Store {
     required this.latitude,
     required this.longitude,
     required String category,
-    required this.ratings,
+    required this.averageRating,
+    required this.totalRatings,
+    required this.reviews,
     required this.cuisineTypes,
     required this.menus,
     required this.contactNumber,
     this.businessHours,
     this.happyHours,
     this.is24Hours = false,
-    required this.totalRatings,
     this.images,
   }) : categories = StoreCategory.fromString(category) {
     searchableText = [
@@ -118,19 +99,12 @@ class Store {
   }
 
   factory Store.fromJson(Map<String, dynamic> json) {
-    List<double> parseRatings() {
-      try {
-        final ratingsList = json['ratings'];
-        if (ratingsList == null) return [];
-        if (ratingsList is! List) return [];
-        return ratingsList
-            .whereType<num>()
-            .map((rating) => rating.toDouble())
-            .toList();
-      } catch (e) {
-        print('Error parsing ratings: $e');
-        return [];
-      }
+    Map<String, Review> parseReviews(Map<String, dynamic>? ratingsJson) {
+      if (ratingsJson == null || ratingsJson['reviews'] == null) return {};
+
+      final reviewsJson = ratingsJson['reviews'] as Map<String, dynamic>;
+      return reviewsJson.map((key, value) =>
+          MapEntry(key, Review.fromJson(value as Map<String, dynamic>)));
     }
 
     double parseLatitude() {
@@ -138,7 +112,6 @@ class Store {
       if (location is Map) {
         return (location['latitude'] ?? 0.0).toDouble();
       } else if (location != null) {
-        // GeoPoint 처리
         return location.latitude.toDouble();
       }
       return 0.0;
@@ -149,11 +122,17 @@ class Store {
       if (location is Map) {
         return (location['longitude'] ?? 0.0).toDouble();
       } else if (location != null) {
-        // GeoPoint 처리
         return location.longitude.toDouble();
       }
       return 0.0;
     }
+
+    final ratingsJson = json['ratings'] as Map<String, dynamic>?;
+    final rawAverage = ratingsJson?['average'] as num?;
+
+    print('Raw average from Firebase: $rawAverage');
+    final parsedAverage = (rawAverage?.toDouble() ?? 0.00);
+    print('Parsed average: $parsedAverage');
 
     return Store(
       id: json['storeId']?.toString() ?? '',
@@ -166,7 +145,9 @@ class Store {
               .toList()
               .join(',') ??
           '',
-      ratings: parseRatings(),
+      averageRating: parsedAverage,
+      totalRatings: (ratingsJson?['total'] as num?)?.toInt() ?? 0,
+      reviews: parseReviews(ratingsJson),
       cuisineTypes: (json['cuisineTypes'] as List?)
               ?.map((type) => type.toString())
               .toList() ??
@@ -183,7 +164,6 @@ class Store {
           ?.map((hour) => HappyHour.fromJson(hour))
           .toList(),
       is24Hours: json['is24Hours'] ?? false,
-      totalRatings: (json['totalRatings'] as num?)?.toInt() ?? 0,
       images: (json['images'] as List?)?.cast<String>(),
     );
   }
@@ -272,8 +252,11 @@ class Store {
         'latitude': latitude,
         'longitude': longitude,
       },
-      'ratings': ratings,
-      'totalRatings': totalRatings,
+      'ratings': {
+        'average': averageRating,
+        'total': totalRatings,
+        'reviews': reviews.map((key, value) => MapEntry(key, value.toJson())),
+      },
       'menus': menus.map((x) => x.toJson()).toList(),
       'businessHours': businessHours?.map((x) => x.toJson()).toList(),
       'happyHours': happyHours
@@ -310,6 +293,22 @@ class Store {
   }
 
   Future<String> get formattedAddress => getAddress();
+
+  List<Review> get reviewsList => reviews.values.toList();
+
+  List<Review> get commentedReviews =>
+      reviews.values.where((review) => review.comment.isNotEmpty).toList();
+
+  String get ratingDisplay {
+    print('Current averageRating: $averageRating');
+    print('Formatted rating: ${averageRating.toStringAsFixed(2)}');
+    print('Total ratings: $totalRatings');
+    final display = totalRatings > 0
+        ? "${averageRating.toStringAsFixed(2)} ($totalRatings)"
+        : "New!";
+    print('Final display: $display');
+    return display;
+  }
 }
 
 class Location {
@@ -491,5 +490,41 @@ class HappyHour {
       default:
         return "";
     }
+  }
+}
+
+class Review {
+  final double score;
+  final DateTime timestamp;
+  final String userId;
+  final String userName;
+  final String comment;
+
+  Review({
+    required this.score,
+    required this.timestamp,
+    required this.userId,
+    required this.userName,
+    required this.comment,
+  });
+
+  factory Review.fromJson(Map<String, dynamic> json) {
+    return Review(
+      score: (json['score'] as num).toDouble(),
+      timestamp: (json['timestamp'] as Timestamp).toDate(),
+      userId: json['userId'] as String,
+      userName: json['userName'] as String,
+      comment: json['comment'] as String? ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'score': score,
+      'timestamp': timestamp,
+      'userId': userId,
+      'userName': userName,
+      'comment': comment,
+    };
   }
 }
