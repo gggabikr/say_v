@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:say_v/widgets/review_section.dart';
 import 'package:say_v/widgets/scroll_to_top.dart';
 import '../models/store.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -246,7 +247,7 @@ class _StoreDetailPageState extends State<StoreDetailPage> {
                     '기본 정보',
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 16),
                   Column(
                     children: [
                       GestureDetector(
@@ -334,18 +335,15 @@ class _StoreDetailPageState extends State<StoreDetailPage> {
                         ),
                     ],
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 16),
                   _buildBusinessAndHappyHours(),
-                  const Divider(
-                    height: 32,
-                    thickness: 0.5,
-                    color: Colors.grey,
-                  ),
+                  const SizedBox(height: 16),
+                  const Divider(height: 32, thickness: 0.5, color: Colors.grey),
                   const Text(
                     '메뉴',
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 16),
                   SizedBox(
                     height: 50,
                     child: ListView.builder(
@@ -369,6 +367,12 @@ class _StoreDetailPageState extends State<StoreDetailPage> {
                   ),
                   const SizedBox(height: 16),
                   _buildMenuList(),
+                  const SizedBox(height: 32),
+                  const Divider(height: 32, thickness: 0.5, color: Colors.grey),
+                  ReviewSection(store: widget.store),
+                  SizedBox(
+                    height: MediaQuery.of(context).padding.bottom + 32,
+                  ),
                 ],
               ),
             ),

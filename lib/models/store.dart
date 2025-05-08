@@ -499,6 +499,7 @@ class Review {
   final String userId;
   final String userName;
   final String comment;
+  final List<String>? images;
 
   Review({
     required this.score,
@@ -506,6 +507,7 @@ class Review {
     required this.userId,
     required this.userName,
     required this.comment,
+    this.images,
   });
 
   factory Review.fromJson(Map<String, dynamic> json) {
@@ -515,6 +517,7 @@ class Review {
       userId: json['userId'] as String,
       userName: json['userName'] as String,
       comment: json['comment'] as String? ?? '',
+      images: (json['images'] as List<dynamic>?)?.cast<String>(),
     );
   }
 
@@ -525,6 +528,7 @@ class Review {
       'userId': userId,
       'userName': userName,
       'comment': comment,
+      'images': images,
     };
   }
 }
