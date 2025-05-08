@@ -155,23 +155,21 @@ class ReviewSection extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
           child: Column(
             children: [
-              // 사용자 본인의 리뷰를 먼저 표시
-              ...store.reviews.values
-                  .where((review) =>
-                      review.userId ==
-                          'currentUserId' && // TODO: 실제 사용자 ID로 교체 필요
-                      (review.comment.isNotEmpty ||
-                          (review.images?.isNotEmpty ?? false)))
-                  .map((review) => _buildReviewCard(review, true)),
+              // 사용자 본인의 리뷰를 먼저 표시 (reviews의 key가 userId임을 활용)
+              ...store.reviews.entries
+                  .where((entry) =>
+                      entry.key == 'currentUserId' && // TODO: 실제 사용자 ID로 교체 필요
+                      (entry.value.comment.isNotEmpty ||
+                          (entry.value.images?.isNotEmpty ?? false)))
+                  .map((entry) => _buildReviewCard(entry.value, true)),
 
               // 나머지 리뷰들 (코멘트나 사진이 있는 것만)
-              ...store.reviews.values
-                  .where((review) =>
-                      review.userId !=
-                          'currentUserId' && // TODO: 실제 사용자 ID로 교체 필요
-                      (review.comment.isNotEmpty ||
-                          (review.images?.isNotEmpty ?? false)))
-                  .map((review) => _buildReviewCard(review, false)),
+              ...store.reviews.entries
+                  .where((entry) =>
+                      entry.key != 'currentUserId' && // TODO: 실제 사용자 ID로 교체 필요
+                      (entry.value.comment.isNotEmpty ||
+                          (entry.value.images?.isNotEmpty ?? false)))
+                  .map((entry) => _buildReviewCard(entry.value, false)),
             ],
           ),
         ),
@@ -212,8 +210,7 @@ class ReviewSection extends StatelessWidget {
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    if (review.userId == 'currentUserId') ...[
-                      // TODO: 실제 사용자 ID로 교체 필요
+                    if (isUserReview) ...[
                       // 본인 리뷰인 경우 수정, 삭제 버튼
                       SizedBox(
                         width: 28,

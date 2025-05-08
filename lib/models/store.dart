@@ -496,7 +496,6 @@ class HappyHour {
 class Review {
   final double score;
   final DateTime timestamp;
-  final String userId;
   final String userName;
   final String comment;
   final List<String>? images;
@@ -504,7 +503,6 @@ class Review {
   Review({
     required this.score,
     required this.timestamp,
-    required this.userId,
     required this.userName,
     required this.comment,
     this.images,
@@ -514,7 +512,6 @@ class Review {
     return Review(
       score: (json['score'] as num).toDouble(),
       timestamp: (json['timestamp'] as Timestamp).toDate(),
-      userId: json['userId'] as String,
       userName: json['userName'] as String,
       comment: json['comment'] as String? ?? '',
       images: (json['images'] as List<dynamic>?)?.cast<String>(),
@@ -525,7 +522,6 @@ class Review {
     return {
       'score': score,
       'timestamp': timestamp,
-      'userId': userId,
       'userName': userName,
       'comment': comment,
       'images': images,
