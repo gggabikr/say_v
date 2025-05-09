@@ -61,7 +61,7 @@ class StoreListItem extends StatelessWidget {
                               ),
                               const SizedBox(width: 1),
                               Text(
-                                store.averageRating.toStringAsFixed(1),
+                                store.averageRating.toStringAsFixed(2),
                                 style: TextStyle(
                                   color: Colors.grey[600],
                                   fontSize: 14,
