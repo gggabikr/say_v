@@ -37,7 +37,16 @@ class _ReviewSectionState extends State<ReviewSection> {
     if (_sortBy == 'latest') {
       reviews.sort((a, b) => b.value.timestamp.compareTo(a.value.timestamp));
     } else {
-      reviews.sort((a, b) => b.value.score.compareTo(a.value.score));
+      // 평점순 정렬 시, 같은 평점인 경우 최신순으로 정렬
+      reviews.sort((a, b) {
+        // 먼저 평점으로 비교
+        int scoreCompare = b.value.score.compareTo(a.value.score);
+        // 평점이 같으면 시간으로 비교
+        if (scoreCompare == 0) {
+          return b.value.timestamp.compareTo(a.value.timestamp);
+        }
+        return scoreCompare;
+      });
     }
 
     return reviews;
