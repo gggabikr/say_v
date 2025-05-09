@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/store.dart';
 import '../pages/store_detail_page.dart'; // GalleryViewPage를 사용하기 위한 import
+import 'dart:math';
 
 class ReviewSection extends StatefulWidget {
   final Store store;
@@ -99,6 +100,12 @@ class _ReviewSectionState extends State<ReviewSection> {
     return '$years년 전';
   }
 
+  // 현재 사용자의 리뷰 존재 여부 확인
+  bool _hasUserReview() {
+    return widget.store.reviews.entries
+        .any((entry) => entry.key == 'currentUserId'); // TODO: 실제 사용자 ID로 교체 필요
+  }
+
   @override
   Widget build(BuildContext context) {
     final ratingDistribution = _calculateRatingDistribution();
@@ -121,6 +128,22 @@ class _ReviewSectionState extends State<ReviewSection> {
             ),
           ),
         ),
+
+        // 리뷰 작성 버튼 (이미 리뷰를 작성했다면 숨김)
+        if (!_hasUserReview())
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: ElevatedButton(
+              onPressed: () {
+                _showReviewDialog(context);
+              },
+              style: ElevatedButton.styleFrom(
+                minimumSize: const Size.fromHeight(40),
+              ),
+              child: const Text('리뷰 작성하기'),
+            ),
+          ),
+
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
           child: Row(
@@ -279,6 +302,29 @@ class _ReviewSectionState extends State<ReviewSection> {
           ),
         ),
       ],
+    );
+  }
+
+  void _showReviewDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => ReviewDialog(
+        onSubmit: (score, comment, List<String>? images) async {
+          // TODO: 리뷰 저장 로직 구현
+          final newReview = Review(
+            score: score,
+            timestamp: DateTime.now(),
+            userName: 'Current User', // TODO: 실제 사용자 이름으로 교체 필요
+            comment: comment,
+            images: images,
+          );
+
+          // TODO: Firestore에 리뷰 저장
+          setState(() {
+            // 로컬 상태 업데이트
+          });
+        },
+      ),
     );
   }
 
@@ -441,4 +487,116 @@ class _ReviewSectionState extends State<ReviewSection> {
       ),
     );
   }
+}
+
+// 리뷰 작성 다이얼로그
+class ReviewDialog extends StatefulWidget {
+  final Function(double score, String comment, List<String>? images) onSubmit;
+
+  const ReviewDialog({
+    Key? key,
+    required this.onSubmit,
+  }) : super(key: key);
+
+  @override
+  State<ReviewDialog> createState() => _ReviewDialogState();
+}
+
+class _ReviewDialogState extends State<ReviewDialog> {
+  int _rating = 5; // double에서 int로 변경
+  final _commentController = TextEditingController();
+  final List<String> _images = [];
+
+  Widget _buildStarRating() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: List.generate(5, (index) {
+        return IconButton(
+          icon: Icon(
+            index < _rating ? Icons.star : Icons.star_border,
+            color: Colors.amber,
+            size: 35,
+          ),
+          onPressed: () {
+            setState(() {
+              _rating = index + 1;
+            });
+          },
+        );
+      }),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('리뷰 작성'),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _buildStarRating(),
+            Text('$_rating점'),
+            const SizedBox(height: 16),
+            // 리뷰 텍스트 입력
+            TextField(
+              controller: _commentController,
+              maxLines: 3,
+              decoration: const InputDecoration(
+                hintText: '리뷰를 작성해주세요',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // 이미지 업로드 버튼
+            ElevatedButton.icon(
+              onPressed: () {
+                // TODO: 이미지 업로드 기능 구현
+              },
+              icon: const Icon(Icons.photo_camera),
+              label: const Text('사진 추가'),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('취소'),
+        ),
+        ElevatedButton(
+          onPressed: () {
+            if (_rating == 0) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('별점을 선택해주세요')),
+              );
+              return;
+            }
+            widget.onSubmit(_rating.toDouble(), _commentController.text,
+                _images.isEmpty ? null : _images);
+            Navigator.pop(context);
+          },
+          child: const Text('작성완료'),
+        ),
+      ],
+    );
+  }
+
+  @override
+  void dispose() {
+    _commentController.dispose();
+    super.dispose();
+  }
+}
+
+// 별을 반으로 자르는 커스텀 클리퍼
+class _HalfClipper extends CustomClipper<Rect> {
+  @override
+  Rect getClip(Size size) {
+    return Rect.fromLTRB(0, 0, size.width / 2, size.height);
+  }
+
+  @override
+  bool shouldReclip(_HalfClipper oldClipper) => false;
 }
