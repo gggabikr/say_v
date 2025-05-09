@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/store.dart';
 import '../pages/store_detail_page.dart'; // GalleryViewPage를 사용하기 위한 import
 
-class ReviewSection extends StatelessWidget {
+class ReviewSection extends StatefulWidget {
   final Store store;
 
   const ReviewSection({
@@ -10,10 +10,17 @@ class ReviewSection extends StatelessWidget {
     required this.store,
   }) : super(key: key);
 
+  @override
+  State<ReviewSection> createState() => _ReviewSectionState();
+}
+
+class _ReviewSectionState extends State<ReviewSection> {
+  String _sortBy = 'latest'; // 'latest' 또는 'rating'
+
   Map<int, int> _calculateRatingDistribution() {
     final distribution = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0};
 
-    for (var review in store.reviews.values) {
+    for (var review in widget.store.reviews.values) {
       final rating = review.score;
       final bucket =
           (rating + 0.5).floor(); // 1.0 -> 1, 1.5-2.0 -> 2, 2.5-3.0 -> 3, etc.
@@ -23,11 +30,71 @@ class ReviewSection extends StatelessWidget {
     return distribution;
   }
 
+  List<MapEntry<String, Review>> _getSortedReviews() {
+    var reviews = widget.store.reviews.entries.toList();
+
+    // 정렬 로직
+    if (_sortBy == 'latest') {
+      reviews.sort((a, b) => b.value.timestamp.compareTo(a.value.timestamp));
+    } else {
+      reviews.sort((a, b) => b.value.score.compareTo(a.value.score));
+    }
+
+    return reviews;
+  }
+
+  String _getRelativeTimeString(DateTime timestamp) {
+    final now = DateTime.now();
+    final difference = now.difference(timestamp);
+
+    // 10분 이내
+    if (difference.inMinutes < 11) {
+      if (difference.inMinutes <= 1) {
+        return '방금 전';
+      }
+      return '${difference.inMinutes}분 전';
+    }
+
+    // 50분 이내 (10분 단위)
+    if (difference.inMinutes < 51) {
+      return '${(difference.inMinutes / 10).floor() * 10}분 전';
+    }
+
+    // 24시간 이내
+    if (difference.inHours < 24) {
+      return '${difference.inHours}시간 전';
+    }
+
+    // 7일 이내
+    if (difference.inDays < 7) {
+      return '${difference.inDays}일 전';
+    }
+
+    // 4주 이내
+    if (difference.inDays < 28) {
+      final weeks = (difference.inDays / 7).floor();
+      if (weeks == 0) return '1주 전';
+      return '$weeks주 전';
+    }
+
+    // 12개월 이내
+    if (difference.inDays < 365) {
+      final months = (difference.inDays / 30).floor();
+      if (months == 0) return '1개월 전';
+      return '$months개월 전';
+    }
+
+    // 1년 이상
+    final years = (difference.inDays / 365).floor();
+    if (years == 0) return '1년 전';
+    return '$years년 전';
+  }
+
   @override
   Widget build(BuildContext context) {
     final ratingDistribution = _calculateRatingDistribution();
     final maxCount = ratingDistribution.values.reduce((a, b) => a > b ? a : b);
-    final reviewCount = store.reviews.values
+    final reviewCount = widget.store.reviews.values
         .where((review) =>
             review.comment.isNotEmpty || (review.images?.isNotEmpty ?? false))
         .length;
@@ -63,7 +130,7 @@ class ReviewSection extends StatelessWidget {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        store.averageRating.toStringAsFixed(2),
+                        widget.store.averageRating.toStringAsFixed(2),
                         style: const TextStyle(
                           fontSize: 32,
                           fontWeight: FontWeight.bold,
@@ -73,7 +140,7 @@ class ReviewSection extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '별점 ${store.totalRatings}개',
+                    '별점 ${widget.store.totalRatings}개',
                     style: TextStyle(
                       color: Colors.grey[600],
                       fontSize: 14,
@@ -150,13 +217,42 @@ class ReviewSection extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 16),
+        // 정렬 옵션 드롭다운
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              DropdownButton<String>(
+                value: _sortBy,
+                items: const [
+                  DropdownMenuItem(
+                    value: 'latest',
+                    child: Text('최신순'),
+                  ),
+                  DropdownMenuItem(
+                    value: 'rating',
+                    child: Text('평점순'),
+                  ),
+                ],
+                onChanged: (value) {
+                  if (value != null) {
+                    setState(() {
+                      _sortBy = value;
+                    });
+                  }
+                },
+              ),
+            ],
+          ),
+        ),
         // 리뷰 목록
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
           child: Column(
             children: [
-              // 사용자 본인의 리뷰를 먼저 표시 (reviews의 key가 userId임을 활용)
-              ...store.reviews.entries
+              // 사용자 본인의 리뷰를 먼저 표시
+              ..._getSortedReviews()
                   .where((entry) =>
                       entry.key == 'currentUserId' && // TODO: 실제 사용자 ID로 교체 필요
                       (entry.value.comment.isNotEmpty ||
@@ -164,7 +260,7 @@ class ReviewSection extends StatelessWidget {
                   .map((entry) => _buildReviewCard(entry.value, true)),
 
               // 나머지 리뷰들 (코멘트나 사진이 있는 것만)
-              ...store.reviews.entries
+              ..._getSortedReviews()
                   .where((entry) =>
                       entry.key != 'currentUserId' && // TODO: 실제 사용자 ID로 교체 필요
                       (entry.value.comment.isNotEmpty ||
@@ -179,7 +275,7 @@ class ReviewSection extends StatelessWidget {
 
   Widget _buildReviewCard(Review review, bool isUserReview) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 8.0), // 리뷰 사이 간격 줄임
+      margin: const EdgeInsets.only(bottom: 8.0),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
@@ -317,6 +413,20 @@ class ReviewSection extends StatelessWidget {
                 ),
               ),
             ],
+            // 리뷰 내용과 시간 표시 사이 간격
+            const SizedBox(height: 8),
+
+            // 시간 표시
+            Align(
+              alignment: Alignment.bottomRight,
+              child: Text(
+                _getRelativeTimeString(review.timestamp),
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey[500],
+                ),
+              ),
+            ),
           ],
         ),
       ),
