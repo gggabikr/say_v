@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:say_v/models/report.dart';
+import 'package:say_v/widgets/report_dialog.dart';
 import '../models/store.dart';
 import '../pages/store_detail_page.dart'; // GalleryViewPage를 사용하기 위한 import
 import 'package:image_picker/image_picker.dart';
@@ -455,8 +457,34 @@ class _ReviewSectionState extends State<ReviewSection> {
                           icon: const Icon(Icons.flag, size: 16),
                           padding: EdgeInsets.zero,
                           constraints: const BoxConstraints(),
-                          onPressed: () {
-                            // TODO: 신고 기능 구현
+                          onPressed: () async {
+                            final user = FirebaseAuth.instance.currentUser;
+                            if (user == null) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('로그인이 필요합니다.')),
+                              );
+                              return;
+                            }
+
+                            final isStoreOwner = await _isStoreOwner(user);
+
+                            if (!mounted) return;
+                            showDialog(
+                              context: context,
+                              builder: (context) => ReportDialog(
+                                isStoreOwner: isStoreOwner,
+                                reviewAuthorId: widget.store.reviews.entries
+                                    .firstWhere(
+                                        (entry) => entry.value == review)
+                                    .key,
+                                storeId: widget.store.id,
+                                onSubmit: (reason, detail) => _submitReport(
+                                  review,
+                                  reason,
+                                  detail,
+                                ),
+                              ),
+                            );
                           },
                         ),
                       ),
@@ -674,6 +702,69 @@ class _ReviewSectionState extends State<ReviewSection> {
         const SnackBar(content: Text('리뷰 수정에 실패했습니다.')),
       );
     }
+  }
+
+  Future<void> _submitReport(
+      Review review, ReportReason reason, String? detail) async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) return;
+
+      final isStoreOwner = await _isStoreOwner(user);
+      final reporterType =
+          isStoreOwner ? ReportHandler.storeOwner : ReportHandler.user;
+      final initialStatus =
+          isStoreOwner ? ReportStatus.reportedToAdmin : ReportStatus.pending;
+
+      final reportRef = FirebaseFirestore.instance.collection('reports').doc();
+
+      final report = Report(
+        reportId: reportRef.id,
+        reporterId: user.uid,
+        reporterType: reporterType,
+        reviewAuthorId: widget.store.reviews.entries
+            .firstWhere((entry) => entry.value == review)
+            .key,
+        storeId: widget.store.id,
+        timestamp: Timestamp.now(),
+        reason: reason,
+        detail: detail,
+        status: initialStatus,
+        statusUpdateTime: Timestamp.now(),
+        statusUpdatedBy: user.uid,
+        reviewSnapshot: ReviewSnapshot(
+          rating: review.score,
+          comment: review.comment,
+          timestamp: Timestamp.fromDate(review.timestamp),
+          images: review.images,
+        ),
+      );
+
+      await reportRef.set(report.toFirestore());
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(isStoreOwner ? '관리자에게 신고되었습니다.' : '신고가 접수되었습니다.'),
+        ),
+      );
+    } catch (e) {
+      print('리뷰 신고 실패: $e');
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('신고 처리 중 오류가 발생했습니다.')),
+      );
+    }
+  }
+
+  Future<bool> _isStoreOwner(User user) async {
+    final userDoc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .get();
+    final List<String> ownedStores =
+        List<String>.from(userDoc.data()?['ownedStores'] ?? []);
+    return ownedStores.contains(widget.store.id);
   }
 }
 
