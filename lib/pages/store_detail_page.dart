@@ -7,6 +7,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 import 'dart:io' show Platform;
+import 'package:say_v/services/store_update_notifier.dart';
 
 class StoreDetailPage extends StatefulWidget {
   final Store store;
@@ -18,6 +19,8 @@ class StoreDetailPage extends StatefulWidget {
 }
 
 class _StoreDetailPageState extends State<StoreDetailPage> {
+  late Store store;
+  final ScrollController _scrollController = ScrollController();
   String _selectedCategory = 'food';
   final List<String> _categories = [
     'food',
@@ -27,7 +30,6 @@ class _StoreDetailPageState extends State<StoreDetailPage> {
     'Cate 2',
     'Cate 3'
   ];
-  final ScrollController _scrollController = ScrollController();
   String? _address;
   bool _isLoadingAddress = true;
 
@@ -37,10 +39,18 @@ class _StoreDetailPageState extends State<StoreDetailPage> {
     _selectedCategory =
         widget.store.menus.isNotEmpty ? widget.store.menus.first.type : 'food';
     _loadAddress();
+    store = widget.store;
+
+    // ValueNotifier 리스너 추가
+    StoreUpdateNotifier.instance.storeUpdateNotifier
+        .addListener(_onStoreUpdate);
   }
 
   @override
   void dispose() {
+    // ValueNotifier 리스너 제거
+    StoreUpdateNotifier.instance.storeUpdateNotifier
+        .removeListener(_onStoreUpdate);
     _scrollController.dispose();
     super.dispose();
   }
@@ -369,7 +379,14 @@ class _StoreDetailPageState extends State<StoreDetailPage> {
                   _buildMenuList(),
                   const SizedBox(height: 32),
                   const Divider(height: 32, thickness: 0.5, color: Colors.grey),
-                  ReviewSection(store: widget.store),
+                  ReviewSection(
+                    store: store,
+                    onStoreUpdate: (Store updatedStore) {
+                      setState(() {
+                        store = updatedStore;
+                      });
+                    },
+                  ),
                   SizedBox(
                     height: MediaQuery.of(context).padding.bottom + 32,
                   ),
@@ -773,6 +790,31 @@ class _StoreDetailPageState extends State<StoreDetailPage> {
         );
       },
     );
+  }
+
+  static _StoreDetailPageState? of(BuildContext context) {
+    return context.findAncestorStateOfType<_StoreDetailPageState>();
+  }
+
+  void updateStore(Store updatedStore) {
+    setState(() {
+      store = updatedStore;
+    });
+  }
+
+  // 스토어 업데이트 콜백
+  void _onStoreUpdate() {
+    final updatedStore = StoreUpdateNotifier.instance.storeUpdateNotifier.value;
+    print('스토어 업데이트 리스너 호출됨');
+    print('현재 스토어 ID: ${store.id}');
+    print('업데이트된 스토어 ID: ${updatedStore?.id}');
+
+    if (updatedStore != null && updatedStore.id == store.id) {
+      print('스토어 ID 일치, setState 호출');
+      setState(() {
+        store = updatedStore;
+      });
+    }
   }
 }
 

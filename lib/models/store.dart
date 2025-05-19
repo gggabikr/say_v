@@ -131,7 +131,9 @@ class Store {
     final rawAverage = ratingsJson?['average'] as num?;
 
     print('Raw average from Firebase: $rawAverage');
-    final parsedAverage = (rawAverage?.toDouble() ?? 0.00);
+    final parsedAverage = (rawAverage?.toDouble() ?? 0.00).isNaN
+        ? 0.00
+        : (rawAverage?.toDouble() ?? 0.00);
     print('Parsed average: $parsedAverage');
 
     return Store(
@@ -522,6 +524,16 @@ class Review {
     return {
       'score': score,
       'timestamp': timestamp,
+      'userName': userName,
+      'comment': comment,
+      'images': images,
+    };
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'score': score,
+      'timestamp': timestamp.toIso8601String(),
       'userName': userName,
       'comment': comment,
       'images': images,

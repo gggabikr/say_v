@@ -8,6 +8,7 @@ import 'package:geolocator/geolocator.dart';
 import 'dart:async';
 import '../services/event_bus.dart';
 import '../widgets/scroll_to_top.dart';
+import '../services/store_update_notifier.dart';
 
 enum SortType { distance, rating }
 
@@ -71,6 +72,10 @@ class _CategoryStoresPageState extends State<CategoryStoresPage> {
     _setupAddressListener();
     _loadStores();
     _searchController.addListener(_onSearchChanged);
+
+    // ValueNotifier 리스너 추가
+    StoreUpdateNotifier.instance.storeUpdateNotifier
+        .addListener(_onStoreUpdate);
   }
 
   // 주소 업데이트 이벤트 리스너 설정
@@ -247,7 +252,9 @@ class _CategoryStoresPageState extends State<CategoryStoresPage> {
 
   @override
   void dispose() {
-    // 리스너 구독 해제
+    // ValueNotifier 리스너 제거
+    StoreUpdateNotifier.instance.storeUpdateNotifier
+        .removeListener(_onStoreUpdate);
     _addressSubscription?.cancel();
     _searchController.removeListener(_onSearchChanged);
     _searchController.dispose();
@@ -610,6 +617,24 @@ class _CategoryStoresPageState extends State<CategoryStoresPage> {
         setState(() {
           // 필요한 경우 여기서 추가 상태 업데이트
         });
+      });
+    }
+  }
+
+  // 스토어 업데이트 콜백
+  void _onStoreUpdate() {
+    final updatedStore = StoreUpdateNotifier.instance.storeUpdateNotifier.value;
+    if (updatedStore != null && _currentPosition != null) {
+      // 거리 계산 추가
+      updatedStore.calculateDistance(_currentPosition!);
+
+      setState(() {
+        loadedStores = loadedStores
+            .map((store) => store.id == updatedStore.id ? updatedStore : store)
+            .toList();
+        displayStores = displayStores
+            .map((store) => store.id == updatedStore.id ? updatedStore : store)
+            .toList();
       });
     }
   }

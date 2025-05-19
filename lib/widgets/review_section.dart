@@ -6,13 +6,19 @@ import 'package:image_picker/image_picker.dart';
 import 'package:image/image.dart' as img;
 import 'package:firebase_storage/firebase_storage.dart';
 import 'dart:typed_data';
+import 'package:flutter/foundation.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../services/store_update_notifier.dart';
 
 class ReviewSection extends StatefulWidget {
   final Store store;
+  final Function(Store) onStoreUpdate;
 
   const ReviewSection({
     Key? key,
     required this.store,
+    required this.onStoreUpdate,
   }) : super(key: key);
 
   @override
@@ -106,8 +112,9 @@ class _ReviewSectionState extends State<ReviewSection> {
 
   // 현재 사용자의 리뷰 존재 여부 확인
   bool _hasUserReview() {
-    return widget.store.reviews.entries
-        .any((entry) => entry.key == 'currentUserId'); // TODO: 실제 사용자 ID로 교체 필요
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return false;
+    return widget.store.reviews.entries.any((entry) => entry.key == user.uid);
   }
 
   @override
@@ -288,20 +295,20 @@ class _ReviewSectionState extends State<ReviewSection> {
           child: Column(
             children: [
               // 사용자 본인의 리뷰를 먼저 표시
-              ..._getSortedReviews()
-                  .where((entry) =>
-                      entry.key == 'currentUserId' && // TODO: 실제 사용자 ID로 교체 필요
-                      (entry.value.comment.isNotEmpty ||
-                          (entry.value.images?.isNotEmpty ?? false)))
-                  .map((entry) => _buildReviewCard(entry.value, true)),
+              ..._getSortedReviews().where((entry) {
+                final user = FirebaseAuth.instance.currentUser;
+                return entry.key == user?.uid &&
+                    (entry.value.comment.isNotEmpty ||
+                        (entry.value.images?.isNotEmpty ?? false));
+              }).map((entry) => _buildReviewCard(entry.value, true)),
 
-              // 나머지 리뷰들 (코멘트나 사진이 있는 것만)
-              ..._getSortedReviews()
-                  .where((entry) =>
-                      entry.key != 'currentUserId' && // TODO: 실제 사용자 ID로 교체 필요
-                      (entry.value.comment.isNotEmpty ||
-                          (entry.value.images?.isNotEmpty ?? false)))
-                  .map((entry) => _buildReviewCard(entry.value, false)),
+              // 나머지 리뷰들
+              ..._getSortedReviews().where((entry) {
+                final user = FirebaseAuth.instance.currentUser;
+                return entry.key != user?.uid &&
+                    (entry.value.comment.isNotEmpty ||
+                        (entry.value.images?.isNotEmpty ?? false));
+              }).map((entry) => _buildReviewCard(entry.value, false)),
             ],
           ),
         ),
@@ -310,23 +317,99 @@ class _ReviewSectionState extends State<ReviewSection> {
   }
 
   void _showReviewDialog(BuildContext context) {
+    // Firebase Auth에서 현재 사용자 정보 가져오기
+    final user = FirebaseAuth.instance.currentUser;
+    print('현재 사용자: ${user?.uid}');
+
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('로그인이 필요합니다.')),
+      );
+      return;
+    }
+
     showDialog(
       context: context,
       builder: (context) => ReviewDialog(
         onSubmit: (score, comment, List<String>? images) async {
-          // TODO: 리뷰 저장 로직 구현
+          print(
+              '리뷰 제출 시작 - 점수: $score, 코멘트: $comment, 이미지: ${images?.length}개');
+
           final newReview = Review(
             score: score,
             timestamp: DateTime.now(),
-            userName: 'Current User', // TODO: 실제 사용자 이름으로 교체 필요
+            userName: user.displayName ?? '익명', // 실제 사용자 이름 사용
             comment: comment,
             images: images,
           );
+          print('새 리뷰 객체 생성됨');
 
-          // TODO: Firestore에 리뷰 저장
-          setState(() {
-            // 로컬 상태 업데이트
-          });
+          // 새로운 리뷰를 포함한 리뷰 맵 생성
+          final updatedReviews = Map<String, Review>.from(widget.store.reviews);
+          updatedReviews[user.uid] = newReview;
+          print('업데이트된 리뷰 맵 생성됨');
+
+          // 평균 평점 계산
+          double totalScore = 0;
+          for (var review in updatedReviews.values) {
+            totalScore += review.score;
+          }
+          final newAverageRating = totalScore / updatedReviews.length;
+          print('새로운 평균 평점 계산됨: $newAverageRating');
+
+          try {
+            print('=== 리뷰 저장 프로세스 시작 ===');
+            final storeRef = FirebaseFirestore.instance
+                .collection('stores')
+                .doc(widget.store.id);
+
+            print('스토어 ID: ${widget.store.id}');
+            print('현재 리뷰 수: ${widget.store.reviews.length}');
+            print('새로운 리뷰 데이터: ${newReview.toMap()}');
+
+            await storeRef.update({
+              'ratings.reviews.${user.uid}': {
+                'score': newReview.score,
+                'timestamp': Timestamp.fromDate(newReview.timestamp),
+                'userName': newReview.userName,
+                'comment': newReview.comment,
+                'images': newReview.images ?? [],
+              },
+              'ratings.average': newAverageRating,
+              'ratings.total': updatedReviews.length,
+            });
+            print('Firestore 업데이트 완료');
+
+            // Firestore에서 업데이트된 데이터 다시 불러오기
+            final updatedDoc = await storeRef.get();
+            print('새로운 문서 데이터 불러옴');
+
+            if (!mounted) {
+              print('위젯이 이미 dispose됨');
+              return;
+            }
+
+            final updatedStore = Store.fromJson({
+              'storeId': updatedDoc.id,
+              ...updatedDoc.data() ?? {},
+            });
+            print('새로운 Store 객체 생성됨');
+            print('업데이트된 리뷰 수: ${updatedStore.reviews.length}');
+            print('업데이트된 평균 평점: ${updatedStore.averageRating}');
+
+            // StoreUpdateNotifier를 통해 업데이트 알림
+            StoreUpdateNotifier.instance.notifyStoreUpdate(updatedStore);
+            print('스토어 업데이트 노티파이어 호출 완료');
+
+            print('=== 리뷰 저장 프로세스 완료 ===');
+          } catch (e, stackTrace) {
+            print('리뷰 저장 실패: $e');
+            print('스택 트레이스: $stackTrace');
+            if (!mounted) return;
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('리뷰 저장에 실패했습니다.')),
+            );
+          }
         },
       ),
     );
@@ -516,47 +599,62 @@ class _ReviewDialogState extends State<ReviewDialog> {
     try {
       setState(() => _isUploading = true);
 
+      print('이미지 선택 시작');
       final picker = ImagePicker();
-      final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+      final pickedFile = await picker.pickImage(
+        source: ImageSource.gallery,
+        // 이미지 피커에서 직접 리사이징과 압축 처리
+        maxWidth: 1024,
+        maxHeight: 1024,
+        imageQuality: 60,
+      );
 
-      if (pickedFile == null) return;
-
-      // 이미지 압축
-      final bytes = await pickedFile.readAsBytes();
-      var image = img.decodeImage(bytes);
-      if (image == null) return;
-
-      // 이미지 리사이즈 및 압축
-      int maxWidth = 1024;
-      int maxHeight = 1024;
-
-      if (image.width > maxWidth || image.height > maxHeight) {
-        double ratio =
-            math.min(maxWidth / image.width, maxHeight / image.height);
-        image = img.copyResize(
-          image,
-          width: (image.width * ratio).round(),
-          height: (image.height * ratio).round(),
-        );
+      if (pickedFile == null) {
+        print('이미지 선택 취소됨');
+        setState(() => _isUploading = false);
+        return;
       }
 
-      final compressedBytes =
-          Uint8List.fromList(img.encodeJpg(image, quality: 60));
+      print('이미지 선택 완료: ${pickedFile.path}');
+      final bytes = await pickedFile.readAsBytes();
+      print('이미지 바이트 읽기 완료: ${bytes.length} bytes');
 
       // Firebase Storage에 업로드
-      final storageRef = FirebaseStorage.instance
-          .ref()
-          .child('review_images')
-          .child('${DateTime.now().millisecondsSinceEpoch}.jpg');
+      final fileName = '${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final storageRef =
+          FirebaseStorage.instance.ref().child('review_images').child(fileName);
 
-      await storageRef.putData(compressedBytes);
+      print('Storage 업로드 시작');
+      // 업로드 작업을 별도 Task로 실행
+      final uploadTask = storageRef.putData(bytes);
+
+      // 업로드 진행상황 모니터링
+      uploadTask.snapshotEvents.listen((TaskSnapshot snapshot) {
+        print(
+            'Upload progress: ${snapshot.bytesTransferred}/${snapshot.totalBytes}');
+      });
+
+      // 업로드 완료 대기
+      await uploadTask;
+      print('Storage 업로드 완료');
+
       final downloadUrl = await storageRef.getDownloadURL();
+      print('다운로드 URL 획득: $downloadUrl');
+
+      if (!mounted) return;
 
       setState(() {
+        print('상태 업데이트 시작');
         _images.add(downloadUrl);
         _isUploading = false;
+        print('상태 업데이트 완료');
       });
-    } catch (e) {
+
+      print('이미지 업로드 프로세스 완료');
+    } catch (e, stackTrace) {
+      print('이미지 업로드 에러: $e');
+      print('스택 트레이스: $stackTrace');
+      if (!mounted) return;
       setState(() => _isUploading = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('이미지 업로드 실패: $e')),
@@ -588,78 +686,79 @@ class _ReviewDialogState extends State<ReviewDialog> {
   Widget build(BuildContext context) {
     return AlertDialog(
       title: const Text('리뷰 작성'),
-      content: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _buildStarRating(),
-            Text('$_rating점'),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _commentController,
-              maxLines: 3,
-              decoration: const InputDecoration(
-                hintText: '리뷰를 작성해주세요',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // 이미지 업로드 버튼과 미리보기
-            Column(
-              children: [
-                ElevatedButton.icon(
-                  onPressed: _isUploading ? null : _pickAndUploadImage,
-                  icon: _isUploading
-                      ? const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Icon(Icons.photo_camera),
-                  label: Text(_isUploading ? '업로드 중...' : '사진 추가'),
+      content: Container(
+        constraints: const BoxConstraints(maxHeight: 500), // 최대 높이 제한
+        width: double.maxFinite,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildStarRating(),
+              Text('$_rating점'),
+              const SizedBox(height: 16),
+              TextField(
+                controller: _commentController,
+                maxLines: 3,
+                decoration: const InputDecoration(
+                  hintText: '리뷰를 작성해주세요',
+                  border: OutlineInputBorder(),
                 ),
-                if (_images.isNotEmpty) ...[
-                  const SizedBox(height: 8),
-                  SizedBox(
-                    height: 100,
-                    child: ListView.builder(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: _images.length,
-                      itemBuilder: (context, index) {
-                        return Padding(
-                          padding: const EdgeInsets.only(right: 8),
-                          child: Stack(
-                            children: [
-                              Image.network(
+              ),
+              const SizedBox(height: 16),
+              if (_images.isNotEmpty)
+                SizedBox(
+                  height: 100,
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    physics: const ClampingScrollPhysics(),
+                    scrollDirection: Axis.horizontal,
+                    itemCount: _images.length,
+                    itemBuilder: (context, index) {
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: Stack(
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: Image.network(
                                 _images[index],
                                 height: 100,
                                 width: 100,
                                 fit: BoxFit.cover,
                               ),
-                              Positioned(
-                                right: 0,
-                                top: 0,
-                                child: IconButton(
-                                  icon: const Icon(Icons.close,
-                                      color: Colors.white),
-                                  onPressed: () {
-                                    setState(() {
-                                      _images.removeAt(index);
-                                    });
-                                  },
-                                ),
+                            ),
+                            Positioned(
+                              right: 0,
+                              top: 0,
+                              child: IconButton(
+                                icon: const Icon(Icons.close,
+                                    color: Colors.white),
+                                onPressed: () {
+                                  setState(() {
+                                    _images.removeAt(index);
+                                  });
+                                },
                               ),
-                            ],
-                          ),
-                        );
-                      },
-                    ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
                   ),
-                ],
-              ],
-            ),
-          ],
+                ),
+              ElevatedButton.icon(
+                onPressed: _isUploading ? null : _pickAndUploadImage,
+                icon: _isUploading
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.photo_camera),
+                label: Text(_isUploading ? '업로드 중...' : '사진 추가'),
+              ),
+            ],
+          ),
         ),
       ),
       actions: [
@@ -671,12 +770,11 @@ class _ReviewDialogState extends State<ReviewDialog> {
           onPressed: _isUploading
               ? null
               : () {
-                  widget.onSubmit(
-                    _rating.toDouble(),
-                    _commentController.text,
-                    _images.isEmpty ? null : _images,
-                  );
-                  Navigator.pop(context);
+                  final score = _rating.toDouble();
+                  final comment = _commentController.text;
+                  final images = _images.isEmpty ? null : _images;
+                  Navigator.pop(context); // 다이얼로그 닫기
+                  widget.onSubmit(score, comment, images); // 리뷰 저장 실행
                 },
           child: const Text('작성완료'),
         ),
