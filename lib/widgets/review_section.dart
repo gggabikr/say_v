@@ -315,10 +315,7 @@ class _ReviewSectionState extends State<ReviewSection> {
   }
 
   void _showReviewDialog(BuildContext context) {
-    // Firebase Auth에서 현재 사용자 정보 가져오기
     final user = FirebaseAuth.instance.currentUser;
-    print('현재 사용자: ${user?.uid}');
-
     if (user == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('로그인이 필요합니다.')),
@@ -329,80 +326,52 @@ class _ReviewSectionState extends State<ReviewSection> {
     showDialog(
       context: context,
       builder: (context) => ReviewDialog(
-        onSubmit: (score, comment, List<String>? images) async {
-          print(
-              '리뷰 제출 시작 - 점수: $score, 코멘트: $comment, 이미지: ${images?.length}개');
-
+        onSubmit: (score, comment, images) async {
+          // 새 리뷰 작성 로직
           final newReview = Review(
+            userName: user.displayName ?? '익명',
             score: score,
-            timestamp: DateTime.now(),
-            userName: user.displayName ?? '익명', // 실제 사용자 이름 사용
             comment: comment,
+            timestamp: DateTime.now(),
             images: images,
           );
-          print('새 리뷰 객체 생성됨');
 
-          // 새로운 리뷰를 포함한 리뷰 맵 생성
           final updatedReviews = Map<String, Review>.from(widget.store.reviews);
           updatedReviews[user.uid] = newReview;
-          print('업데이트된 리뷰 맵 생성됨');
 
-          // 평균 평점 계산
-          double totalScore = 0;
-          for (var review in updatedReviews.values) {
-            totalScore += review.score;
-          }
-          final newAverageRating = totalScore / updatedReviews.length;
-          print('새로운 평균 평점 계산됨: $newAverageRating');
+          final newAverageRating = updatedReviews.values
+                  .map((r) => r.score)
+                  .reduce((a, b) => a + b) /
+              updatedReviews.length;
 
           try {
-            print('=== 리뷰 저장 프로세스 시작 ===');
             final storeRef = FirebaseFirestore.instance
                 .collection('stores')
                 .doc(widget.store.id);
 
-            print('스토어 ID: ${widget.store.id}');
-            print('현재 리뷰 수: ${widget.store.reviews.length}');
-            print('새로운 리뷰 데이터: ${newReview.toMap()}');
-
             await storeRef.update({
               'ratings.reviews.${user.uid}': {
-                'score': newReview.score,
-                'timestamp': Timestamp.fromDate(newReview.timestamp),
-                'userName': newReview.userName,
-                'comment': newReview.comment,
-                'images': newReview.images ?? [],
+                'score': score,
+                'timestamp': Timestamp.fromDate(DateTime.now()),
+                'userName': user.displayName ?? '익명',
+                'comment': comment,
+                'images': images ?? [],
               },
               'ratings.average': newAverageRating,
               'ratings.total': updatedReviews.length,
             });
-            print('Firestore 업데이트 완료');
 
-            // Firestore에서 업데이트된 데이터 다시 불러오기
             final updatedDoc = await storeRef.get();
-            print('새로운 문서 데이터 불러옴');
-
-            if (!mounted) {
-              print('위젯이 이미 dispose됨');
-              return;
-            }
+            if (!mounted) return;
 
             final updatedStore = Store.fromJson({
               'storeId': updatedDoc.id,
               ...updatedDoc.data() ?? {},
             });
-            print('새로운 Store 객체 생성됨');
-            print('업데이트된 리뷰 수: ${updatedStore.reviews.length}');
-            print('업데이트된 평균 평점: ${updatedStore.averageRating}');
 
-            // StoreUpdateNotifier를 통해 업데이트 알림
             StoreUpdateNotifier.instance.notifyStoreUpdate(updatedStore);
-            print('스토어 업데이트 노티파이어 호출 완료');
-
-            print('=== 리뷰 저장 프로세스 완료 ===');
-          } catch (e, stackTrace) {
+          } catch (e) {
             print('리뷰 저장 실패: $e');
-            print('스택 트레이스: $stackTrace');
             if (!mounted) return;
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('리뷰 저장에 실패했습니다.')),
@@ -456,7 +425,17 @@ class _ReviewSectionState extends State<ReviewSection> {
                           padding: EdgeInsets.zero,
                           constraints: const BoxConstraints(),
                           onPressed: () {
-                            // TODO: 수정 기능 구현
+                            showDialog(
+                              context: context,
+                              builder: (context) => ReviewDialog(
+                                initialRating: review.score,
+                                initialComment: review.comment,
+                                initialImages: review.images,
+                                onSubmit: (score, comment, images) =>
+                                    _updateReview(
+                                        review, score, comment, images),
+                              ),
+                            );
                           },
                         ),
                       ),
@@ -643,15 +622,77 @@ class _ReviewSectionState extends State<ReviewSection> {
       );
     }
   }
+
+  Future<void> _updateReview(Review oldReview, double score, String comment,
+      List<String>? images) async {
+    try {
+      print('=== 리뷰 수정 프로세스 시작 ===');
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) return;
+
+      final storeRef =
+          FirebaseFirestore.instance.collection('stores').doc(widget.store.id);
+
+      // 새로운 리뷰를 포함한 리뷰 맵 생성
+      final updatedReviews = Map<String, Review>.from(widget.store.reviews);
+      updatedReviews[user.uid] = Review(
+        userName: user.displayName ?? '익명',
+        score: score,
+        comment: comment,
+        timestamp: DateTime.now(),
+        images: images,
+      );
+
+      // 새로운 평균 평점 계산
+      final newAverageRating =
+          updatedReviews.values.map((r) => r.score).reduce((a, b) => a + b) /
+              updatedReviews.length;
+
+      // Firestore 업데이트
+      await storeRef.update({
+        'ratings.reviews.${user.uid}': {
+          'score': score,
+          'timestamp': Timestamp.fromDate(DateTime.now()),
+          'userName': user.displayName ?? '익명',
+          'comment': comment,
+          'images': images ?? [],
+        },
+        'ratings.average': newAverageRating,
+      });
+
+      // 업데이트된 스토어 정보 가져오기
+      final updatedDoc = await storeRef.get();
+      final updatedStore = Store.fromJson({
+        'storeId': updatedDoc.id,
+        ...updatedDoc.data() ?? {},
+      });
+
+      // StoreUpdateNotifier를 통해 업데이트 알림
+      StoreUpdateNotifier.instance.notifyStoreUpdate(updatedStore);
+      print('=== 리뷰 수정 프로세스 완료 ===');
+    } catch (e) {
+      print('리뷰 수정 실패: $e');
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('리뷰 수정에 실패했습니다.')),
+      );
+    }
+  }
 }
 
 // 리뷰 작성 다이얼로그
 class ReviewDialog extends StatefulWidget {
   final Function(double score, String comment, List<String>? images) onSubmit;
+  final double? initialRating;
+  final String? initialComment;
+  final List<String>? initialImages;
 
   const ReviewDialog({
     Key? key,
     required this.onSubmit,
+    this.initialRating,
+    this.initialComment,
+    this.initialImages,
   }) : super(key: key);
 
   @override
@@ -659,10 +700,19 @@ class ReviewDialog extends StatefulWidget {
 }
 
 class _ReviewDialogState extends State<ReviewDialog> {
-  int _rating = 5;
-  final _commentController = TextEditingController();
-  final List<String> _images = [];
+  late int _rating;
+  late final TextEditingController _commentController;
+  late final List<String> _images;
   bool _isUploading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _rating = widget.initialRating?.toInt() ?? 5;
+    _commentController =
+        TextEditingController(text: widget.initialComment ?? '');
+    _images = widget.initialImages?.toList() ?? [];
+  }
 
   Future<void> _pickAndUploadImage() async {
     try {
