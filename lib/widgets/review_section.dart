@@ -294,15 +294,13 @@ class _ReviewSectionState extends State<ReviewSection> {
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
           child: Column(
             children: [
-              // 사용자 본인의 리뷰를 먼저 표시
+              // 사용자 본인의 리뷰를 먼저 표시 (코멘트나 이미지 유무와 관계없이)
               ..._getSortedReviews().where((entry) {
                 final user = FirebaseAuth.instance.currentUser;
-                return entry.key == user?.uid &&
-                    (entry.value.comment.isNotEmpty ||
-                        (entry.value.images?.isNotEmpty ?? false));
+                return entry.key == user?.uid; // 조건 단순화
               }).map((entry) => _buildReviewCard(entry.value, true)),
 
-              // 나머지 리뷰들
+              // 나머지 리뷰들 (코멘트나 이미지가 있는 경우만)
               ..._getSortedReviews().where((entry) {
                 final user = FirebaseAuth.instance.currentUser;
                 return entry.key != user?.uid &&
@@ -469,9 +467,7 @@ class _ReviewSectionState extends State<ReviewSection> {
                           icon: const Icon(Icons.delete, size: 16),
                           padding: EdgeInsets.zero,
                           constraints: const BoxConstraints(),
-                          onPressed: () {
-                            // TODO: 삭제 기능 구현
-                          },
+                          onPressed: () => _showDeleteConfirmation(review),
                         ),
                       ),
                     ] else
@@ -573,6 +569,79 @@ class _ReviewSectionState extends State<ReviewSection> {
         ),
       ),
     );
+  }
+
+  void _showDeleteConfirmation(Review review) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('리뷰 삭제'),
+        content: const Text('이 리뷰를 삭제하시겠습니까?'),
+        actions: [
+          TextButton(
+            child: const Text('취소'),
+            onPressed: () => Navigator.pop(context),
+          ),
+          TextButton(
+            child: const Text('삭제', style: TextStyle(color: Colors.red)),
+            onPressed: () {
+              Navigator.pop(context);
+              _deleteReview(review);
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _deleteReview(Review review) async {
+    try {
+      print('=== 리뷰 삭제 프로세스 시작 ===');
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) return;
+
+      final storeRef =
+          FirebaseFirestore.instance.collection('stores').doc(widget.store.id);
+
+      // 현재 리뷰를 제외한 나머지 리뷰들로 새로운 평균 계산
+      final updatedReviews = Map<String, Review>.from(widget.store.reviews);
+      updatedReviews.remove(user.uid);
+
+      final newAverageRating = updatedReviews.isEmpty
+          ? 0.0
+          : updatedReviews.values.map((r) => r.score).reduce((a, b) => a + b) /
+              updatedReviews.length;
+
+      print('리뷰 삭제 상세:');
+      print('삭제 전 리뷰 수: ${widget.store.reviews.length}');
+      print('삭제할 리뷰 점수: ${review.score}');
+      print('새로운 평균 평점: $newAverageRating');
+      print('업데이트된 리뷰 수: ${updatedReviews.length}');
+
+      // Firestore 업데이트
+      await storeRef.update({
+        'ratings.reviews.${user.uid}': FieldValue.delete(),
+        'ratings.average': newAverageRating,
+        'ratings.total': updatedReviews.length,
+      });
+
+      // 업데이트된 스토어 정보 가져오기
+      final updatedDoc = await storeRef.get();
+      final updatedStore = Store.fromJson({
+        'storeId': updatedDoc.id,
+        ...updatedDoc.data() ?? {},
+      });
+
+      // StoreUpdateNotifier를 통해 업데이트 알림
+      StoreUpdateNotifier.instance.notifyStoreUpdate(updatedStore);
+      print('=== 리뷰 삭제 프로세스 완료 ===');
+    } catch (e) {
+      print('리뷰 삭제 실패: $e');
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('리뷰 삭제에 실패했습니다.')),
+      );
+    }
   }
 }
 
