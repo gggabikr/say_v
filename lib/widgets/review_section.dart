@@ -720,59 +720,41 @@ class _ReviewDialogState extends State<ReviewDialog> {
 
       print('이미지 선택 시작');
       final picker = ImagePicker();
-      final pickedFile = await picker.pickImage(
-        source: ImageSource.gallery,
-        // 이미지 피커에서 직접 리사이징과 압축 처리
+      final pickedFiles = await picker.pickMultiImage(
         maxWidth: 1024,
         maxHeight: 1024,
         imageQuality: 60,
       );
 
-      if (pickedFile == null) {
+      if (pickedFiles.isEmpty) {
         print('이미지 선택 취소됨');
         setState(() => _isUploading = false);
         return;
       }
 
-      print('이미지 선택 완료: ${pickedFile.path}');
-      final bytes = await pickedFile.readAsBytes();
-      print('이미지 바이트 읽기 완료: ${bytes.length} bytes');
+      print('선택된 이미지 수: ${pickedFiles.length}');
 
-      // Firebase Storage에 업로드
-      final fileName = '${DateTime.now().millisecondsSinceEpoch}.jpg';
-      final storageRef =
-          FirebaseStorage.instance.ref().child('review_images').child(fileName);
+      for (final pickedFile in pickedFiles) {
+        final bytes = await pickedFile.readAsBytes();
+        final fileName = '${DateTime.now().millisecondsSinceEpoch}.jpg';
+        final storageRef = FirebaseStorage.instance
+            .ref()
+            .child('review_images')
+            .child(fileName);
 
-      print('Storage 업로드 시작');
-      // 업로드 작업을 별도 Task로 실행
-      final uploadTask = storageRef.putData(bytes);
+        await storageRef.putData(bytes);
+        final downloadUrl = await storageRef.getDownloadURL();
 
-      // 업로드 진행상황 모니터링
-      uploadTask.snapshotEvents.listen((TaskSnapshot snapshot) {
-        print(
-            'Upload progress: ${snapshot.bytesTransferred}/${snapshot.totalBytes}');
-      });
+        if (!mounted) return;
+        setState(() {
+          _images.add(downloadUrl);
+        });
+      }
 
-      // 업로드 완료 대기
-      await uploadTask;
-      print('Storage 업로드 완료');
-
-      final downloadUrl = await storageRef.getDownloadURL();
-      print('다운로드 URL 획득: $downloadUrl');
-
-      if (!mounted) return;
-
-      setState(() {
-        print('상태 업데이트 시작');
-        _images.add(downloadUrl);
-        _isUploading = false;
-        print('상태 업데이트 완료');
-      });
-
-      print('이미지 업로드 프로세스 완료');
-    } catch (e, stackTrace) {
+      setState(() => _isUploading = false);
+      print('모든 이미지 업로드 완료');
+    } catch (e) {
       print('이미지 업로드 에러: $e');
-      print('스택 트레이스: $stackTrace');
       if (!mounted) return;
       setState(() => _isUploading = false);
       ScaffoldMessenger.of(context).showSnackBar(
