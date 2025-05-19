@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import '../models/store.dart';
 import '../pages/store_detail_page.dart'; // GalleryViewPage를 사용하기 위한 import
-import 'dart:math';
+import 'dart:math' as math;
+import 'package:image_picker/image_picker.dart';
+import 'package:image/image.dart' as img;
+import 'package:firebase_storage/firebase_storage.dart';
+import 'dart:typed_data';
 
 class ReviewSection extends StatefulWidget {
   final Store store;
@@ -503,9 +507,62 @@ class ReviewDialog extends StatefulWidget {
 }
 
 class _ReviewDialogState extends State<ReviewDialog> {
-  int _rating = 5; // double에서 int로 변경
+  int _rating = 5;
   final _commentController = TextEditingController();
   final List<String> _images = [];
+  bool _isUploading = false;
+
+  Future<void> _pickAndUploadImage() async {
+    try {
+      setState(() => _isUploading = true);
+
+      final picker = ImagePicker();
+      final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+
+      if (pickedFile == null) return;
+
+      // 이미지 압축
+      final bytes = await pickedFile.readAsBytes();
+      var image = img.decodeImage(bytes);
+      if (image == null) return;
+
+      // 이미지 리사이즈 및 압축
+      int maxWidth = 1024;
+      int maxHeight = 1024;
+
+      if (image.width > maxWidth || image.height > maxHeight) {
+        double ratio =
+            math.min(maxWidth / image.width, maxHeight / image.height);
+        image = img.copyResize(
+          image,
+          width: (image.width * ratio).round(),
+          height: (image.height * ratio).round(),
+        );
+      }
+
+      final compressedBytes =
+          Uint8List.fromList(img.encodeJpg(image, quality: 60));
+
+      // Firebase Storage에 업로드
+      final storageRef = FirebaseStorage.instance
+          .ref()
+          .child('review_images')
+          .child('${DateTime.now().millisecondsSinceEpoch}.jpg');
+
+      await storageRef.putData(compressedBytes);
+      final downloadUrl = await storageRef.getDownloadURL();
+
+      setState(() {
+        _images.add(downloadUrl);
+        _isUploading = false;
+      });
+    } catch (e) {
+      setState(() => _isUploading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('이미지 업로드 실패: $e')),
+      );
+    }
+  }
 
   Widget _buildStarRating() {
     return Row(
@@ -538,7 +595,6 @@ class _ReviewDialogState extends State<ReviewDialog> {
             _buildStarRating(),
             Text('$_rating점'),
             const SizedBox(height: 16),
-            // 리뷰 텍스트 입력
             TextField(
               controller: _commentController,
               maxLines: 3,
@@ -549,13 +605,59 @@ class _ReviewDialogState extends State<ReviewDialog> {
             ),
             const SizedBox(height: 16),
 
-            // 이미지 업로드 버튼
-            ElevatedButton.icon(
-              onPressed: () {
-                // TODO: 이미지 업로드 기능 구현
-              },
-              icon: const Icon(Icons.photo_camera),
-              label: const Text('사진 추가'),
+            // 이미지 업로드 버튼과 미리보기
+            Column(
+              children: [
+                ElevatedButton.icon(
+                  onPressed: _isUploading ? null : _pickAndUploadImage,
+                  icon: _isUploading
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.photo_camera),
+                  label: Text(_isUploading ? '업로드 중...' : '사진 추가'),
+                ),
+                if (_images.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    height: 100,
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: _images.length,
+                      itemBuilder: (context, index) {
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 8),
+                          child: Stack(
+                            children: [
+                              Image.network(
+                                _images[index],
+                                height: 100,
+                                width: 100,
+                                fit: BoxFit.cover,
+                              ),
+                              Positioned(
+                                right: 0,
+                                top: 0,
+                                child: IconButton(
+                                  icon: const Icon(Icons.close,
+                                      color: Colors.white),
+                                  onPressed: () {
+                                    setState(() {
+                                      _images.removeAt(index);
+                                    });
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ],
             ),
           ],
         ),
@@ -566,17 +668,16 @@ class _ReviewDialogState extends State<ReviewDialog> {
           child: const Text('취소'),
         ),
         ElevatedButton(
-          onPressed: () {
-            if (_rating == 0) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('별점을 선택해주세요')),
-              );
-              return;
-            }
-            widget.onSubmit(_rating.toDouble(), _commentController.text,
-                _images.isEmpty ? null : _images);
-            Navigator.pop(context);
-          },
+          onPressed: _isUploading
+              ? null
+              : () {
+                  widget.onSubmit(
+                    _rating.toDouble(),
+                    _commentController.text,
+                    _images.isEmpty ? null : _images,
+                  );
+                  Navigator.pop(context);
+                },
           child: const Text('작성완료'),
         ),
       ],
@@ -588,15 +689,4 @@ class _ReviewDialogState extends State<ReviewDialog> {
     _commentController.dispose();
     super.dispose();
   }
-}
-
-// 별을 반으로 자르는 커스텀 클리퍼
-class _HalfClipper extends CustomClipper<Rect> {
-  @override
-  Rect getClip(Size size) {
-    return Rect.fromLTRB(0, 0, size.width / 2, size.height);
-  }
-
-  @override
-  bool shouldReclip(_HalfClipper oldClipper) => false;
 }
