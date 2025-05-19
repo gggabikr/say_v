@@ -1,12 +1,9 @@
 import 'package:flutter/material.dart';
 import '../models/store.dart';
 import '../pages/store_detail_page.dart'; // GalleryViewPage를 사용하기 위한 import
-import 'dart:math' as math;
 import 'package:image_picker/image_picker.dart';
 import 'package:image/image.dart' as img;
 import 'package:firebase_storage/firebase_storage.dart';
-import 'dart:typed_data';
-import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/store_update_notifier.dart';
