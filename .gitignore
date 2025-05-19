@@ -78,3 +78,4 @@ macos/Flutter/GeneratedPluginRegistrant.swift
 **/ios/ServiceDefinitions.json
 **/ios/Runner/GeneratedPluginRegistrant.*
 webapp.html
+/ios
