@@ -119,9 +119,34 @@ class AuthService {
         return '로그인에 실패했습니다.';
       }
 
+      // Firestore에서 사용자 데이터 확인
+      try {
+        final userDoc = await _firestore
+            .collection('users')
+            .doc(credential.user!.uid)
+            .get();
+
+        print('User document exists: ${userDoc.exists}');
+        if (userDoc.exists) {
+          print('User data: ${userDoc.data()}');
+        } else {
+          // 사용자 문서가 없으면 기본 데이터 생성
+          await _firestore.collection('users').doc(credential.user!.uid).set({
+            'email': email,
+            'displayName': credential.user!.displayName ?? '',
+            'role': 'user', // 기본 role 설정
+            'createdAt': FieldValue.serverTimestamp(),
+          });
+          print('Created new user document with default role');
+        }
+      } catch (firestoreError) {
+        print('Firestore error during login: $firestoreError');
+      }
+
       return null;
     } on FirebaseAuthException catch (e) {
-      print('Firebase Auth Error Code: ${e.code}'); // 디버깅용 로그
+      print('Firebase Auth Error Code: ${e.code}');
+      print('Firebase Auth Error Message: ${e.message}');
 
       switch (e.code) {
         case 'user-not-found':
@@ -142,8 +167,9 @@ class AuthService {
           print('Unhandled Firebase Auth Error: ${e.message}'); // 디버깅용 로그
           return '로그인에 실패했습니다. 이메일과 비밀번호를 확인해주세요.';
       }
-    } catch (e) {
-      print('Login error: $e'); // 디버깅용 로그
+    } catch (e, stackTrace) {
+      print('Login error: $e');
+      print('Stack trace: $stackTrace');
       return '로그인 중 예상치 못한 오류가 발생했습니다.';
     }
   }
