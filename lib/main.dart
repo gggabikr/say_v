@@ -744,23 +744,23 @@ class _HomePageState extends State<HomePage> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                TextField(
+                TextFormField(
                   controller: emailController,
                   decoration: const InputDecoration(
                     labelText: '이메일',
                     hintText: 'example@email.com',
                   ),
                   keyboardType: TextInputType.emailAddress,
-                  onSubmitted: (_) => FocusScope.of(context).nextFocus(),
+                  onFieldSubmitted: (_) => FocusScope.of(context).nextFocus(),
                 ),
                 const SizedBox(height: 16),
-                TextField(
+                TextFormField(
                   controller: passwordController,
                   decoration: const InputDecoration(
                     labelText: '비밀번호',
                   ),
                   obscureText: true,
-                  onSubmitted: (_) async {
+                  onFieldSubmitted: (_) async {
                     String? error =
                         await authService.signInWithEmailAndPassword(
                       emailController.text,
@@ -903,7 +903,7 @@ class _HomePageState extends State<HomePage> {
             children: [
               const Text('비밀번호 재설정 링크를 이메일로 보내드립니다.'),
               const SizedBox(height: 16),
-              TextField(
+              TextFormField(
                 controller: emailController,
                 decoration: const InputDecoration(
                   labelText: '이메일',
@@ -967,32 +967,32 @@ class _HomePageState extends State<HomePage> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                TextField(
+                TextFormField(
                   controller: displayNameController,
                   decoration: const InputDecoration(
                     labelText: '이름',
                     hintText: '표시될 이름을 입력하세요',
                   ),
-                  onSubmitted: (_) => FocusScope.of(context).nextFocus(),
+                  onFieldSubmitted: (_) => FocusScope.of(context).nextFocus(),
                 ),
                 const SizedBox(height: 16),
-                TextField(
+                TextFormField(
                   controller: emailController,
                   decoration: const InputDecoration(
                     labelText: '이메일',
                     hintText: 'example@email.com',
                   ),
                   keyboardType: TextInputType.emailAddress,
-                  onSubmitted: (_) => FocusScope.of(context).nextFocus(),
+                  onFieldSubmitted: (_) => FocusScope.of(context).nextFocus(),
                 ),
                 const SizedBox(height: 16),
-                TextField(
+                TextFormField(
                   controller: passwordController,
                   decoration: const InputDecoration(
                     labelText: '비밀번호',
                   ),
                   obscureText: true,
-                  onSubmitted: (_) async {
+                  onFieldSubmitted: (_) async {
                     String? error =
                         await authService.signUpWithEmailAndPassword(
                       emailController.text,
