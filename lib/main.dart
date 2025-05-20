@@ -15,6 +15,7 @@ import 'firebase_options.dart';
 import 'pages/profile_page.dart';
 import 'services/event_bus.dart';
 import 'pages/my_stores_screen.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -423,53 +424,73 @@ class _HomePageState extends State<HomePage> {
           ),
           StreamBuilder<User?>(
             stream: FirebaseAuth.instance.authStateChanges(),
-            builder: (context, snapshot) {
-              if (snapshot.hasData) {
+            builder: (context, authSnapshot) {
+              if (authSnapshot.hasData) {
                 // 로그인된 상태
-                return PopupMenuButton(
-                  icon: const Icon(Icons.person),
-                  itemBuilder: (context) => [
-                    PopupMenuItem(
-                      child: const Text('프로필 설정'),
-                      onTap: () {
-                        Future.delayed(Duration.zero, () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const ProfilePage(),
+                return FutureBuilder<DocumentSnapshot>(
+                  future: FirebaseFirestore.instance
+                      .collection('users')
+                      .doc(authSnapshot.data!.uid)
+                      .get(),
+                  builder: (context, userSnapshot) {
+                    if (userSnapshot.hasData && userSnapshot.data != null) {
+                      final userData =
+                          userSnapshot.data!.data() as Map<String, dynamic>?;
+                      final userRole = userData?['role'] ?? '';
+                      final isAdminOrOwner =
+                          userRole == 'admin' || userRole == 'owner';
+
+                      return PopupMenuButton(
+                        icon: const Icon(Icons.person),
+                        itemBuilder: (context) => [
+                          PopupMenuItem(
+                            child: const Text('프로필 설정'),
+                            onTap: () {
+                              Future.delayed(Duration.zero, () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => const ProfilePage(),
+                                  ),
+                                );
+                              });
+                            },
+                          ),
+                          if (isAdminOrOwner)
+                            PopupMenuItem(
+                              child: const Text('내 상점'),
+                              onTap: () {
+                                Future.delayed(Duration.zero, () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          const MyStoresScreen(),
+                                    ),
+                                  );
+                                });
+                              },
                             ),
-                          );
-                        });
-                      },
-                    ),
-                    PopupMenuItem(
-                      child: const Text('내 상점'),
-                      onTap: () {
-                        Future.delayed(Duration.zero, () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const MyStoresScreen(),
-                            ),
-                          );
-                        });
-                      },
-                    ),
-                    PopupMenuItem(
-                      child: const Text('로그아웃'),
-                      onTap: () async {
-                        await AuthService().signOut();
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('로그아웃되었습니다.'),
-                              backgroundColor: Colors.green,
-                            ),
-                          );
-                        }
-                      },
-                    ),
-                  ],
+                          PopupMenuItem(
+                            child: const Text('로그아웃'),
+                            onTap: () async {
+                              await AuthService().signOut();
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('로그아웃되었습니다.'),
+                                    backgroundColor: Colors.green,
+                                  ),
+                                );
+                              }
+                            },
+                          ),
+                        ],
+                      );
+                    }
+                    // 사용자 데이터 로딩 중
+                    return const CircularProgressIndicator();
+                  },
                 );
               } else {
                 // 로그인되지 않은 상태
@@ -761,42 +782,71 @@ class _HomePageState extends State<HomePage> {
                   ),
                   obscureText: true,
                   onFieldSubmitted: (_) async {
-                    String? error =
-                        await authService.signInWithEmailAndPassword(
-                      emailController.text,
-                      passwordController.text,
-                    );
-
-                    Navigator.of(context).pop();
-
-                    if (error == null) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('로그인 성공!'),
-                          backgroundColor: Colors.green,
-                        ),
+                    try {
+                      String? error =
+                          await authService.signInWithEmailAndPassword(
+                        emailController.text,
+                        passwordController.text,
                       );
 
-                      // 사용자 이름이 없는 경우에만 프로필 페이지로 이동
-                      if (mounted) {
+                      if (!context.mounted) return; // context가 유효한지 확인
+
+                      if (error == null) {
+                        // 로그인 성공 후 사용자 role 확인
                         final user = FirebaseAuth.instance.currentUser;
-                        if (user?.displayName == null ||
-                            user!.displayName!.isEmpty) {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const ProfilePage(),
-                            ),
+                        if (user != null) {
+                          try {
+                            final userData = await FirebaseFirestore.instance
+                                .collection('users')
+                                .doc(user.uid)
+                                .get();
+
+                            final userRole =
+                                userData.data()?['role'] ?? 'role not set';
+                            print('로그인 성공! 사용자 ID: ${user.uid}');
+                            print('사용자 role: $userRole');
+                            print(
+                                '전체 사용자 데이터: ${userData.data()}'); // 전체 데이터 구조 확인
+                          } catch (firestoreError) {
+                            print('Firestore 데이터 조회 에러: $firestoreError');
+                          }
+                        }
+
+                        // 다이얼로그를 닫고 스낵바 표시
+                        if (context.mounted) {
+                          Navigator.of(context).pop();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content: Text('로그인 성공!'),
+                                backgroundColor: Colors.green,
+                                duration: Duration(seconds: 5)),
+                          );
+                        }
+                      } else {
+                        // 로그인 실패
+                        print('로그인 에러 상세: $error');
+                        if (context.mounted) {
+                          Navigator.of(context).pop();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                                content: Text('로그인 실패: $error'),
+                                backgroundColor: Colors.red,
+                                duration: const Duration(seconds: 5)),
                           );
                         }
                       }
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('로그인 실패: $error'),
-                          backgroundColor: Colors.red,
-                        ),
-                      );
+                    } catch (e, stackTrace) {
+                      print('예외 발생: $e');
+                      print('스택 트레이스: $stackTrace');
+                      if (context.mounted) {
+                        Navigator.of(context).pop();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                              content: Text('로그인 중 오류 발생: $e'),
+                              backgroundColor: Colors.red,
+                              duration: const Duration(seconds: 5)),
+                        );
+                      }
                     }
                   },
                 ),
@@ -844,41 +894,69 @@ class _HomePageState extends State<HomePage> {
             ),
             ElevatedButton(
               onPressed: () async {
-                String? error = await authService.signInWithEmailAndPassword(
-                  emailController.text,
-                  passwordController.text,
-                );
-
-                Navigator.of(context).pop();
-
-                if (error == null) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                        content: Text('로그인 성공!'),
-                        backgroundColor: Colors.green,
-                        duration: Duration(seconds: 5)),
+                try {
+                  String? error = await authService.signInWithEmailAndPassword(
+                    emailController.text,
+                    passwordController.text,
                   );
 
-                  // 사용자 이름이 없는 경우에만 프로필 페이지로 이동
-                  if (mounted) {
+                  if (!context.mounted) return; // context가 유효한지 확인
+
+                  if (error == null) {
+                    // 로그인 성공 후 사용자 role 확인
                     final user = FirebaseAuth.instance.currentUser;
-                    if (user?.displayName == null ||
-                        user!.displayName!.isEmpty) {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const ProfilePage(),
-                        ),
+                    if (user != null) {
+                      try {
+                        final userData = await FirebaseFirestore.instance
+                            .collection('users')
+                            .doc(user.uid)
+                            .get();
+
+                        final userRole =
+                            userData.data()?['role'] ?? 'role not set';
+                        print('로그인 성공! 사용자 ID: ${user.uid}');
+                        print('사용자 role: $userRole');
+                        print('전체 사용자 데이터: ${userData.data()}'); // 전체 데이터 구조 확인
+                      } catch (firestoreError) {
+                        print('Firestore 데이터 조회 에러: $firestoreError');
+                      }
+                    }
+
+                    // 다이얼로그를 닫고 스낵바 표시
+                    if (context.mounted) {
+                      Navigator.of(context).pop();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                            content: Text('로그인 성공!'),
+                            backgroundColor: Colors.green,
+                            duration: Duration(seconds: 5)),
+                      );
+                    }
+                  } else {
+                    // 로그인 실패
+                    print('로그인 에러 상세: $error');
+                    if (context.mounted) {
+                      Navigator.of(context).pop();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                            content: Text('로그인 실패: $error'),
+                            backgroundColor: Colors.red,
+                            duration: const Duration(seconds: 5)),
                       );
                     }
                   }
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                        content: Text('로그인 실패: $error'),
-                        backgroundColor: Colors.red,
-                        duration: const Duration(seconds: 5)),
-                  );
+                } catch (e, stackTrace) {
+                  print('예외 발생: $e');
+                  print('스택 트레이스: $stackTrace');
+                  if (context.mounted) {
+                    Navigator.of(context).pop();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                          content: Text('로그인 중 오류 발생: $e'),
+                          backgroundColor: Colors.red,
+                          duration: const Duration(seconds: 5)),
+                    );
+                  }
                 }
               },
               child: const Text('로그인'),
