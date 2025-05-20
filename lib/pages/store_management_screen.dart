@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:say_v/models/report.dart';
+import 'package:say_v/pages/reported_reviews_page.dart';
 
 class StoreManagementScreen extends StatefulWidget {
   final String storeId;
@@ -78,6 +80,58 @@ class _StoreManagementScreenState extends State<StoreManagementScreen> {
         appBar: AppBar(
           title: const Text('스토어 관리'),
           actions: [
+            StreamBuilder<QuerySnapshot>(
+              stream: FirebaseFirestore.instance
+                  .collection('reports')
+                  .where('storeId', isEqualTo: widget.storeId)
+                  .where('status', isEqualTo: ReportStatus.pending.name)
+                  .snapshots(),
+              builder: (context, snapshot) {
+                final reportCount = snapshot.data?.docs.length ?? 0;
+
+                return Stack(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.report_problem_outlined),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ReportedReviewsPage(
+                              storeId: widget.storeId,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                    if (reportCount > 0)
+                      Positioned(
+                        right: 8,
+                        top: 8,
+                        child: Container(
+                          padding: const EdgeInsets.all(2),
+                          decoration: BoxDecoration(
+                            color: Colors.red,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          constraints: const BoxConstraints(
+                            minWidth: 16,
+                            minHeight: 16,
+                          ),
+                          child: Text(
+                            reportCount.toString(),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 10,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ),
+                  ],
+                );
+              },
+            ),
             if (_hasUnsavedChanges) ...[
               TextButton(
                 onPressed: _discardChanges,

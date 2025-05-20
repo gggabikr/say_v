@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:say_v/models/report.dart';
 import 'package:say_v/widgets/review_section.dart';
 import 'package:say_v/widgets/scroll_to_top.dart';
 import '../models/store.dart';
@@ -8,6 +9,9 @@ import 'package:geocoding/geocoding.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 import 'dart:io' show Platform;
 import 'package:say_v/services/store_update_notifier.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:say_v/pages/reported_reviews_page.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class StoreDetailPage extends StatefulWidget {
   final Store store;
@@ -240,6 +244,76 @@ class _StoreDetailPageState extends State<StoreDetailPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.store.name),
+        actions: [
+          StreamBuilder<DocumentSnapshot>(
+            stream: FirebaseFirestore.instance
+                .collection('users')
+                .doc(FirebaseAuth.instance.currentUser?.uid)
+                .snapshots(),
+            builder: (context, userSnapshot) {
+              if (!userSnapshot.hasData) return const SizedBox.shrink();
+
+              final List<String> ownedStores =
+                  List<String>.from(userSnapshot.data?['ownedStores'] ?? []);
+              final isOwner = ownedStores.contains(widget.store.id);
+
+              if (!isOwner) return const SizedBox.shrink();
+
+              return StreamBuilder<QuerySnapshot>(
+                stream: FirebaseFirestore.instance
+                    .collection('reports')
+                    .where('storeId', isEqualTo: widget.store.id)
+                    .where('status', isEqualTo: ReportStatus.pending.name)
+                    .snapshots(),
+                builder: (context, snapshot) {
+                  final reportCount = snapshot.data?.docs.length ?? 0;
+
+                  return Stack(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.report_problem_outlined),
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ReportedReviewsPage(
+                                storeId: widget.store.id,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                      if (reportCount > 0)
+                        Positioned(
+                          right: 8,
+                          top: 8,
+                          child: Container(
+                            padding: const EdgeInsets.all(2),
+                            decoration: BoxDecoration(
+                              color: Colors.red,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            constraints: const BoxConstraints(
+                              minWidth: 16,
+                              minHeight: 16,
+                            ),
+                            child: Text(
+                              reportCount.toString(),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ),
+                    ],
+                  );
+                },
+              );
+            },
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         controller: _scrollController,
