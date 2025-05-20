@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:say_v/models/report.dart';
 import 'package:say_v/pages/reported_reviews_page.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class StoreManagementScreen extends StatefulWidget {
   final String storeId;
@@ -40,171 +41,196 @@ class _StoreManagementScreenState extends State<StoreManagementScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return PopScope(
-      canPop: !_hasUnsavedChanges,
-      onPopInvoked: (didPop) async {
-        if (didPop) return;
+    return StreamBuilder<DocumentSnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('users')
+          .doc(FirebaseAuth.instance.currentUser?.uid)
+          .snapshots(),
+      builder: (context, userSnapshot) {
+        if (!userSnapshot.hasData) {
+          return const Center(child: CircularProgressIndicator());
+        }
 
-        final result = await showDialog<bool>(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: const Text('저장되지 않은 변경사항'),
-            content: const Text('변경사항을 저장하지 않고 나가시겠습니까?'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(false),
-                child: const Text('취소'),
-              ),
-              ElevatedButton(
-                onPressed: () async {
-                  Navigator.of(context).pop(true);
-                  // 상태 초기화 후 화면 나가기
-                  setState(() {
-                    _pendingChanges.clear();
-                    _pendingAdditions.clear();
-                    _pendingDeletions.clear();
-                    _modifiedSections.clear();
-                    _hasUnsavedChanges = false;
-                  });
-                  if (context.mounted) {
-                    Navigator.of(context).pop();
-                  }
-                },
-                child: const Text('나가기'),
-              ),
-            ],
-          ),
-        );
-      },
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text('스토어 관리'),
-          actions: [
-            StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance
-                  .collection('reports')
-                  .where('storeId', isEqualTo: widget.storeId)
-                  .where('status', isEqualTo: ReportStatus.pending.name)
-                  .snapshots(),
-              builder: (context, snapshot) {
-                final reportCount = snapshot.data?.docs.length ?? 0;
+        final List<String> ownedStores =
+            List<String>.from(userSnapshot.data?['ownedStores'] ?? []);
+        final bool isAdmin = userSnapshot.data?['role'] == 'admin';
+        final bool isOwner = ownedStores.contains(widget.storeId);
 
-                return Stack(
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.report_problem_outlined),
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => ReportedReviewsPage(
-                              storeId: widget.storeId,
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                    if (reportCount > 0)
-                      Positioned(
-                        right: 8,
-                        top: 8,
-                        child: Container(
-                          padding: const EdgeInsets.all(2),
-                          decoration: BoxDecoration(
-                            color: Colors.red,
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          constraints: const BoxConstraints(
-                            minWidth: 16,
-                            minHeight: 16,
-                          ),
-                          child: Text(
-                            reportCount.toString(),
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 10,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                      ),
-                  ],
-                );
-              },
+        if (!isOwner && !isAdmin) {
+          return const Scaffold(
+            body: Center(
+              child: Text('접근 권한이 없습니다.'),
             ),
-            if (_hasUnsavedChanges) ...[
-              TextButton(
-                onPressed: _discardChanges,
-                child: const Text(
-                  '변경취소',
-                  style: TextStyle(color: Colors.red),
-                ),
-              ),
-              const SizedBox(width: 8),
-              ElevatedButton(
-                onPressed: _isLoading ? null : _saveAllChanges,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.grey[800],
-                  foregroundColor: Colors.white,
-                  elevation: 2,
-                ),
-                child: _isLoading
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor:
-                              AlwaysStoppedAnimation<Color>(Colors.white),
-                        ),
-                      )
-                    : const Text(
-                        '저장하기',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-              ),
-              const SizedBox(width: 16),
-            ],
-          ],
-        ),
-        body: StreamBuilder<DocumentSnapshot>(
-          stream: FirebaseFirestore.instance
-              .collection('stores')
-              .doc(widget.storeId)
-              .snapshots(),
-          builder: (context, snapshot) {
-            if (!snapshot.hasData) {
-              return const Center(child: CircularProgressIndicator());
-            }
+          );
+        }
 
-            final storeData = snapshot.data!.data() as Map<String, dynamic>;
+        return PopScope(
+          canPop: !_hasUnsavedChanges,
+          onPopInvoked: (didPop) async {
+            if (didPop) return;
 
-            return SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildBasicInfoSection(storeData),
-                  const SizedBox(height: 24),
-                  _buildCategoriesSection(storeData),
-                  const SizedBox(height: 24),
-                  _buildCuisineTypesSection(storeData),
-                  const SizedBox(height: 24),
-                  _buildBusinessHoursSection(storeData),
-                  const SizedBox(height: 24),
-                  _buildHappyHoursSection(storeData),
-                  const SizedBox(height: 24),
-                  _buildMenuSection(storeData),
-                  const SizedBox(height: 24),
-                  _buildLocationSection(storeData),
+            final result = await showDialog<bool>(
+              context: context,
+              builder: (context) => AlertDialog(
+                title: const Text('저장되지 않은 변경사항'),
+                content: const Text('변경사항을 저장하지 않고 나가시겠습니까?'),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(false),
+                    child: const Text('취소'),
+                  ),
+                  ElevatedButton(
+                    onPressed: () async {
+                      Navigator.of(context).pop(true);
+                      // 상태 초기화 후 화면 나가기
+                      setState(() {
+                        _pendingChanges.clear();
+                        _pendingAdditions.clear();
+                        _pendingDeletions.clear();
+                        _modifiedSections.clear();
+                        _hasUnsavedChanges = false;
+                      });
+                      if (context.mounted) {
+                        Navigator.of(context).pop();
+                      }
+                    },
+                    child: const Text('나가기'),
+                  ),
                 ],
               ),
             );
           },
-        ),
-      ),
+          child: Scaffold(
+            appBar: AppBar(
+              title: const Text('스토어 관리'),
+              actions: [
+                StreamBuilder<QuerySnapshot>(
+                  stream: FirebaseFirestore.instance
+                      .collection('reports')
+                      .where('storeId', isEqualTo: widget.storeId)
+                      .where('status', isEqualTo: ReportStatus.pending.name)
+                      .snapshots(),
+                  builder: (context, snapshot) {
+                    final reportCount = snapshot.data?.docs.length ?? 0;
+
+                    return Stack(
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.report_problem_outlined),
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => ReportedReviewsPage(
+                                  storeId: widget.storeId,
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                        if (reportCount > 0)
+                          Positioned(
+                            right: 8,
+                            top: 8,
+                            child: Container(
+                              padding: const EdgeInsets.all(2),
+                              decoration: BoxDecoration(
+                                color: Colors.red,
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              constraints: const BoxConstraints(
+                                minWidth: 16,
+                                minHeight: 16,
+                              ),
+                              child: Text(
+                                reportCount.toString(),
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 10,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          ),
+                      ],
+                    );
+                  },
+                ),
+                if (_hasUnsavedChanges) ...[
+                  TextButton(
+                    onPressed: _discardChanges,
+                    child: const Text(
+                      '변경취소',
+                      style: TextStyle(color: Colors.red),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  ElevatedButton(
+                    onPressed: _isLoading ? null : _saveAllChanges,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.grey[800],
+                      foregroundColor: Colors.white,
+                      elevation: 2,
+                    ),
+                    child: _isLoading
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor:
+                                  AlwaysStoppedAnimation<Color>(Colors.white),
+                            ),
+                          )
+                        : const Text(
+                            '저장하기',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                  ),
+                  const SizedBox(width: 16),
+                ],
+              ],
+            ),
+            body: StreamBuilder<DocumentSnapshot>(
+              stream: FirebaseFirestore.instance
+                  .collection('stores')
+                  .doc(widget.storeId)
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                final storeData = snapshot.data!.data() as Map<String, dynamic>;
+
+                return SingleChildScrollView(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildBasicInfoSection(storeData),
+                      const SizedBox(height: 24),
+                      _buildCategoriesSection(storeData),
+                      const SizedBox(height: 24),
+                      _buildCuisineTypesSection(storeData),
+                      const SizedBox(height: 24),
+                      _buildBusinessHoursSection(storeData),
+                      const SizedBox(height: 24),
+                      _buildHappyHoursSection(storeData),
+                      const SizedBox(height: 24),
+                      _buildMenuSection(storeData),
+                      const SizedBox(height: 24),
+                      _buildLocationSection(storeData),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+        );
+      },
     );
   }
 

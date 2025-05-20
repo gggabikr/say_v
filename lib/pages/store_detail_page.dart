@@ -255,9 +255,10 @@ class _StoreDetailPageState extends State<StoreDetailPage> {
 
               final List<String> ownedStores =
                   List<String>.from(userSnapshot.data?['ownedStores'] ?? []);
-              final isOwner = ownedStores.contains(widget.store.id);
+              final bool isAdmin = userSnapshot.data?['role'] == 'admin';
+              final bool isOwner = ownedStores.contains(widget.store.id);
 
-              if (!isOwner) return const SizedBox.shrink();
+              if (!isOwner && !isAdmin) return const SizedBox.shrink();
 
               return StreamBuilder<QuerySnapshot>(
                 stream: FirebaseFirestore.instance
