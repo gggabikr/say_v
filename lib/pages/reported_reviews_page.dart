@@ -20,24 +20,26 @@ class _ReportedReviewsPageState extends State<ReportedReviewsPage>
     with SingleTickerProviderStateMixin {
   final Set<String> _selectedReports = {};
   bool _isProcessing = false;
-  TabController? _tabController;
+  late TabController _tabController;
   bool _isDateAscending = false;
   bool _isStatusAscending = false;
   String _currentSortType = 'date'; // 'date' 또는 'status'
   final Set<String> _expandedCards = {}; // 확장된 카드들의 ID를 저장
+  bool _isAdmin = false;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    _tabController?.addListener(() {
-      // 탭이 실제로 변경되었을 때만 setState 호출
-      if (!(_tabController?.indexIsChanging ?? true)) {
+    // 사용자 역할 확인
+    FirebaseFirestore.instance
+        .collection('users')
+        .doc(FirebaseAuth.instance.currentUser?.uid)
+        .get()
+        .then((snapshot) {
+      if (mounted) {
         setState(() {
-          // 처리 대기 탭으로 이동할 때는 날짜순 정렬로 초기화
-          if (_tabController?.index == 0) {
-            _currentSortType = 'date';
-          }
+          _isAdmin = snapshot.data()?['role'] == 'admin';
         });
       }
     });
@@ -45,129 +47,132 @@ class _ReportedReviewsPageState extends State<ReportedReviewsPage>
 
   @override
   void dispose() {
-    _tabController?.dispose();
+    _tabController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('신고된 리뷰'),
-        centerTitle: true,
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(80), // 탭바와 체크박스 공간 확보
-          child: Column(
-            children: [
-              // 전체 선택 체크박스
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: Row(
-                  children: [
-                    Checkbox(
-                      value: _selectedReports.isNotEmpty &&
-                          _getVisibleReportIds().length ==
-                              _selectedReports.length,
-                      onChanged: (bool? value) {
-                        setState(() {
-                          if (value == true) {
-                            _selectedReports.addAll(_getVisibleReportIds());
-                          } else {
-                            _selectedReports.clear();
-                          }
-                        });
-                      },
-                    ),
-                    const Text('전체 선택'),
-                    const Spacer(),
-                    // 날짜순 정렬 텍스트 버튼
-                    TextButton.icon(
-                      onPressed: () {
-                        setState(() {
-                          if (_currentSortType == 'date') {
-                            _isDateAscending = !_isDateAscending;
-                          } else {
-                            _currentSortType = 'date';
-                          }
-                        });
-                      },
-                      icon: Icon(
-                        _isDateAscending
-                            ? Icons.arrow_upward
-                            : Icons.arrow_downward,
-                        size: 16,
-                        color: _currentSortType == 'status'
-                            ? Colors.grey
-                            : Theme.of(context).colorScheme.secondary,
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('신고된 리뷰'),
+          centerTitle: true,
+          bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(80),
+            child: Column(
+              children: [
+                // 전체 선택 체크박스
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Row(
+                    children: [
+                      Checkbox(
+                        value: _selectedReports.isNotEmpty &&
+                            _getVisibleReportIds().length ==
+                                _selectedReports.length,
+                        onChanged: (bool? value) {
+                          setState(() {
+                            if (value == true) {
+                              _selectedReports.addAll(_getVisibleReportIds());
+                            } else {
+                              _selectedReports.clear();
+                            }
+                          });
+                        },
                       ),
-                      label: Text(
-                        _isDateAscending ? '오래된 순' : '최신 순',
-                        style: TextStyle(
-                          color: _currentSortType == 'status'
-                              ? Colors.grey
-                              : Theme.of(context).colorScheme.secondary,
-                        ),
-                      ),
-                    ),
-                    // 상태순 정렬 버튼 (전체 내역 탭에서만 표시)
-                    if (_tabController?.index == 1)
+                      const Text('전체 선택'),
+                      const Spacer(),
+                      // 날짜순 정렬 텍스트 버튼
                       TextButton.icon(
                         onPressed: () {
                           setState(() {
-                            if (_currentSortType == 'status') {
-                              _isStatusAscending = !_isStatusAscending;
+                            if (_currentSortType == 'date') {
+                              _isDateAscending = !_isDateAscending;
                             } else {
-                              _currentSortType = 'status';
+                              _currentSortType = 'date';
                             }
                           });
                         },
                         icon: Icon(
-                          Icons.sort,
+                          _isDateAscending
+                              ? Icons.arrow_upward
+                              : Icons.arrow_downward,
                           size: 16,
-                          color: _currentSortType == 'date'
+                          color: _currentSortType == 'status'
                               ? Colors.grey
                               : Theme.of(context).colorScheme.secondary,
                         ),
                         label: Text(
-                          _isStatusAscending ? '상태 ↑' : '상태 ↓',
+                          _isDateAscending ? '오래된 순' : '최신 순',
                           style: TextStyle(
-                            color: _currentSortType == 'date'
+                            color: _currentSortType == 'status'
                                 ? Colors.grey
                                 : Theme.of(context).colorScheme.secondary,
                           ),
                         ),
                       ),
+                      // 상태순 정렬 버튼 (전체 내역 탭에서만 표시)
+                      if (_tabController.index == 1)
+                        TextButton.icon(
+                          onPressed: () {
+                            setState(() {
+                              if (_currentSortType == 'status') {
+                                _isStatusAscending = !_isStatusAscending;
+                              } else {
+                                _currentSortType = 'status';
+                              }
+                            });
+                          },
+                          icon: Icon(
+                            Icons.sort,
+                            size: 16,
+                            color: _currentSortType == 'date'
+                                ? Colors.grey
+                                : Theme.of(context).colorScheme.secondary,
+                          ),
+                          label: Text(
+                            _isStatusAscending ? '상태 ↑' : '상태 ↓',
+                            style: TextStyle(
+                              color: _currentSortType == 'date'
+                                  ? Colors.grey
+                                  : Theme.of(context).colorScheme.secondary,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+                // 탭바
+                TabBar(
+                  controller: _tabController,
+                  tabs: [
+                    Tab(text: _isAdmin ? '관리자 보고' : '처리 대기'),
+                    const Tab(text: '전체 내역'),
                   ],
                 ),
-              ),
-              // 탭바
-              TabBar(
-                controller: _tabController,
-                tabs: const [
-                  Tab(text: '처리 대기'),
-                  Tab(text: '전체 내역'),
-                ],
-              ),
-            ],
+              ],
+            ),
           ),
         ),
+        body: TabBarView(
+          controller: _tabController,
+          children: [
+            // 처리 대기 탭
+            _buildReportList(true),
+            // 전체 내역 탭
+            _buildReportList(false),
+          ],
+        ),
+        bottomNavigationBar: _buildBottomBar(),
       ),
-      body: TabBarView(
-        controller: _tabController,
-        children: [
-          // 처리 대기 탭
-          _buildReportList(true),
-          // 전체 내역 탭
-          _buildReportList(false),
-        ],
-      ),
-      bottomNavigationBar: _buildBottomBar(),
     );
   }
 
-  Widget _buildReportList(bool pendingOnly) {
+  Widget _buildReportList(bool filteredOnly) {
     return StreamBuilder<QuerySnapshot>(
-      stream: _getReportsStream(pendingOnly),
+      stream: _getReportsStream(filteredOnly),
       builder: (context, snapshot) {
         if (snapshot.hasError) {
           return const Center(child: Text('오류가 발생했습니다'));
@@ -197,13 +202,18 @@ class _ReportedReviewsPageState extends State<ReportedReviewsPage>
     );
   }
 
-  Stream<QuerySnapshot> _getReportsStream(bool pendingOnly) {
+  Stream<QuerySnapshot> _getReportsStream(bool filteredOnly) {
     Query query = FirebaseFirestore.instance
         .collection('reports')
         .where('storeId', isEqualTo: widget.storeId);
 
-    if (pendingOnly) {
-      query = query.where('status', isEqualTo: ReportStatus.pending.name);
+    if (filteredOnly) {
+      query = query.where(
+        'status',
+        isEqualTo: _isAdmin
+            ? ReportStatus.reportedToAdmin.name
+            : ReportStatus.pending.name,
+      );
     }
 
     return query.snapshots();
@@ -215,7 +225,7 @@ class _ReportedReviewsPageState extends State<ReportedReviewsPage>
         final aData = a.data() as Map<String, dynamic>;
         final bData = b.data() as Map<String, dynamic>;
 
-        if (_currentSortType == 'status' && _tabController?.index == 1) {
+        if (_currentSortType == 'status' && _tabController.index == 1) {
           // 상태순 정렬 (전체 내역 탭에서만)
           final compareStatus = _compareStatus(
             ReportStatus.values.byName(aData['status'] ?? ''),
@@ -448,6 +458,8 @@ class _ReportedReviewsPageState extends State<ReportedReviewsPage>
     final isSelected = _selectedReports.contains(report.id);
     final isExpanded = _expandedCards.contains(report.id);
     final status = reportData['status']?.toString() ?? '';
+    final bool isAdminHandled = status == ReportStatus.maintained.name ||
+        status == ReportStatus.deleted.name;
 
     return StreamBuilder<DocumentSnapshot>(
       stream: FirebaseFirestore.instance
@@ -482,15 +494,17 @@ class _ReportedReviewsPageState extends State<ReportedReviewsPage>
               child: ListTile(
                 leading: Checkbox(
                   value: isSelected,
-                  onChanged: (bool? value) {
-                    setState(() {
-                      if (value == true) {
-                        _selectedReports.add(report.id);
-                      } else {
-                        _selectedReports.remove(report.id);
-                      }
-                    });
-                  },
+                  onChanged: (!isAdmin && isAdminHandled)
+                      ? null
+                      : (bool? value) {
+                          setState(() {
+                            if (value == true) {
+                              _selectedReports.add(report.id);
+                            } else {
+                              _selectedReports.remove(report.id);
+                            }
+                          });
+                        },
                 ),
                 title: Text(reportData['reason']?.toString() ?? ''),
                 subtitle: Column(
@@ -646,7 +660,7 @@ class _ReportedReviewsPageState extends State<ReportedReviewsPage>
   // 현재 보이는 리포트 ID들을 가져오는 헬퍼 메소드
   Set<String> _getVisibleReportIds() {
     final reports =
-        _tabController?.index == 0 ? _getPendingReports() : _getAllReports();
+        _tabController.index == 0 ? _getPendingReports() : _getAllReports();
     return reports.map((doc) => doc.id).toSet();
   }
 

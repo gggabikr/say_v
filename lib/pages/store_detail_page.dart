@@ -264,7 +264,10 @@ class _StoreDetailPageState extends State<StoreDetailPage> {
                 stream: FirebaseFirestore.instance
                     .collection('reports')
                     .where('storeId', isEqualTo: widget.store.id)
-                    .where('status', isEqualTo: ReportStatus.pending.name)
+                    .where('status',
+                        isEqualTo: isAdmin
+                            ? ReportStatus.reportedToAdmin.name
+                            : ReportStatus.pending.name)
                     .snapshots(),
                 builder: (context, snapshot) {
                   final reportCount = snapshot.data?.docs.length ?? 0;

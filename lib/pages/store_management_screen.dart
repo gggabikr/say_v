@@ -108,7 +108,10 @@ class _StoreManagementScreenState extends State<StoreManagementScreen> {
                   stream: FirebaseFirestore.instance
                       .collection('reports')
                       .where('storeId', isEqualTo: widget.storeId)
-                      .where('status', isEqualTo: ReportStatus.pending.name)
+                      .where('status',
+                          isEqualTo: isAdmin
+                              ? ReportStatus.reportedToAdmin.name
+                              : ReportStatus.pending.name)
                       .snapshots(),
                   builder: (context, snapshot) {
                     final reportCount = snapshot.data?.docs.length ?? 0;
