@@ -512,10 +512,6 @@ class _ReviewSectionState extends State<ReviewSection> {
                 ),
               ],
             ),
-            if (review.comment.isNotEmpty) ...[
-              const SizedBox(height: 4),
-              Text(review.comment),
-            ],
             if (review.images?.isNotEmpty ?? false) ...[
               const SizedBox(height: 8),
               SizedBox(
@@ -555,10 +551,14 @@ class _ReviewSectionState extends State<ReviewSection> {
                 ),
               ),
             ],
-            // 리뷰 내용과 시간 표시 사이 간격
+            if (review.comment.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              ExpandableText(
+                review.comment,
+                maxWidth: MediaQuery.of(context).size.width - 60, // 패딩 고려한 너비
+              ),
+            ],
             const SizedBox(height: 8),
-
-            // 시간 표시
             Align(
               alignment: Alignment.bottomRight,
               child: Text(
@@ -975,5 +975,79 @@ class _ReviewDialogState extends State<ReviewDialog> {
   void dispose() {
     _commentController.dispose();
     super.dispose();
+  }
+}
+
+// 새로운 ExpandableText 위젯 추가
+class ExpandableText extends StatefulWidget {
+  final String text;
+  final double maxWidth;
+  static const int maxLines = 3;
+
+  const ExpandableText(
+    this.text, {
+    Key? key,
+    required this.maxWidth,
+  }) : super(key: key);
+
+  @override
+  State<ExpandableText> createState() => _ExpandableTextState();
+}
+
+class _ExpandableTextState extends State<ExpandableText> {
+  bool _isExpanded = false;
+  late bool _isExpandable;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkIfExpandable();
+  }
+
+  void _checkIfExpandable() {
+    final textSpan = TextSpan(
+      text: widget.text,
+      style: const TextStyle(fontSize: 14),
+    );
+    final textPainter = TextPainter(
+      text: textSpan,
+      textDirection: TextDirection.ltr,
+      maxLines: ExpandableText.maxLines,
+    );
+    textPainter.layout(maxWidth: widget.maxWidth);
+    _isExpandable = textPainter.didExceedMaxLines;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          widget.text,
+          style: const TextStyle(fontSize: 14),
+          maxLines: _isExpanded ? null : ExpandableText.maxLines,
+          overflow: _isExpanded ? null : TextOverflow.ellipsis,
+        ),
+        if (_isExpandable)
+          GestureDetector(
+            onTap: () {
+              setState(() {
+                _isExpanded = !_isExpanded;
+              });
+            },
+            child: Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Text(
+                _isExpanded ? '접기' : '더보기',
+                style: TextStyle(
+                  color: Colors.blue[700],
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
   }
 }
