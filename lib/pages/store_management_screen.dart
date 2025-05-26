@@ -3,6 +3,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:say_v/models/report.dart';
 import 'package:say_v/pages/reported_reviews_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:say_v/models/menu_item.dart';
+import 'package:say_v/models/discount_info.dart';
 
 class StoreManagementScreen extends StatefulWidget {
   final String storeId;
@@ -741,7 +743,7 @@ class _StoreManagementScreenState extends State<StoreManagementScreen> {
                 _buildSectionHeader('메뉴', 'menu'),
                 IconButton(
                   icon: const Icon(Icons.add),
-                  onPressed: () => _showMenuItemDialog(),
+                  onPressed: () => _showMenuItemDialog(storeData: storeData),
                 ),
               ],
             ),
@@ -763,7 +765,8 @@ class _StoreManagementScreenState extends State<StoreManagementScreen> {
                     isDeleted: isDeleted,
                     title: menu['name'] ?? '',
                     subtitle: '\$${menu['price']} - ${menu['type']}',
-                    onEdit: () => _showMenuItemDialog(existingMenu: menu),
+                    onEdit: () => _showMenuItemDialog(
+                        existingMenu: menu, storeData: storeData),
                     onDelete: () => _markForDeletion(menu, 'menu'),
                     onRestore: () => _restoreItem(menu, 'menu'),
                   );
@@ -778,8 +781,8 @@ class _StoreManagementScreenState extends State<StoreManagementScreen> {
                     title: pendingMenu['name'] ?? '',
                     subtitle:
                         '\$${pendingMenu['price']} - ${pendingMenu['type']}',
-                    onEdit: () =>
-                        _showMenuItemDialog(existingMenu: pendingMenu),
+                    onEdit: () => _showMenuItemDialog(
+                        existingMenu: pendingMenu, storeData: storeData),
                     onDelete: () {
                       setState(() {
                         _pendingAdditions['menu']?.remove(pendingMenu);
@@ -1282,7 +1285,9 @@ class _StoreManagementScreenState extends State<StoreManagementScreen> {
     );
   }
 
-  void _showMenuItemDialog({Map<String, dynamic>? existingMenu}) {
+  void _showMenuItemDialog(
+      {Map<String, dynamic>? existingMenu,
+      required Map<String, dynamic> storeData}) {
     final nameController =
         TextEditingController(text: existingMenu?['name'] ?? '');
     final priceController = TextEditingController(
@@ -1290,10 +1295,35 @@ class _StoreManagementScreenState extends State<StoreManagementScreen> {
     );
     String selectedType = existingMenu?['type'] ?? 'food';
 
+    // 할인 관련 상태
+    bool hasDiscount = existingMenu?['discount'] != null;
+    bool isHappyHourMenu = existingMenu?['discount']?['isHappyHour'] ?? false;
+    DiscountType? selectedDiscountType;
+    final discountPriceController = TextEditingController();
+    final discountPercentController = TextEditingController();
+    final bundleQuantityController = TextEditingController();
+    final freeQuantityController = TextEditingController();
+
+    // 기존 할인 정보 로드
+    if (hasDiscount && existingMenu?['discount'] != null) {
+      final discount = existingMenu!['discount'];
+      selectedDiscountType = DiscountType.values.firstWhere(
+        (type) => type.toString().split('.').last == discount['type'],
+        orElse: () => DiscountType.fixedAmount,
+      );
+      discountPriceController.text =
+          discount['discountedPrice']?.toString() ?? '';
+      discountPercentController.text =
+          discount['discountPercentage']?.toString() ?? '';
+      bundleQuantityController.text =
+          discount['bundleQuantity']?.toString() ?? '';
+      freeQuantityController.text = discount['freeQuantity']?.toString() ?? '';
+    }
+
     showDialog(
       context: context,
       builder: (context) => StatefulBuilder(
-        builder: (context, setState) => AlertDialog(
+        builder: (context, dialogSetState) => AlertDialog(
           title: Text(existingMenu == null ? '메뉴 추가' : '메뉴 수정'),
           content: SingleChildScrollView(
             child: Column(
@@ -1317,9 +1347,69 @@ class _StoreManagementScreenState extends State<StoreManagementScreen> {
                     DropdownMenuItem(value: 'alcohol', child: Text('주류')),
                   ],
                   onChanged: (value) {
-                    setState(() => selectedType = value!);
+                    dialogSetState(() => selectedType = value!);
                   },
                 ),
+                const SizedBox(height: 16),
+                CheckboxListTile(
+                  title: const Text('할인 적용'),
+                  value: hasDiscount,
+                  onChanged: (value) {
+                    dialogSetState(() => hasDiscount = value!);
+                  },
+                ),
+                if (hasDiscount) ...[
+                  DropdownButtonFormField<DiscountType>(
+                    value: selectedDiscountType,
+                    decoration: const InputDecoration(labelText: '할인 유형'),
+                    items: const [
+                      DropdownMenuItem(
+                        value: DiscountType.fixedAmount,
+                        child: Text('정액 할인'),
+                      ),
+                      DropdownMenuItem(
+                        value: DiscountType.percentage,
+                        child: Text('비율 할인'),
+                      ),
+                      DropdownMenuItem(
+                        value: DiscountType.bundle,
+                        child: Text('묶음 할인'),
+                      ),
+                      DropdownMenuItem(
+                        value: DiscountType.buyOneGetOne,
+                        child: Text('1+1'),
+                      ),
+                      DropdownMenuItem(
+                        value: DiscountType.event,
+                        child: Text('이벤트'),
+                      ),
+                    ],
+                    onChanged: (value) {
+                      dialogSetState(() => selectedDiscountType = value);
+                    },
+                  ),
+                  // 선택된 할인 유형에 따른 입력 필드
+                  if (selectedDiscountType != null)
+                    _buildDiscountInputFields(
+                      selectedDiscountType,
+                      discountPriceController,
+                      discountPercentController,
+                      bundleQuantityController,
+                      freeQuantityController,
+                      dialogSetState,
+                    ),
+                  const SizedBox(height: 16),
+                  // 해피아워 메뉴 여부
+                  if (storeData['happyHours']?.isNotEmpty ?? false)
+                    CheckboxListTile(
+                      title: const Text('해피아워 메뉴'),
+                      subtitle: const Text('해피아워 시간대에 할인이 적용됩니다'),
+                      value: isHappyHourMenu,
+                      onChanged: (value) {
+                        dialogSetState(() => isHappyHourMenu = value!);
+                      },
+                    ),
+                ],
               ],
             ),
           ),
@@ -1333,20 +1423,30 @@ class _StoreManagementScreenState extends State<StoreManagementScreen> {
                 if (nameController.text.isNotEmpty &&
                     priceController.text.isNotEmpty) {
                   final menuItem = {
-                    'itemId': existingMenu?['itemId'] ??
-                        DateTime.now().millisecondsSinceEpoch.toString(),
+                    'itemId': DateTime.now().millisecondsSinceEpoch.toString(),
                     'name': nameController.text,
                     'price': double.parse(priceController.text),
                     'type': selectedType,
+                    'discount': hasDiscount && selectedDiscountType != null
+                        ? _createDiscountInfo(
+                            selectedDiscountType!,
+                            discountPriceController,
+                            discountPercentController,
+                            bundleQuantityController,
+                            freeQuantityController,
+                            isHappyHourMenu,
+                            double.parse(priceController.text),
+                          )?.toJson()
+                        : null,
                   };
 
-                  if (existingMenu == null) {
-                    // 새로운 메뉴 추가
+                  setState(() {
+                    if (existingMenu != null) {
+                      _markForDeletion(existingMenu, 'menu');
+                    }
                     _addPendingItem(menuItem, 'menu');
-                  } else {
-                    // 기존 메뉴 수정
-                    _updateStore({'menus': menuItem}, 'menu');
-                  }
+                  });
+
                   Navigator.pop(context);
                 }
               },
@@ -1356,6 +1456,136 @@ class _StoreManagementScreenState extends State<StoreManagementScreen> {
         ),
       ),
     );
+  }
+
+  Widget _buildDiscountInputFields(
+    DiscountType? type,
+    TextEditingController priceController,
+    TextEditingController percentController,
+    TextEditingController bundleController,
+    TextEditingController freeController,
+    StateSetter dialogSetState,
+  ) {
+    if (type == null) return const SizedBox.shrink();
+
+    switch (type) {
+      case DiscountType.fixedAmount:
+        return TextField(
+          controller: priceController,
+          decoration: const InputDecoration(labelText: '할인 금액 (\$)'),
+          keyboardType: TextInputType.number,
+        );
+      case DiscountType.percentage:
+        return TextField(
+          controller: percentController,
+          decoration: const InputDecoration(labelText: '할인율 (%)'),
+          keyboardType: TextInputType.number,
+        );
+      case DiscountType.bundle:
+        return Column(
+          children: [
+            TextField(
+              controller: bundleController,
+              decoration: const InputDecoration(labelText: '묶음 수량'),
+              keyboardType: TextInputType.number,
+            ),
+            TextField(
+              controller: percentController,
+              decoration: const InputDecoration(labelText: '할인율 (%)'),
+              keyboardType: TextInputType.number,
+            ),
+          ],
+        );
+      case DiscountType.buyOneGetOne:
+        return TextField(
+          controller: freeController,
+          decoration: const InputDecoration(labelText: '무료 제공 수량'),
+          keyboardType: TextInputType.number,
+        );
+      default:
+        return TextField(
+          controller: priceController,
+          decoration: const InputDecoration(labelText: '할인된 가격'),
+          keyboardType: TextInputType.number,
+        );
+    }
+  }
+
+  DiscountInfo? _createDiscountInfo(
+    DiscountType type,
+    TextEditingController priceController,
+    TextEditingController percentController,
+    TextEditingController bundleController,
+    TextEditingController freeController,
+    bool isHappyHour,
+    double originalPrice,
+  ) {
+    String description = '';
+
+    switch (type) {
+      case DiscountType.fixedAmount:
+        final discountAmount = double.tryParse(priceController.text);
+        if (discountAmount != null) {
+          description = '\$${discountAmount.toStringAsFixed(2)} 할인';
+          return DiscountInfo(
+            type: type,
+            discountedPrice: originalPrice - discountAmount,
+            description: description,
+            isHappyHour: isHappyHour,
+          );
+        }
+        break;
+      case DiscountType.percentage:
+        final percent = double.tryParse(percentController.text);
+        if (percent != null) {
+          description = '${percent.toStringAsFixed(0)}% 할인';
+          return DiscountInfo(
+            type: type,
+            discountPercentage: percent,
+            description: description,
+            isHappyHour: isHappyHour,
+          );
+        }
+        break;
+      case DiscountType.bundle:
+        final bundle = int.tryParse(bundleController.text);
+        final discountPercent = double.tryParse(percentController.text);
+        if (bundle != null && discountPercent != null) {
+          description =
+              '$bundle개 구매시 ${discountPercent.toStringAsFixed(0)}% 할인';
+          return DiscountInfo(
+            type: type,
+            bundleQuantity: bundle,
+            discountPercentage: discountPercent,
+            description: description,
+            isHappyHour: isHappyHour,
+          );
+        }
+        break;
+      case DiscountType.buyOneGetOne:
+        final quantity = int.tryParse(freeController.text);
+        if (quantity != null) {
+          description = '$quantity개 구매시 1개 무료';
+          return DiscountInfo(
+            type: type,
+            freeQuantity: quantity,
+            description: description,
+            isHappyHour: isHappyHour,
+            discountedPrice: originalPrice, // 원래 가격 그대로 유지
+          );
+        }
+        break;
+      case DiscountType.event:
+        description = '이벤트 할인';
+        return DiscountInfo(
+          type: type,
+          description: description,
+          isHappyHour: isHappyHour,
+        );
+      default:
+        return null;
+    }
+    return null;
   }
 
   void _showLocationDialog(GeoPoint location) {

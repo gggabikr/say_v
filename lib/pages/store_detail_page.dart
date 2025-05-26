@@ -12,6 +12,8 @@ import 'package:say_v/services/store_update_notifier.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:say_v/pages/reported_reviews_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:say_v/models/menu_item.dart';
+import 'package:say_v/models/discount_info.dart';
 
 class StoreDetailPage extends StatefulWidget {
   final Store store;
@@ -847,7 +849,7 @@ class _StoreDetailPageState extends State<StoreDetailPage> {
         .toList();
 
     if (filteredMenus.isEmpty) {
-      return const Text('해당 카테고리의 메뉴가 없습니다.');
+      return const Text('선택한 카테고리의 메뉴가 없습니다.');
     }
 
     return ListView.builder(
@@ -856,18 +858,162 @@ class _StoreDetailPageState extends State<StoreDetailPage> {
       itemCount: filteredMenus.length,
       itemBuilder: (context, index) {
         final menu = filteredMenus[index];
-        return Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(menu.name),
-              Text('\$${menu.price.toStringAsFixed(2)}'),
-            ],
-          ),
+        return ListTile(
+          title: Text(menu.name),
+          subtitle: _buildDiscountInfo(menu),
         );
       },
     );
+  }
+
+  Widget _buildDiscountInfo(MenuItem menu) {
+    if (menu.discount == null) {
+      return Text('\$${menu.price.toStringAsFixed(2)}');
+    }
+
+    final discount = menu.discount!;
+    final (backgroundColor, textColor) =
+        _getDiscountColors(discount.type, discount.isHappyHour);
+    final discountTag = _getDiscountTag(discount.type, discount.isHappyHour);
+
+    // 해피아워 메뉴인 경우 현재 시간이 해피아워인지 체크
+    final isCurrentlyHappyHour =
+        discount.isHappyHour ? widget.store.isHappyHourNow() : true;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color:
+                    isCurrentlyHappyHour ? backgroundColor : Colors.grey[300],
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Text(
+                discountTag,
+                style: TextStyle(
+                  color: isCurrentlyHappyHour ? textColor : Colors.grey[600],
+                  fontSize: 12,
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              discount.description,
+              style: TextStyle(
+                color: isCurrentlyHappyHour ? textColor : Colors.grey[600],
+                fontSize: 12,
+                decoration: isCurrentlyHappyHour
+                    ? TextDecoration.none
+                    : TextDecoration.lineThrough,
+              ),
+            ),
+            if (discount.isHappyHour && !isCurrentlyHappyHour)
+              Text(
+                ' (해피아워 시간에만 적용)',
+                style: TextStyle(
+                  color: Colors.grey[600],
+                  fontSize: 12,
+                ),
+              ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        _buildPrice(menu, isCurrentlyHappyHour),
+      ],
+    );
+  }
+
+  Widget _buildPrice(MenuItem menu, bool isDiscountActive) {
+    if (menu.discount == null || !isDiscountActive) {
+      return Text('\$${menu.price.toStringAsFixed(2)}');
+    }
+
+    final discount = menu.discount!;
+
+    if (discount.type == DiscountType.buyOneGetOne) {
+      return Text('\$${menu.price.toStringAsFixed(2)}');
+    }
+
+    if (discount.type == DiscountType.percentage &&
+        discount.discountPercentage != null) {
+      final discountedPrice =
+          menu.price * (1 - discount.discountPercentage! / 100);
+      return Row(
+        children: [
+          Text(
+            '\$${menu.price.toStringAsFixed(2)}',
+            style: const TextStyle(
+              decoration: TextDecoration.lineThrough,
+              color: Colors.grey,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Text('\$${discountedPrice.toStringAsFixed(2)}'),
+        ],
+      );
+    }
+
+    if (discount.discountedPrice != null) {
+      return Row(
+        children: [
+          Text(
+            '\$${menu.price.toStringAsFixed(2)}',
+            style: const TextStyle(
+              decoration: TextDecoration.lineThrough,
+              color: Colors.grey,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Text('\$${discount.discountedPrice!.toStringAsFixed(2)}'),
+        ],
+      );
+    }
+
+    return Text('\$${menu.price.toStringAsFixed(2)}');
+  }
+
+  (Color, Color) _getDiscountColors(DiscountType type, bool isHappyHour) {
+    if (isHappyHour) {
+      return (
+        Colors.yellow[100]!, // 연노란 배경
+        Colors.yellow[800]!, // 진한 노란 텍스트
+      );
+    }
+
+    return switch (type) {
+      DiscountType.event => (
+          Colors.purple[100]!, // 연보라 배경
+          Colors.purple[800]!, // 진한 보라 텍스트
+        ),
+      // 1+1과 묶음할인은 같은 색상
+      DiscountType.buyOneGetOne || DiscountType.bundle => (
+          Colors.blue[100]!, // 연파란 배경
+          Colors.blue[800]!, // 진한 파란 텍스트
+        ),
+      // 정액할인과 비율할인은 같은 색상
+      DiscountType.fixedAmount || DiscountType.percentage => (
+          Colors.red[100]!, // 연빨간 배경
+          Colors.red[800]!, // 진한 빨간 텍스트
+        ),
+    };
+  }
+
+  String _getDiscountTag(DiscountType type, bool isHappyHour) {
+    if (isHappyHour) {
+      return '해피아워';
+    }
+
+    return switch (type) {
+      DiscountType.event => '이벤트',
+      DiscountType.buyOneGetOne => '1+1',
+      DiscountType.bundle => '묶음할인',
+      DiscountType.percentage => '할인',
+      DiscountType.fixedAmount => '특가',
+    };
   }
 
   static _StoreDetailPageState? of(BuildContext context) {

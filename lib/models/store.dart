@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:geolocator/geolocator.dart';
 import '../services/location_service.dart';
+import 'menu_item.dart';
 
 enum StoreCategory {
   happyHour('happy_hour'),
@@ -330,38 +331,6 @@ class Location {
     return {
       'latitude': latitude,
       'longitude': longitude,
-    };
-  }
-}
-
-class MenuItem {
-  final String itemId;
-  final String name;
-  final double price;
-  final String type;
-
-  MenuItem({
-    required this.itemId,
-    required this.name,
-    required this.price,
-    required this.type,
-  });
-
-  factory MenuItem.fromJson(Map<String, dynamic> json) {
-    return MenuItem(
-      itemId: json['itemId']?.toString() ?? json['id']?.toString() ?? '',
-      name: json['name']?.toString() ?? '',
-      price: (json['price'] as num?)?.toDouble() ?? 0.0,
-      type: json['type']?.toString() ?? 'default',
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'itemId': itemId,
-      'name': name,
-      'price': price,
-      'type': type,
     };
   }
 }
