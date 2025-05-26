@@ -16,6 +16,7 @@ import 'pages/profile_page.dart';
 import 'services/event_bus.dart';
 import 'pages/my_stores_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'pages/admin_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -471,6 +472,20 @@ class _HomePageState extends State<HomePage> {
                                 });
                               },
                             ),
+                          if (userRole == 'admin') // 관리자인 경우에만 표시
+                            PopupMenuItem(
+                              child: const Text('관리자 페이지'),
+                              onTap: () {
+                                Future.delayed(Duration.zero, () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => const AdminPage(),
+                                    ),
+                                  );
+                                });
+                              },
+                            ),
                           PopupMenuItem(
                             child: const Text('로그아웃'),
                             onTap: () async {
@@ -546,7 +561,6 @@ class _HomePageState extends State<HomePage> {
                 children: [
                   _buildCategorySection(),
                   _buildFeaturedEvents(),
-                  _buildNearbySpots(),
                 ],
               ),
             ),
@@ -561,6 +575,7 @@ class _HomePageState extends State<HomePage> {
       padding: const EdgeInsets.all(16.0),
       child: GridView.count(
         shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
         crossAxisCount: 3,
         mainAxisSpacing: 16,
         crossAxisSpacing: 16,
@@ -715,37 +730,6 @@ class _HomePageState extends State<HomePage> {
               );
             },
           ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildNearbySpots() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Padding(
-          padding: EdgeInsets.all(16.0),
-          child: Text(
-            '근처 상점',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-          ),
-        ),
-        ListView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: 5,
-          itemBuilder: (context, index) {
-            return ListTile(
-              leading: const Icon(Icons.store),
-              title: Text('상점 ${index + 1}'),
-              subtitle: const Text('위치 정보'),
-              trailing: const Icon(Icons.arrow_forward_ios),
-              onTap: () {
-                // 상점 상세 페이지로 이동
-              },
-            );
-          },
         ),
       ],
     );
